@@ -1,7 +1,23 @@
 [project]
 name = "sanad"
 version = "0.1.0"
-description = "Add your description here"
+description = "RAG system for Sahih Muslim"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "sentence-transformers",
+    "faiss-cpu",
+    "pypdf",
+    "pymupdf",
+    "gradio",
+    "python-dotenv",
+]
+
+[tool.sanad.paths]
+raw_data = "data/raw/muslim.json"
+processed_data = "data/processed/hadiths_flat.json"
+vector_db = "data/processed/chroma_db"
+
+[tool.sanad.model]
+embed_model = "intfloat/multilingual-e5-base"
+llm = "groq/llama-3.1-70b"
