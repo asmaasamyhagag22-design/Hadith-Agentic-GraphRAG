@@ -9,7 +9,7 @@
 {"question": "ماذا تفعل إذا نسيت وأكلت وأنت صائم؟", "type": "matn", "answerable": true, "hadith_ids": [9830, 9877], "matn": "من نسي وهو صائم فأكل أو شرب فليتم صومه فإنما أطعمه الله وسقاه", "verified": true}
 {"question": "لمن تكون النصيحة في الدين؟", "type": "matn", "answerable": true, "hadith_ids": [7380], "matn": "الدين النصيحة. قلنا لمن؟ قال: لله ولكتابه ولرسوله ولأئمة المسلمين وعامتهم", "verified": true}
 {"question": "من هو المسلم الحق كما وصفه النبي؟", "type": "matn", "answerable": true, "hadith_ids": [7346], "matn": "المسلم من سلم المسلمون من لسانه ويده", "verified": true}
-{"question": "ما شرط كمال الإيمان في التعامل مع الآخرين؟", "type": "matn", "answerable": true, "hadith_ids": [7354], "matn": "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه", "verified": true}
+{"question": "ما شرط كمال الإيمان في التعامل مع الآخرين؟", "type": "matn", "answerable": true, "hadith_ids": [7354, 7355], "matn": "لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه", "note": "7355 بلفظ «والذي نفسي بيده لا يؤمن عبد حتى يحب لجاره ما يحب لنفسه» — نفس المعنى.", "verified": true}
 {"question": "ما حكم الغش في البيع؟", "type": "matn", "answerable": true, "hadith_ids": [7466, 7467], "matn": "من غش فليس مني", "note": "7466 بلفظ «ومن غشنا فليس منا». استُبعد 10762: طابق البحث النصي على «من غش» لكنه في الحقيقة «من غشيانهن» — كلمة مختلفة تماما.", "verified": true}
 {"question": "ما فضل الطهارة في الإسلام؟", "type": "matn", "answerable": true, "hadith_ids": [7717], "matn": "الطهور شطر الإيمان والحمد لله تملأ الميزان", "verified": true}
 {"question": "كم عدد شعب الإيمان وأين موقع الحياء منها؟", "type": "matn", "answerable": true, "hadith_ids": [7336, 7337], "matn": "الإيمان بضع وسبعون شعبة والحياء شعبة من الإيمان", "verified": true}

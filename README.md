@@ -1,95 +1,99 @@
 # مُسنَد · Musnad
 
-**Agentic GraphRAG for Hadith verification.** Musnad answers questions from Sahih Muslim with the exact hadith reference, and traces each hadith's chain of transmission (*isnād*) narrator by narrator — attaching every narrator's grading from the classical biographical-criticism literature (*al-jarḥ wa-l-taʿdīl*), each claim cited to its source.
+**Grounded retrieval over Sahih Muslim.** Musnad answers questions from the corpus with the exact hadith number, refuses when the answer is not in the sources, and never cites a hadith it did not retrieve — every claim in this README is either measured or explicitly marked as not yet built.
 
-> «مُسنَد» نظام بيجاوب على أسئلة من **صحيح مسلم** بمصدرها ورقم الحديث، وبيتتبّع **سند** الحديث راوي راوي مع **حكم الجرح والتعديل** لكل راوٍ وبمصدره. المتون في قاعدة بيانات متجهات، والأسانيد في **جراف معرفي** — فأسئلة زي «مين روى الحديث ده وإيه أحكام العلماء على رواته؟» بقى ليها إجابة موثّقة.
-
----
-
-## Why this is not a standard RAG system
-
-Retrieval over hadith text can tell you *what* a hadith says. It cannot tell you *who transmitted it* or *whether those transmitters were considered reliable* — that information does not live in the text at all. It lives in the **structure of the chain**, and in a separate corpus of narrator biographies.
-
-Musnad models both: the texts (*mutūn*) as vectors, the chains (*asānīd*) as a knowledge graph where narrators are nodes and "narrated from" is an edge.
-
-| Question | Vector-only RAG | Musnad |
-|---|---|---|
-| "What do the hadiths say about intention?" | Works | Works |
-| "Which book contains *innamā al-aʿmāl bi-l-niyyāt*?" | Unreliable | Answered via metadata filter |
-| "Who narrated hadith #4, and how did the critics grade each one?" | Fails or hallucinates | Answered from the graph, with sources |
-
-That third row is the reason the project exists.
+> «مُسنَد» نظام بيجاوب على أسئلة من **صحيح مسلم** بمصدرها ورقم الحديث، وبيرفض صراحةً لما الإجابة مش موجودة في المصادر. الهدف النهائي إنه يتتبّع **سند** الحديث راوي راوي بحكم الجرح والتعديل — والجزء ده لسه مش مبني، وموصوف تحت في [Planned](#planned).
 
 ---
 
-## Architecture
+## Status
+
+| | |
+|---|---|
+| **Built and measured** | ingestion · isnād/matn separation · e5 embeddings · BM25 · hybrid RRF retrieval · cross-encoder reranking · grounded generation with enforced citations · two evaluation harnesses |
+| **Built, disabled by default** | CRAG self-grading + one query rewrite — measured, no gain (see [`EXPERIMENTS.md`](EXPERIMENTS.md)) |
+| **Not built yet** | knowledge graph · isnād tracing · agents/router · MCP server · web UI · tracing |
+
+There is no UI and no agent layer yet. The system runs from the command line and is evaluated by scripts.
+
+---
+
+## What it does today
 
 ```mermaid
 flowchart TD
-    Q[User question] --> R{Router}
+    Q[User question] --> N[Strip diacritics]
 
-    R -- "matn (text)" --> MA[Matn Agent]
-    R -- "sanad (chain)" --> SA[Sanad Agent]
-    R -- "both" --> MA & SA
+    N --> D[Dense search<br/>multilingual-e5-base<br/>FAISS inner product]
+    N --> B[BM25<br/>Arabic-normalised tokens]
 
-    subgraph Retrieval
-      MA --> H[Hybrid search<br/>BM25 + dense e5]
-      H --> RR[Cross-encoder reranker<br/>bge-reranker-v2-m3]
-      RR --> G1[Self-grading<br/>is this relevant? 1-5]
-      G1 -- "score &lt; 3" --> RW[Rewrite query<br/>one retry]
-      RW --> H
-    end
+    D --> F[Reciprocal Rank Fusion<br/>on ranks, not scores]
+    B --> F
 
-    subgraph Graph
-      SA --> F[find_hadith]
-      F --> GS[get_sanad<br/>walk the chain]
-      GS --> KG[(Knowledge Graph<br/>narrators = nodes<br/>'narrated from' = edges)]
-    end
+    F --> RR[Cross-encoder rerank<br/>mmarco-mMiniLMv2<br/>top 10 in]
 
-    G1 --> S[Synthesis node]
-    GS --> S
-    S --> A[Answer<br/>every claim + its source]
+    RR --> C[Context: matn only<br/>+ hadith number + book]
+    C --> G[Gemini 2.5 Pro<br/>temperature 0]
 
-    A -.traced by.-> LF[Langfuse]
+    G --> V{Every cited number<br/>present in context?}
+    V -- yes --> A[Answer with sources]
+    V -- no --> R2[Regenerate once]
+    R2 --> V2{valid now?}
+    V2 -- yes --> A
+    V2 -- no --> X[Refuse]
 ```
 
-A router classifies each question and dispatches it to one or both specialised agents, orchestrated as a **LangGraph** state machine with checkpointed conversation memory. A synthesis node merges their outputs under strict grounding constraints.
-
-The same two capabilities — `search_hadith` and `check_sanad` — are also exposed as an **MCP server**, so any MCP-compatible client can use Musnad as a tool.
+The index holds **7,110 documents** from 7,459 hadiths: one per hadith, minus 460 that are cross-references with no matn of their own, plus a small number of length-split parts.
 
 ---
 
-## Technical design decisions
+## Results
 
-**The hadith is the retrieval unit.** No fixed-size chunking. A hadith is already a coherent semantic unit, and blind character-window splitting severs the *isnād* from the text it authenticates. Three representations were compared empirically — *matn* only, *isnād* + *matn*, and chapter-title + *matn* — and the winner was chosen on measured retrieval quality, not intuition.
+Two evaluation sets, each with a distinct job:
 
-**Index without diacritics, display with them.** The corpus mixes vocalised and unvocalised copies of the same text. Diacritics (*tashkīl*) shift embeddings and fragment BM25 tokenisation, so the search layer normalises them away while the response renders the original vocalised text.
+- **`data/raw/golden.jsonl` — 33 hand-written, corpus-verified questions** (27 scored, 3 refusal tests, 3 narrator questions). The reporting set. `src/validate_golden.py` gates every run: each cited hadith id must exist, the quoted matn must actually appear in one of them, and refusal questions' key terms must be genuinely absent from the corpus.
+- **`data/raw/synthetic_eval.jsonl` — 224 generated known-item questions**, used *only* for choosing between configurations, where a 2-point difference on 27 questions is a single question and therefore noise.
 
-**Refusal over fallback.** There is deliberately no web-search escape hatch. When an answer is not present in the approved sources, the system states that plainly rather than reaching for the open internet. In this domain an explicit refusal is both more scholarly and more defensible engineering than a fluent guess.
+**Retrieval** (golden set, n=27):
 
-**Surface ambiguity, never resolve it silently.** Narrator names collide across generations. When a name matches multiple people, Musnad presents the candidates with their *ṭabaqa* rather than picking one. A narrator with no recorded grading returns "not found in the sources" — the system never invents one.
+| Stage | hit@1 | hit@3 | hit@5 | hit@10 | MRR |
+|---|---|---|---|---|---|
+| Dense only | 41% | 56% | 59% | 63% | 0.493 |
+| BM25 only | 33% | 59% | 63% | 67% | 0.464 |
+| Hybrid (RRF) | 44% | 67% | 74% | 85% | 0.565 |
+| **Hybrid + reranking** | **56%** | **74%** | **81%** | 85% | **0.665** |
 
-**Hybrid retrieval with reranking.** Hadith queries mix conceptual questions, where dense retrieval wins, with exact-phrase and proper-name lookups, where lexical search wins. BM25 and dense results are fused with Reciprocal Rank Fusion, then a multilingual cross-encoder reranks the top 20 down to the final context.
+**Answer quality** (30 questions: 27 answerable + 3 refusal tests). All metrics are computed programmatically. Invalid-citation attempts are measured on the raw model output *before* filtering — measuring them afterwards would return zero by construction and mean nothing.
 
-**Entity resolution across sources is measured, not assumed.** Narrator names in the chain dataset do not match the biographical dataset character-for-character. A normalisation pass (definite article, hamza forms, honorifics) drives the match, and the achieved match rate is recorded alongside the unmatched remainder rather than hidden.
+| | Hybrid | **Hybrid + reranking** |
+|---|---|---|
+| Invalid citation attempts | 0% | **0%** |
+| Correct citation | 70% | **81%** |
+| Cited the wrong hadith from context | 13% | **10%** |
+| False refusal (the answer was in context) | 0% | **0%** |
+| Correct refusal on unanswerable questions | 3/3 | **3/3** |
+
+Narrator questions ("who transmitted this, and how was each one graded?") score **0%** and are excluded from the tables above: they are structurally unanswerable from text, which is exactly the gap the planned knowledge graph exists to close.
+
+[`EXPERIMENTS.md`](EXPERIMENTS.md) is the single source of truth for every number, including four negative results, three falsified hypotheses, and the significance tests behind each decision.
 
 ---
 
-## Evaluation
+## Design decisions
 
-The system is measured against a **golden dataset of hand-reviewed question / answer / source triples**, scored with RAGAS (`faithfulness`, `answer_relevancy`, `context_precision`), a purpose-written LLM-as-judge, and manually verified `hit@5`.
+**The matn is the retrieval unit.** Documents are indexed on the matn with the isnād stripped; the chain of transmitters is noise against a question about meaning. Three representations were compared — matn only, isnād+matn, chapter-title+matn — and matn only won on both evaluation sets. Hadiths longer than the token budget are split by length, which affects a small minority; nothing is split at a fixed character window.
 
-A third of the questions are deliberately hard or **unanswerable from the sources** — a system that abstains at the right moment scores higher here than one that improvises.
+**Index without diacritics, display with them.** The e5 tokeniser shatters vocalised Arabic into single characters — 3.59× the token count, with no word-level units left. Search runs on the stripped text; the answer renders the original vocalised matn.
 
-| Stage | hit@5 | faithfulness | Narrator questions |
-|---|---|---|---|
-| Dense retrieval only | — | — | 0% |
-| Hybrid + reranking | — | — | 0% |
-| Agentic + knowledge graph | — | — | —% |
+**Fuse on ranks, not scores.** BM25 scores and cosine similarities are not on a common scale, so Reciprocal Rank Fusion combines the two orderings instead of their values.
 
-Full setups and per-experiment numbers are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+**Rerank the top 10, not the top 20.** `hit@10`, `hit@20` and `hit@50` are all identical at 89% — a deeper candidate list buys nothing but latency.
 
-The final column is the headline result: questions that were structurally impossible for a text-only system become answerable — through the knowledge graph, not through a larger model.
+**Citation validity is enforced in code, not requested in the prompt.** Any hadith number absent from the retrieved context triggers one regeneration; if it fails again the system refuses. It does not silently drop the number — an answer without a source is worse here than an admission of ignorance.
+
+**Refusal over fallback.** There is deliberately no web-search escape hatch. When the answer is not in the approved sources the system says so.
+
+**Every configuration change is measured before it is kept.** Four ideas that seemed reasonable were dropped after measurement showed no gain: chapter-title prefixing, duplicate-matn removal, candidate-pool and RRF-weight tuning, and CRAG self-correction.
 
 ---
 
@@ -98,29 +102,27 @@ The final column is the headline result: questions that were structurally imposs
 | Layer | Choice |
 |---|---|
 | Embeddings | `intfloat/multilingual-e5-base` |
-| Reranking | `BAAI/bge-reranker-v2-m3` (cross-encoder) |
-| Lexical retrieval | BM25 + Reciprocal Rank Fusion |
-| Vector store | ChromaDB (HNSW, cosine) |
-| Knowledge graph | NetworkX |
-| Orchestration | LangGraph |
-| Generation | Groq (Llama) · Google Gemini |
-| Observability | Langfuse |
-| Interoperability | MCP server (FastMCP) |
-| Interface | Gradio |
+| Vector index | FAISS `IndexFlatIP` over L2-normalised vectors (exact search; 7,110 documents does not need an approximate index) |
+| Lexical retrieval | BM25 with Arabic normalisation (diacritics, alef/ya/ta-marbuta, definite article) |
+| Fusion | Reciprocal Rank Fusion |
+| Reranking | `mmarco-mMiniLMv2-L12` — chosen over `bge-reranker-v2-m3` (17× larger) after a paired McNemar test found no significant difference and a 6× speed gap |
+| Generation | Gemini 2.5 Pro via Vertex AI |
+
+`src/chroma_ingest.py` loads the same vectors into ChromaDB. It is a working alternative store that the query path does **not** go through — retrieval uses FAISS.
 
 ---
 
 ## Data
 
-| Path | Contents | Source |
+| Path | Contents | Status |
 |---|---|---|
-| `data/raw/muslim.json` | Sahih Muslim — 57 books, 7,459 hadiths, Arabic text with bilingual metadata | `hadith-json` |
-| `data/isnad/` | Multi-IsnadSet (MIS) — pre-extracted narrator chains | MIS dataset |
-| `data/rijal/` | Narrator biographies and *jarḥ wa taʿdīl* gradings | Kaggle narrators dataset · *Taqrīb al-Tahdhīb* |
+| `data/raw/muslim.json` | Sahih Muslim — 57 books, 7,459 hadiths, Arabic text with bilingual metadata | present |
+| `data/raw/golden.jsonl` | 33 hand-verified evaluation questions | present |
+| `data/raw/synthetic_eval.jsonl` | 224 generated evaluation questions | present |
+| `data/processed/` | chunks, embeddings, id lists | generated, git-ignored |
+| Narrator chains (MIS) and *rijal* gradings | needed for the knowledge graph | **not downloaded yet** |
 
-`data/processed/` holds generated embeddings, indices and the serialised graph, and is git-ignored. Per-source schemas and caveats are documented in [`NOTES.md`](NOTES.md).
-
-Record shape:
+Record shape of the corpus:
 
 ```jsonc
 {
@@ -137,17 +139,24 @@ Record shape:
 
 ```
 sanad/
-├── data/
-│   ├── raw/            # source corpora
-│   └── processed/      # embeddings, indices, graph (generated)
+├── data/raw/                 # corpus + evaluation sets
+├── data/processed/           # generated, git-ignored
 ├── src/
-│   ├── ingest.py       # load, normalise, build the index and the graph
-│   ├── retrieve.py     # hybrid search → RRF → cross-encoder rerank
-│   ├── answer.py       # grounded generation with citations
-│   └── evaluate.py     # golden dataset, RAGAS, LLM-as-judge
-├── notes/              # design and paper notes
-├── EXPERIMENTS.md      # every measured number and the setup behind it
-├── NOTES.md            # data source documentation
+│   ├── config.py             # all paths; each vectors file pairs with an ids file
+│   ├── utils.py              # diacritics, isnād/matn separation, chunking
+│   ├── ingest.py             # corpus → chunks, flags cross-reference-only entries
+│   ├── embed.py              # e5 embeddings
+│   ├── lexical.py            # Arabic BM25 + reciprocal rank fusion
+│   ├── retrieve.py           # dense / lexical / hybrid retrievers
+│   ├── rerank.py             # cross-encoder reranking
+│   ├── answer.py             # grounded generation, citation enforcement, CRAG
+│   ├── evaluate.py           # retrieval metrics over either eval set
+│   ├── answer_eval.py        # answer-error metrics
+│   ├── validate_golden.py    # gate: verifies the ground truth itself
+│   ├── build_eval_set.py     # generates the 224-question set
+│   ├── chroma_ingest.py      # alternative store, not on the query path
+│   └── experiment_*.py       # the comparisons behind EXPERIMENTS.md
+├── EXPERIMENTS.md            # single source of truth for every number
 └── main.py
 ```
 
@@ -157,37 +166,82 @@ sanad/
 
 Requires Python 3.13 and [uv](https://docs.astral.sh/uv/).
 
-**1. Install dependencies**
+**1. Install**
 
 ```bash
 uv sync
 ```
 
-**2. Configure credentials** — create a `.env` file (git-ignored):
+**2. Authenticate** — generation runs on Vertex AI, which uses Application Default Credentials rather than an API key. Create a `.env`:
 
 ```
-GROQ_API_KEY=gsk_...
-GOOGLE_API_KEY=AIza...
-LANGFUSE_PUBLIC_KEY=pk-...
-LANGFUSE_SECRET_KEY=sk-...
+GOOGLE_GENAI_USE_VERTEXAI=True
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=us-central1
 ```
-
-**3. Build the index, then run**
 
 ```bash
-uv run python -m src.ingest && uv run python app.py
+gcloud auth application-default login
 ```
 
-To expose Musnad as an MCP server instead:
+**3. Build the index** — ingest, then build the three representation variants:
 
 ```bash
-uv run python server.py
+uv run python -m src.ingest && uv run python -m src.experiment_variants
 ```
+
+**4. Evaluate** — the ground-truth validator runs first as a gate:
+
+```bash
+uv run python -m src.validate_golden && uv run python -m src.evaluate
+```
+
+**5. Smoke-test the pipeline** — imports, index, retrieval, reranking, one grounded answer, one refusal:
+
+```bash
+uv run python -m src.smoke_test
+```
+
+**6. Ask questions** — runs the pipeline over `data/raw/questions.txt`:
+
+```bash
+uv run python -m src.answer
+```
+
+Answer-error metrics (this one calls the model, so it costs quota):
+
+```bash
+uv run python -m src.answer_eval
+```
+
+### Keeping the docs honest
+
+[`EXPERIMENTS.md`](EXPERIMENTS.md) is the single source of truth for every number, and it records the sha256 of each evaluation dataset. This check fails if a README number is not backed by `EXPERIMENTS.md`, or if a dataset changed without the numbers being re-measured:
+
+```bash
+uv run python -m src.check_docs
+```
+
+---
+
+## Planned
+
+None of the following is built. It is recorded here because it is the point of the project, not because it exists.
+
+- **Knowledge graph of narrators** — narrators as nodes carrying *al-jarḥ wa-l-taʿdīl* gradings, "narrated from" as edges, built from a narrator-chain dataset joined to a *rijal* dataset by normalised name matching with a reported match rate.
+- **Isnād tracing** — `get_sanad(hadith_id)` returning the chain narrator by narrator with each grading and its source, and returning "not found in the sources" rather than guessing when a narrator has no recorded grading.
+- **Ambiguity display** — when a narrator name matches several people, listing the candidates with their *ṭabaqa* instead of silently picking one.
+- **Router and two agents** — a matn agent and a sanad agent behind a classifier, orchestrated as a state machine.
+- **Metadata filtering** — book/chapter constraints applied at retrieval time.
+- **MCP server** — exposing `search_hadith` and `check_sanad` as tools.
+- **Web UI and request tracing.**
+
+The immediate next retrieval step is query expansion: three questions in the golden set are not retrievable by any method at any depth, and their ground truth has been verified as correct, so the failure is a genuine vocabulary gap rather than a bad question.
 
 ---
 
 ## Scope and limitations
 
-Musnad is a **research assistance tool**. It surfaces scholars' recorded statements together with their sources so that a human can verify them. It does not issue rulings and is not a fatwa authority.
+Musnad is a **research assistance tool**. It surfaces recorded statements together with their sources so a human can verify them. It does not issue rulings and is not a fatwa authority.
 
-Gradings and attributions are reproduced from published classical sources; where a source is silent, the system reports the gap rather than filling it. Coverage is currently limited to Sahih Muslim, and narrator resolution is bounded by the match rate reported in `EXPERIMENTS.md`.
+Coverage is limited to Sahih Muslim. Retrieval finds the right hadith in the top 5 for 81% of the hand-verified questions, so roughly one question in five is answered from an incomplete context — the system's refusal behaviour is what keeps that from becoming a fabricated answer.

@@ -49,7 +49,13 @@ class Counter:
         return sum(1 for r in rows if r.get(key)) / len(rows), len(rows)
 
 
-def evaluate_answers(retriever, items, k=DEFAULT_K, enforce_citations=True):
+def evaluate_answers(
+    retriever,
+    items,
+    k=DEFAULT_K,
+    enforce_citations=True,
+    self_correct=False,
+):
 
     counter = Counter()
 
@@ -60,6 +66,7 @@ def evaluate_answers(retriever, items, k=DEFAULT_K, enforce_citations=True):
             retriever,
             k=k,
             enforce_citations=enforce_citations,
+            self_correct=self_correct,
         )
 
         answer = details["answer"]
@@ -87,6 +94,7 @@ def evaluate_answers(retriever, items, k=DEFAULT_K, enforce_citations=True):
             correct_citation=bool(cited & gold_ids),
             answer=answer,
             raw=details["raw"],
+            retried=details.get("retried", False),
         )
 
     return counter
@@ -117,7 +125,12 @@ def report(label, counter):
         print(f"  {name:<32} {rate:>5.0%}   ({total} questions)")
 
 
-def main(k=DEFAULT_K):
+def main(k=DEFAULT_K, rerankers=()):
+    """
+    بيقارن نفس المولّد على إعدادات استرجاع مختلفة — السؤال
+    اللي بيجاوب عنه: هل تحسين الاسترجاع بيتحوّل فعلاً
+    لإجابات أصح، ولا الطبقة اللغوية هي عنق الزجاجة؟
+    """
 
     items = load_golden(GOLDEN_PATH)
 
@@ -125,26 +138,48 @@ def main(k=DEFAULT_K):
     # في أسبوع 2 لما الجراف يشتغل.
     items = [i for i in items if i.get("type") != "narrator"]
 
-    retrievers = dict(build_retrievers())
-
-    retriever = retrievers["Hybrid: dense + BM25"]
-
     from answer import MODEL
 
     print(f"Answer evaluation — {len(items)} questions, k={k}")
     print(f"Generator: {MODEL}")
 
-    counter = evaluate_answers(retriever, items, k=k)
+    wanted = ["Hybrid: dense + BM25"] + [
+        f"Hybrid + {name.split('/')[-1]}" for name in rerankers
+    ]
 
-    report("Hybrid retrieval", counter)
+    retrievers = dict(build_retrievers(rerankers))
 
-    print("\nAnswers that cited something not in context:\n")
+    # آخر إعداد استرجاع كمان بالتقييم الذاتي — عشان نعرف
+    # هل CRAG بيضيف حاجة فوق الاسترجاع الأحسن ولا لأ.
+    configurations = [(label, retrievers[label], False) for label in wanted]
 
-    for row in counter.rows:
-        if row["invalid_citation"]:
-            print(f"  • {row['question']}")
-            print(f"    {row['answer'][:160]}\n")
+    configurations.append(
+        (f"{wanted[-1]} + CRAG", retrievers[wanted[-1]], True)
+    )
+
+    for label, retriever, self_correct in configurations:
+
+        counter = evaluate_answers(
+            retriever, items, k=k, self_correct=self_correct
+        )
+
+        report(label, counter)
+
+        if self_correct:
+            retried = sum(1 for r in counter.rows if r["retried"])
+            print(f"  {'rewrote and retried':<32} {retried} questions")
+
+        for row in counter.rows:
+            if row["invalid_citation"]:
+                print(f"\n  invented a citation: {row['question']}")
+                print(f"    {row['raw'][:160]}")
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_K)
+
+    args = sys.argv[1:]
+
+    main(
+        k=int(args[0]) if args else DEFAULT_K,
+        rerankers=args[1:],
+    )

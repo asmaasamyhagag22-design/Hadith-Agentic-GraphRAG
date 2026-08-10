@@ -157,7 +157,15 @@ class HybridRetriever:
     مباشرة بيبقى بلا معنى.
     """
 
-    def __init__(self, dense, bm25, candidates=50, rrf_k=60):
+    def __init__(
+        self,
+        dense,
+        bm25,
+        candidates=50,
+        rrf_k=60,
+        dense_weight=1.0,
+        bm25_weight=1.0,
+    ):
 
         if list(dense.chunk_ids) != list(bm25.chunk_ids):
             raise ValueError(
@@ -168,6 +176,8 @@ class HybridRetriever:
         self.bm25 = bm25
         self.candidates = candidates
         self.rrf_k = rrf_k
+        self.dense_weight = dense_weight
+        self.bm25_weight = bm25_weight
 
     @property
     def chunk_lookup(self):
@@ -185,6 +195,7 @@ class HybridRetriever:
         fused = reciprocal_rank_fusion(
             [dense_ids, lexical_ids],
             k=self.rrf_k,
+            weights=[self.dense_weight, self.bm25_weight],
         )
 
         results = []

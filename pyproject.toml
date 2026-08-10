@@ -1,16 +1,19 @@
 [project]
 name = "sanad"
 version = "0.1.0"
-description = "Agentic GraphRAG over Sahih Muslim: grounded answers plus isnad tracing"
+description = "Grounded RAG over Sahih Muslim, with isnad tracing planned on top"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "sentence-transformers",
-    "faiss-cpu",
+    # retrieval
+    "sentence-transformers",  # e5 embeddings + cross-encoder reranking
+    "faiss-cpu",              # the vector index actually used at query time
     "rank-bm25",
-    "chromadb",
-    "google-genai",
-    "einops",
+    "numpy",
+    # generation
+    "google-genai",           # Gemini via Vertex AI
     "python-dotenv",
-    "gradio",
+    # only used by src/chroma_ingest.py, an alternative store that the
+    # query path does not go through — see README
+    "chromadb",
 ]

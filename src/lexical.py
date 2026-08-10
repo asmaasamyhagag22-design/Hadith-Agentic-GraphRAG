@@ -80,20 +80,32 @@ class BM25Index:
         return [self.chunk_ids[i] for i in order]
 
 
-def reciprocal_rank_fusion(rank_lists, k=60):
+def reciprocal_rank_fusion(rank_lists, k=60, weights=None):
     """
     بتدمج قوايم مرتبة من بواحث مختلفة من غير ما تحتاج
-    تعاير درجاتهم — كل قايمة بتساهم بـ 1/(k + rank).
+    تعاير درجاتهم — كل قايمة بتساهم بـ weight/(k + rank).
 
     الثابت k=60 بيقلل تأثير المراكز الأولى الشاذة، وهو
     الرقم المستخدم في الورقة الأصلية.
+
+    weights: وزن لكل قايمة بنفس الترتيب. الافتراضي متساوي.
+    بيسمح نرجّح BM25 على الدلالي أو العكس — الاتنين
+    بيكسبوا في أنواع أسئلة مختلفة.
     """
+
+    if weights is None:
+        weights = [1.0] * len(rank_lists)
+
+    if len(weights) != len(rank_lists):
+        raise ValueError(
+            f"Got {len(weights)} weights for {len(rank_lists)} rank lists."
+        )
 
     scores = {}
 
-    for ranks in rank_lists:
+    for ranks, weight in zip(rank_lists, weights):
 
         for rank, doc_id in enumerate(ranks):
-            scores[doc_id] = scores.get(doc_id, 0) + 1 / (k + rank + 1)
+            scores[doc_id] = scores.get(doc_id, 0) + weight / (k + rank + 1)
 
     return sorted(scores, key=scores.get, reverse=True)

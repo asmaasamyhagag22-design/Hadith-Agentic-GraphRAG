@@ -23,8 +23,19 @@ from experiment_variants import variant_text
 from utils import strip_diacritics
 
 BGE = "BAAI/bge-reranker-v2-m3"
+MMARCO = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+
+# دول اتجربوا وفشلوا: كودهم المخصص مش متوافق مع نسخة
+# transformers المثبتة (تفاصيل في EXPERIMENTS.md).
 JINA = "jinaai/jina-reranker-v2-base-multilingual"
 GTE = "Alibaba-NLP/gte-multilingual-reranker-base"
+
+# اختبار McNemar المزدوج ما لقاش فرق معنوي بين MMARCO
+# وBGE على أي مقياس (hit@1 على 224 سؤال: 11 مقابل 11،
+# p=1.00). وMMARCO أصغر 17 مرة وأسرع ~6 مرات — 0.5 ثانية
+# مقابل 3 ثواني لكل سؤال على CPU، وده الفرق بين واجهة
+# تفاعلية وواجهة بطيئة.
+DEFAULT_MODEL = MMARCO
 
 DEFAULT_TOP_K_IN = 10
 
@@ -35,7 +46,7 @@ MAX_LENGTH = 512
 _models = {}
 
 
-def get_reranker(model_name=BGE):
+def get_reranker(model_name=DEFAULT_MODEL):
     """تحميل كسول، ونسخة واحدة لكل موديل زي utils.get_model."""
 
     if model_name not in _models:
@@ -71,7 +82,7 @@ class RerankingRetriever:
     def __init__(
         self,
         base,
-        model_name=BGE,
+        model_name=DEFAULT_MODEL,
         top_k_in=DEFAULT_TOP_K_IN,
         chunk_lookup=None,
     ):

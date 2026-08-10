@@ -1,12 +1,33 @@
-with open(PROCESSED_CHUNKS_PATH, "r", encoding="utf-8") as f:
-    processed_chunks = json.load(f)
+"""فحص يدوي: يعرض أجزاء حديث معيّن بعد الـ ingest."""
 
-count = 0
-for chunk in processed_chunks:
-    if str(chunk["id"]).startswith("7278"):
-        print(chunk["id"])
-        print(chunk["text"][:300])
-        print("=" * 80)
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from embed import load_chunks
+from utils import split_isnad_matn
+
+
+def main(hadith_id):
+
+    count = 0
+
+    for chunk in load_chunks():
+
+        if chunk["metadata"]["hadith_number"] != hadith_id:
+            continue
+
         count += 1
 
-print("Number of chunks:", count)
+        print(f"--- {chunk['id']} "
+              f"(reference_only={chunk['metadata']['reference_only']}) ---")
+        print("full:", chunk["text"][:200])
+        print("matn:", split_isnad_matn(chunk["text"])[:200])
+        print()
+
+    print(f"chunks for hadith {hadith_id}: {count}")
+
+
+if __name__ == "__main__":
+    main(int(sys.argv[1]) if len(sys.argv) > 1 else 7278)

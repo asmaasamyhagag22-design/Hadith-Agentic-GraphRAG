@@ -5,9 +5,14 @@ build/
 dist/
 wheels/
 *.egg-info
+*.pyc
 
 # Virtual environments
 .venv/
+.venv*/
 .env
-*.pyc
-data/processed/        
+
+# Generated artefacts — rebuilt by `python -m src.ingest`
+# and `python -m src.experiment_variants`
+data/processed/
+data/database/
