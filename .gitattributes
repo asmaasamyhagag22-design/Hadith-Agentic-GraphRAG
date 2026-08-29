@@ -1,0 +1,6 @@
+# Evaluation identity depends on exact bytes: src/check_docs.py hashes the
+# datasets under data/raw/, so a checkout must not decide their line endings.
+# Only the three evaluation datasets are tracked here; nothing generated or
+# vendored matches these rules.
+*.json  text eol=lf
+*.jsonl text eol=lf

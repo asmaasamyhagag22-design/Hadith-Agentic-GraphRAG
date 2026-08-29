@@ -9,6 +9,12 @@ EXPERIMENTS.md هو مصدر الحقيقة للأرقام. الملف ده بي
 الحاجة التانية هي الأهم: لو اتعدّل golden.jsonl والأرقام
 فضلت مكانها، الفرق بعد شهر هيبان كأنه تحسّن في النظام وهو
 تغيير في البيانات.
+
+البصمة بتتحسب على نص canonical: CRLF بيتحوّل لـ LF قبل
+SHA-256. من غير الخطوة دي نفس الـ commit بيدي بصمة مختلفة
+على ويندوز وعلى لينكس، فالبوابة كانت بتفشل من غير ما تتغير
+أي بيانات. مفيش أي تطبيع تاني — تغيير حرف واحد أو ترتيب
+سطر أو رقم حديث بيغيّر البصمة زي ما هو مطلوب.
 """
 
 import sys
@@ -31,14 +37,61 @@ HASH_PREFIX = 16
 _PERCENT = re.compile(r"\b\d{1,3}%")
 _DECIMAL = re.compile(r"\b0\.\d{3}\b")
 
+# خلية البصمة في جدول «نسخة القياس» — بالضبط HASH_PREFIX رقم
+# ست عشري بين علامتي `. البصمات الكاملة (64) في تجارب تانية
+# مش بتطابق، وده مقصود: كل ملف بيتقارن بالخلية بتاعته هو.
+_HASH_CELL = re.compile(r"`([0-9a-f]{%d})`" % HASH_PREFIX)
+
 # جداول النتايج في README محصورة بين العنوانين دول
 _RESULTS_START = "## Results"
 _RESULTS_END = "## Design decisions"
 
 
-def short_hash(path):
+def canonical_bytes(data):
+    """
+    نفس النص = نفس البايتات، مهما كان اصطلاح نهاية السطر.
 
-    return hashlib.sha256(path.read_bytes()).hexdigest()[:HASH_PREFIX]
+    ده التطبيع الوحيد المسموح بيه. الترتيب والمسافات جوه
+    السطر وقيم البيانات بتفضل زي ما هي.
+    """
+
+    return data.replace(b"\r\n", b"\n")
+
+
+def canonical_hash(path):
+
+    return hashlib.sha256(
+        canonical_bytes(path.read_bytes())
+    ).hexdigest()[:HASH_PREFIX]
+
+
+def recorded_hash(experiments, name):
+    """
+    بيجيب البصمة المسجّلة للملف ده تحديدًا.
+
+    الإصدار القديم كان بيدوّر على البصمة في المستند كله، فأي
+    بصمة مسجّلة في أي تجربة تانية كانت بتعدّي البوابة. هنا
+    السطر لازم يذكر الملف نفسه.
+    """
+
+    needle = f"`data/raw/{name}`"
+
+    found = [
+        digest
+        for line in experiments.splitlines() if needle in line
+        for digest in _HASH_CELL.findall(line)
+    ]
+
+    if not found:
+        return None
+
+    if len(set(found)) > 1:
+        raise SystemExit(
+            f"{EXPERIMENTS.name} records more than one hash for {name}: "
+            f"{sorted(set(found))}"
+        )
+
+    return found[0]
 
 
 def results_section(text):
@@ -91,12 +144,21 @@ def check_hashes():
 
     for path in TRACKED_FILES:
 
-        digest = short_hash(path)
+        digest = canonical_hash(path)
+        expected = recorded_hash(experiments, path.name)
 
-        if digest not in experiments:
+        if expected is None:
             print(
-                f"✗ {path.name} has hash {digest}, which EXPERIMENTS.md "
-                f"does not record — the dataset changed but the numbers "
+                f"✗ {path.name} has no recorded hash in "
+                f"{EXPERIMENTS.name} — every evaluation dataset must be "
+                f"pinned to the numbers measured on it"
+            )
+            ok = False
+
+        elif digest != expected:
+            print(
+                f"✗ {path.name} hashes to {digest}, but {EXPERIMENTS.name} "
+                f"records {expected} — the dataset changed but the numbers "
                 f"were not re-measured"
             )
             ok = False
