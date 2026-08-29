@@ -10,6 +10,8 @@ dependencies = [
     "faiss-cpu",              # the vector index actually used at query time
     "rank-bm25",
     "numpy",
+    # linkage/data audits read the downloaded MIS workbooks
+    "openpyxl",
     # generation
     "google-genai",           # Gemini via Vertex AI
     "python-dotenv",

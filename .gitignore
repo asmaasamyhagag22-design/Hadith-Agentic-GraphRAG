@@ -16,3 +16,7 @@ wheels/
 # and `python -m src.experiment_variants`
 data/processed/
 data/database/
+
+# Third-party datasets, re-downloadable and under their own licences
+# (MIS is CC BY 4.0; Itqan's data licence is not yet established)
+data/raw/external/
