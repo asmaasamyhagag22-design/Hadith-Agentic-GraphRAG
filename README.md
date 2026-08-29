@@ -120,7 +120,7 @@ Narrator questions ("who transmitted this, and how was each one graded?") score 
 | `data/raw/golden.jsonl` | 33 hand-verified evaluation questions | present |
 | `data/raw/synthetic_eval.jsonl` | 224 generated evaluation questions | present |
 | `data/processed/` | chunks, embeddings, id lists | generated, git-ignored |
-| Narrator chains (MIS) and *rijal* gradings | needed for the knowledge graph | **not downloaded yet** |
+| Narrator chains (MIS) and Itqan *rijal* profiles | present locally under `data/raw/external/`, git-ignored; acquisition/provenance in [`DATA_SOURCES.md`](DATA_SOURCES.md) | **data present; graph and entity resolution not built** |
 
 Record shape of the corpus:
 
