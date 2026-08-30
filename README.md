@@ -66,7 +66,9 @@ Two evaluation sets, each with a distinct job:
 | Hybrid (RRF) | 44% | 67% | 74% | 85% | 0.565 |
 | **Hybrid + reranking** | **56%** | **74%** | **81%** | 85% | **0.665** |
 
-**Answer quality** (30 questions: 27 answerable + 3 refusal tests). All metrics are computed programmatically. Invalid-citation attempts are measured on the raw model output *before* filtering — measuring them afterwards would return zero by construction and mean nothing.
+**Answer quality** (golden set: 27 answerable + 3 refusal tests). All metrics are computed programmatically. Invalid-citation attempts are measured on the raw model output *before* filtering — measuring them afterwards would return zero by construction and mean nothing.
+
+**The denominators differ by metric**, and are taken from `answer_eval.report()` rather than assumed: correct citation is over the **27 answerable** questions; invalid and wrong-in-context citation over **all 30**; false refusal over the questions whose gold hadith actually reached the context (**20** hybrid, **22** reranked); correct refusal over the **3** refusal tests. So 81% correct citation means 22/27, not 81% of 30.
 
 | | Hybrid | **Hybrid + reranking** |
 |---|---|---|
@@ -90,7 +92,7 @@ Narrator questions ("who transmitted this, and how was each one graded?") score 
 
 **Fuse on ranks, not scores.** BM25 scores and cosine similarities are not on a common scale, so Reciprocal Rank Fusion combines the two orderings instead of their values.
 
-**Rerank the top 10, not the top 20.** `hit@10`, `hit@20` and `hit@50` are all identical at 89% — a deeper candidate list buys nothing but latency.
+**Rerank the top 10, not the top 20.** An earlier version of this line claimed `hit@10`, `hit@20` and `hit@50` were all identical at 89%. They are not: the hybrid ceiling is `hit@10` 23/27 (85%) against `hit@20` = `hit@50` 24/27 (89%) — a one-question difference. The real reason is measured precision, not an equal ceiling: varying only the candidate depth leaves `hit@1` at exactly 15/27 for depths 10, 20 and 50, while `hit@5` *falls* from 22/27 to 21/27 to 20/27. A deeper list costs latency and buys nothing.
 
 **Citation validity is enforced in code, not requested in the prompt.** Any hadith number absent from the retrieved context triggers one regeneration; if it fails again the system refuses. It does not silently drop the number — an answer without a source is worse here than an admission of ignorance.
 
@@ -245,7 +247,7 @@ narrator identity or reliability.
 - **MCP server** — exposing `search_hadith` and `check_sanad` as tools.
 - **Web UI and request tracing.**
 
-The immediate next retrieval step is query expansion: three questions in the golden set are not retrievable by any method at any depth, and their ground truth has been verified as correct, so the failure is a genuine vocabulary gap rather than a bad question.
+Three questions in the golden set are missed by dense, BM25 and hybrid retrieval alike at every depth measured up to 50, and all three have verified ground truth — so the failure is a genuine vocabulary gap rather than a bad question. Query expansion is a **hypothesis** for closing it and has **not been validated**; the cases are recorded in [`EXPERIMENTS.md`](EXPERIMENTS.md) §20. The next engineering work on this project is the agentic layer, not retrieval.
 
 ---
 
@@ -253,4 +255,6 @@ The immediate next retrieval step is query expansion: three questions in the gol
 
 Musnad is a **research assistance tool**. It surfaces recorded statements together with their sources so a human can verify them. It does not issue rulings and is not a fatwa authority.
 
-Coverage is limited to Sahih Muslim. Retrieval finds the right hadith in the top 5 for 81% of the hand-verified questions, so roughly one question in five is answered from an incomplete context — the system's refusal behaviour is what keeps that from becoming a fabricated answer.
+Coverage is limited to Sahih Muslim. Retrieval finds the right hadith in the top 5 for 81% of the hand-verified questions, so roughly one question in five is answered from an incomplete context.
+
+Two failure modes must be kept apart. Citation enforcement prevents the first — a citation to a hadith **outside** the supplied evidence — and invalid citation attempts measure 0%. It does **not** prevent the second: retrieval error can still yield a confident answer citing the **wrong hadith from within** the retrieved context, measured at 10% of questions with reranking (13% without). Refusal covers the case where nothing relevant was retrieved at all; it does not make a wrong in-context citation impossible.

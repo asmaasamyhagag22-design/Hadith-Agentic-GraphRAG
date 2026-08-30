@@ -7,10 +7,23 @@
 السلبية مكتوبة زي الإيجابية — التجربة اللي ما نفعتش معلومة
 برضه.
 
-**النطاق:** كل ما يلي يخص مسار الاسترجاع والإجابة النصية
-المبني فعليًا. الجراف المعرفي وتتبّع الأسانيد والوكلاء وMCP
-**غير مبنية**، ولا توجد لها أرقام هنا — قائمتها في قسم
-[Planned](README.md#planned) من الـ README.
+**النطاق.** الملف بيغطي مرحلتين مقيستين، وكل واحدة ليها
+لقطتها:
+
+* **الأقسام 1–9** — مسار الاسترجاع والإجابة النصية. أرقامها
+  كلها بتخص لقطة القياس المذكورة تحت، والتاريخ اللي فيها
+  يخص اللقطة دي وحدها مش المستند كله.
+* **الأقسام 10–19** — الربط وتحليل الهوية والجراف
+  الاستنتاجي. كل قسم فيها بيسجّل قياسه ولقطته بنفسه.
+
+**اللي مبني فعلًا:** مسار RAG الاسترجاعي · جراف السند
+الاستنتاجي على هويات MIS · جسر الحديث المحلي ↔ MIS · سطح
+سياق السند القرائي.
+
+**اللي لسه مش مبني:** هوية الراوي التاريخية (بوابة فرز
+الكيانات مقفولة) · ربط تقييمات الجرح والتعديل من Itqan ·
+أي راوتر أو LangGraph أو وكيل. مفيش أرقام هنا لأي حاجة
+من دول.
 
 ---
 
@@ -38,6 +51,32 @@
 | التوليد | `gemini-2.5-pro` عبر Vertex، `temperature=0` |
 
 `src/check_docs.py` بيتحقق إن البصمات دي لسه مطابقة للملفات، وبيفشل لو اتغيرت من غير ما الأرقام تتحدّث.
+
+**السجل القانوني للنتايج.** الكتلة دي هي اللي جداول README
+بتتقارن بيها خانة بخانة. المقارنة على (جدول، صف، مقياس) مش
+على الرقم لوحده، وكل نسبة معاها المقام اللي اتحسبت عليه —
+عشان رقم صحيح منسوب لمقياس غلط ما يعدّيش. `section=` بيربط
+كل صف بقسمه هنا، و`check_docs` بيتأكد إن القيمة موجودة في
+القسم ده بالذات.
+
+المقامات مش واحدة عبر الجدول، وده مقصود ومقروء من
+`answer_eval.report()`: الاستشهاد الصحيح بيتحسب على الأسئلة
+القابلة للإجابة (27)، والاستشهاد الباطل والخاطئ على كل
+الأسئلة (30)، والرفض الكاذب على الأسئلة اللي وصل فيها
+الحديث الصح للسياق (20 للهجين، 22 مع إعادة الترتيب).
+
+```canonical-results
+# table | row_id | README row label | meta | metric=value[@denominator]
+retrieval_golden | dense_matn | Dense only | dataset=golden.jsonl n=27 section=5 | hit@1=41%@27 hit@3=56%@27 hit@5=59%@27 hit@10=63%@27 MRR=0.493
+retrieval_golden | bm25_matn | BM25 only | dataset=golden.jsonl n=27 section=5 | hit@1=33%@27 hit@3=59%@27 hit@5=63%@27 hit@10=67%@27 MRR=0.464
+retrieval_golden | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl n=27 section=5 | hit@1=44%@27 hit@3=67%@27 hit@5=74%@27 hit@10=85%@27 MRR=0.565
+retrieval_golden | hybrid_rerank | Hybrid + reranking | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
+answer_quality | invalid_citation | Invalid citation attempts | dataset=golden.jsonl section=9 | Hybrid=0%@30 Hybrid_+_reranking=0%@30
+answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=9 | Hybrid=70%@27 Hybrid_+_reranking=81%@27
+answer_quality | wrong_citation | Cited the wrong hadith from context | dataset=golden.jsonl section=9 | Hybrid=13%@30 Hybrid_+_reranking=10%@30
+answer_quality | false_refusal | False refusal (the answer was in context) | dataset=golden.jsonl section=9 | Hybrid=0%@20 Hybrid_+_reranking=0%@22
+answer_quality | refusal_tests | Correct refusal on unanswerable questions | dataset=golden.jsonl section=9 | Hybrid=3/3 Hybrid_+_reranking=3/3
+```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
 نفس اللقطة النصية تدّي نفس البصمة على ويندوز ولينكس وماك. قبل
@@ -235,8 +274,27 @@ BM25 (بتقطيع عربي: تطبيع، وشيل «ال» التعريف) + ب
 
 ## 6. إعادة الترتيب (Reranker)
 
-إعادة ترتيب أول **10** نتايج من الهجين. (أول 10 لأن
-`hit@10 = hit@20 = hit@50 = 89%` — نفس السقف بنص التكلفة.)
+إعادة ترتيب أول **10** نتايج من الهجين.
+
+**ليه 10؟ (مقيس، وتصحيح لصياغة قديمة).** كان مكتوب هنا إن
+`hit@10 = hit@20 = hit@50 = 89%`، وده **غلط**: سقف الهجين
+على المجموعة اليدوية هو `hit@10 = 23/27 = 85.19%` بينما
+`hit@20 = hit@50 = 24/27 = 88.89%` — أي فرق **سؤال واحد**،
+وهو نفس الفرق اللي القسم 7 بيقول إنه ضوضاء.
+
+التعميق ما بيحسّنش الترتيب الأعلى. بنفس الـ reranker
+(mmarco) مع تغيير عمق المرشحين وحده:
+
+| top_k_in | hit@1 | hit@3 | hit@5 | MRR |
+|---|---|---|---|---|
+| **10** (المستخدم) | 15/27 | 20/27 | **22/27** | 0.665 |
+| 20 | 15/27 | 20/27 | 21/27 | 0.671 |
+| 50 | 15/27 | 20/27 | 20/27 | 0.658 |
+
+`hit@1` واحد بالظبط في التلاتة، و`hit@5` **بينزل** كل ما
+القائمة تعمق. فالسبب الحقيقي للعمق 10 هو دقة مقيسة أعلى في
+أول 5 وزمن أقل، مش تساوي السقوف. القيمة المستخدمة في الكود
+(`DEFAULT_TOP_K_IN = 10`) ما اتغيرتش.
 
 **golden — 27 سؤال**
 
@@ -1296,7 +1354,7 @@ entry. Source/key plus death conflict remains unresolved.
 | unique suspected profile sets | 9,370 |
 | profiles in suspected profile sets | 36,713 |
 | strongly supported duplicate profile sets | 445 |
-| strongly supported distinct-person sets | 1,524 |
+| strongly supported distinct-person sets (unique profile-ID sets) | 1,524 |
 | unresolved profile-multiplicity sets | 7,401 |
 | suspected sets containing strong death contradictions | 3,951 |
 
@@ -1746,17 +1804,30 @@ Seven rules were defined and exercised against the 19,757 audited groups. The
 decisive column is the third: a rule that fires on sets the audit already
 supports as *distinct people* would manufacture false merges.
 
-| rule | triggered | on strongly-distinct sets | abstention | status |
-|---|---:|---:|---:|---|
-| R-01 shared upstream record key | 983 | 0 | 95.0% | REJECTED |
-| R-02 full biography agreement | 806 | 0 | 95.9% | NEEDS_MORE_EVIDENCE |
-| R-03 Itqan native identity fields | not testable here | — | — | REJECTED |
-| R-04 adjacent IDs, same name and death | 9 | 0 | 99.95% | SAFE_FOR_FURTHER_VALIDATION |
-| R-05 arsanad_restore stub absorption | 171 | 0 | 99.1% | NEEDS_MORE_EVIDENCE |
-| R-06 relational neighbourhood overlap | 3,165 | **305** | 84.0% | DOMAIN_EXPERT_REQUIRED |
-| R-07 exact name equality alone | 19,253 | **1,569** | 2.6% | REJECTED |
+**Units.** The audit emits **grouping records**, not profile sets: one set of
+profile IDs can appear under more than one grouping key, so the same set is
+counted once per key. The corpus holds 19,757 grouping records over 19,410
+unique profile-ID sets. In the distinct-person class specifically, 1,569
+records — 468 under `NARROW_CANONICAL_NAME` and 1,101 under
+`NARROW_EXACT_REPRESENTATION` — collapse to **1,524 unique profile-ID sets**,
+which is the figure §14 reports. Both numbers are correct; they count different
+things, and neither may be called "sets" without qualification.
 
-R-07 fires on *every* strongly-distinct set in the corpus while abstaining on
+Both views are reported below. Neither is precision or accuracy: no adjudicated
+historical-person labels exist.
+
+| rule | triggered records | triggered sets | strongly-distinct records | strongly-distinct sets | abstention | status |
+|---|---:|---:|---:|---:|---:|---|
+| R-01 shared upstream record key | 983 | 837 | 0 | 0 | 95.0% | REJECTED |
+| R-02 full biography agreement | 806 | 796 | 0 | 0 | 95.9% | NEEDS_MORE_EVIDENCE |
+| R-03 Itqan native identity fields | not testable here | — | — | — | — | REJECTED |
+| R-04 adjacent IDs, same name and death | 9 | 9 | 0 | 0 | 99.95% | SAFE_FOR_FURTHER_VALIDATION |
+| R-05 arsanad_restore stub absorption | 171 | 171 | 0 | 0 | 99.1% | NEEDS_MORE_EVIDENCE |
+| R-06 relational neighbourhood overlap | 3,165 | 3,036 | **305** | **280** | 84.0% | DOMAIN_EXPERT_REQUIRED |
+| R-07 exact name equality alone | 19,253 | 19,036 | **1,569** | **1,524** | 2.6% | REJECTED |
+
+R-07 fires on *every* strongly-distinct set in the corpus — all 1,524 of them,
+under 1,569 grouping records — while abstaining on
 almost nothing — the exact collision behaviour the whole audit exists to
 prevent. R-06 touching 305 of them shows a shared teacher list is not identity
 evidence either. R-03 could not be exercised on the group payload; reporting it
@@ -2369,3 +2440,177 @@ The deterministic foundation is complete. **ENTITY-RESOLUTION GATE REMAINS
 CLOSED** — no Itqan profile, grading, candidate identity edge or
 `HistoricalNarrator` is reachable from this surface, and a test asserts none of
 those words appears in its output.
+
+---
+
+## 20. Pre-Agentic Integrity Audit Repair
+
+An independent pre-handoff audit raised eight suspected inconsistencies. Each
+was checked against repository truth before anything was edited. Six were
+confirmed, one was reconciled as a units problem with both numbers correct, and
+one claim turned out to be supported but undocumented.
+
+**No measured result changed and no runtime behaviour changed.** Where a number
+moves below, it is because a *documented claim* was wrong, not because an
+experiment was re-run differently. All frozen identities were re-verified
+afterwards and are unchanged.
+
+### A — scope header contradicted the later sections
+
+**Before:** the header declared that the knowledge graph, isnad tracing, agents
+and MCP were "not built, and there are no numbers for them here", while §17–19
+document a built sanad graph, a local↔MIS bridge and a context surface with
+measured numbers. The single measurement date also read as dating the whole
+document.
+
+**After:** the header separates §1–9 (the retrieval and answer path, covered by
+the dated snapshot below it) from §10–19 (each carrying its own measurement),
+and states the true boundary: RAG path, sanad graph, local↔MIS bridge and
+context surface built; historical narrator identity, Itqan grading integration
+and any router/LangGraph/agent not built.
+
+### B — 1,524 versus 1,569: units, not a contradiction
+
+**Root cause:** the audit emits **grouping records**, not profile sets. One set
+of profile IDs appears once per grouping key, so a set with both a canonical-name
+key and an exact-representation key is counted twice.
+
+**Measured:** 19,757 grouping records over 19,410 unique profile-ID sets. In the
+distinct-person class, 1,569 records — 468 `NARROW_CANONICAL_NAME` plus 1,101
+`NARROW_EXACT_REPRESENTATION` — collapse to 1,524 unique sets. The same holds
+elsewhere: 570 duplicate-class records → 445 sets; 17,618 unresolved records →
+17,450 sets.
+
+**After:** both numbers are retained and labelled by unit, and §16's rule table
+now reports triggered records and triggered unique sets side by side. Neither is
+precision: no adjudicated historical-person labels exist.
+
+### C — check_docs compared a set of numbers
+
+**Root cause:** the checker extracted percentages and MRR values into a set and
+asserted every README number appeared *somewhere* in EXPERIMENTS. A correct
+number attached to the wrong metric passed; so did swapping two percentages
+between metrics, or renaming a metric while leaving a valid number; denominators
+were never checked at all.
+
+**After:** a single `canonical-results` block inside EXPERIMENTS — not a second
+file, so there is still one source of truth — records each README row as
+`(table, row_id, label, metadata, metric=value@denominator)`. The checker now
+validates 30 README cells against it by `(table, row, metric)`, confirms each
+canonical value appears in the EXPERIMENTS **section it declares**, and requires
+every rate to carry a denominator. Dataset-hash checking is unchanged. Tests
+assert it fails on a swapped value, a renamed metric, a wrong denominator and a
+misattributed section.
+
+### D — the reranker-depth claim was wrong
+
+**Before:** "`hit@10` = `hit@20` = `hit@50` = 89% — a deeper candidate list buys
+nothing but latency", in both §6 and the README.
+
+**Evidence:** no depth-sweep artifact existed and no code sweeps depth, so the
+claim was verified directly, retrieval-side and free — frozen datasets, current
+dense/BM25/RRF/reranker code, no LLM and no paid API.
+
+Hybrid ceiling on golden (n=27): `hit@10` **23/27 = 85.19%**, `hit@20` = `hit@50`
+**24/27 = 88.89%**. The three are *not* equal — depth 10 differs from 20 and 50
+by exactly one question, which is the same one-question difference §7 already
+records as noise.
+
+Varying only the candidate depth under the production reranker:
+
+| top_k_in | hit@1 | hit@3 | hit@5 | MRR |
+|---|---|---|---|---|
+| **10** (in use) | 15/27 | 20/27 | **22/27** | 0.665 |
+| 20 | 15/27 | 20/27 | 21/27 | 0.671 |
+| 50 | 15/27 | 20/27 | 20/27 | 0.658 |
+
+`hit@1` is identical at all three depths and `hit@5` *falls* as the pool deepens.
+
+**After:** the claim is corrected in both documents. Depth 10 is kept and
+justified by measured top-5 precision and latency rather than by equal ceilings.
+`DEFAULT_TOP_K_IN = 10` was already the configured value; no code changed.
+Depth 10 reproduces the published `hybrid + mmarco` row exactly
+(56%/74%/81%/85%, MRR 0.665), which cross-checks the measurement against §6.
+
+### E — answer-quality denominators were ambiguous
+
+**Root cause:** the table sat under a "30 questions" heading while its metrics
+use three different denominators, read from `answer_eval.report()`:
+
+| metric | `among` | denominator |
+|---|---|---|
+| invalid citation attempts | — | all 30 |
+| cited the wrong hadith from context | — | all 30 |
+| correct citation | `answerable` | **27** |
+| false refusal | `gold_in_context` | 20 hybrid / 22 reranked |
+| correct refusal | `refusal_test` | 3 |
+
+So "81% correct citation" is 22/27, not 81% of 30.
+
+**After:** the README states the denominators explicitly and the canonical block
+carries `@denominator` on every rate, which the checker enforces.
+
+**Verification boundary.** `answer_eval.py` prints and stores nothing, so no
+per-question artifact exists. The denominators above are established from code;
+the numerators implied by the published rounded percentages are not
+independently re-derivable without calling the generator, which this repair does
+not do. No answer-quality number was changed.
+
+### F — answer_eval described the whole evaluation as free
+
+**Before:** "all metrics here are computed programmatically — no LLM judge — so
+they are free and repeatable."
+
+**After:** metric *computation* is programmatic, deterministic and free; running
+the evaluation calls the answer generator (Gemini via Vertex) for every question
+in every configuration and consumes quota and cost. Behaviour unchanged.
+
+### G — the unretrievable questions: supported, now documented
+
+The README claimed three golden questions are unretrievable by any method at any
+depth. Measured at depth 50, per retriever:
+
+| retriever | misses | question indices |
+|---|---:|---|
+| Dense: matn only | 6/27 | 4, 5, 12, 13, 19, 24 |
+| BM25: matn only | 4/27 | 4, 12, 13, 14 |
+| Hybrid | 3/27 | 4, 12, 13 |
+
+**Missed by every method at depth 50 — exactly three**, all with verified ground
+truth:
+
+| # | question | expected |
+|---|---|---|
+| 4 | هل يجوز صيام يوم الشك؟ | 9679 |
+| 12 | ما شرط كمال الإيمان في التعامل مع الآخرين؟ | 7354, 7355 |
+| 13 | ما حكم الغش في البيع؟ | 7466, 7467 |
+
+The claim holds for every depth measured (≤50); "any depth" is unbounded and was
+narrowed accordingly. Query expansion remains an **unvalidated hypothesis** and
+is not implemented — the README no longer presents it as the next step, since
+the next work is the agentic layer.
+
+### H — refusal did not do what the README implied
+
+**Before:** "roughly one question in five is answered from an incomplete context
+— the system's refusal behaviour is what keeps that from becoming a fabricated
+answer."
+
+**Root cause:** it conflated two failure modes. Citation enforcement prevents a
+citation to a hadith **outside** the supplied evidence (invalid citation
+attempts: 0%). It does not prevent a confident answer citing the **wrong hadith
+from within** the retrieved context, which is measured at 10% with reranking and
+13% without.
+
+**After:** the README states both modes separately and no longer implies refusal
+makes a wrong in-context citation impossible.
+
+### FROZEN IDENTITIES — RE-VERIFIED UNCHANGED
+
+`golden.jsonl` `a7ec05f48ec0491a` · `synthetic_eval.jsonl` `4bec52d5a56a8fc8` ·
+`muslim.json` `63a99e46155dc6e9` · Hadith↔MIS linkage
+`9c3a48e7…a572c77` · `MIS_CHAIN_HASH` `496ccf1d…0bfbce` · `FULL_GRAPH_HASH`
+`c8818da0…6e481c`.
+
+No corpus, golden label, synthetic row, embedding, linkage, graph, tier or audit
+artifact was touched.
