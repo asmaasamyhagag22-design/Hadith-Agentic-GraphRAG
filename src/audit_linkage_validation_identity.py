@@ -27,8 +27,10 @@ ARABIC_MARK_BLOCKS = (
     (0x08A0, 0x08FF),
 )
 
-DEFAULT_REVIEW = Path("data/processed/linkage_validation_review.csv")
-DEFAULT_OUTPUT = Path("data/processed/linkage_validation_ai_identity_audit.json")
+# Resolved from the module location, never the caller's working directory.
+_PROCESSED = Path(__file__).resolve().parent.parent / "data" / "processed"
+DEFAULT_REVIEW = _PROCESSED / "linkage_validation_review.csv"
+DEFAULT_OUTPUT = _PROCESSED / "linkage_validation_ai_identity_audit.json"
 
 
 def _is_arabic_combining_mark(character):

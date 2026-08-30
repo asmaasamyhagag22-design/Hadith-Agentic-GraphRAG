@@ -24,6 +24,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import random
 import re
 import sys
 from collections import Counter, defaultdict
@@ -31,10 +32,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config import PROCESSED_DIR
+from config import ITQAN_DIR, PROCESSED_DIR
 from audit_linkage_validation_identity import normalize_narrow_identity
 
-ITQAN_DIR = Path(__file__).resolve().parent.parent / "data" / "raw" / "external" / "itqan"
 
 EXPERT_REVIEW_PATH = PROCESSED_DIR / "historical_narrator_expert_review.csv"
 DUPLICATION_CANDIDATES_PATH = PROCESSED_DIR / "itqan_profile_duplication_candidates.jsonl"
@@ -435,6 +435,155 @@ def domain_expert_question(status, relations):
     return "NONE — insufficient material for useful adjudication"
 
 
+# ---------------------------------------------------------------------------
+# blinded packet for future validation
+# ---------------------------------------------------------------------------
+
+# The 40-row calibration packet exposed `source_review_id`, and its Itqan
+# profile IDs, both of which join straight into
+# `itqan_profile_duplication_strict_mechanical_triage.csv` and its
+# `assistant_mechanical_triage` column.  The label was never visible, but it
+# was one join away.  Future packets carry an opaque ID and no join key at all.
+IDENTIFIER_KEYS = {
+    "itqan_profile_id", "profile_id", "profile_a_id", "profile_b_id",
+    "itqan_profile_a_id", "itqan_profile_b_id", "group_id", "review_id",
+    "source_review_id", "expert_review_id",
+}
+
+BLINDED_PACKET_CSV = PROCESSED_DIR / "historical_identity_expert_packet.csv"
+BLINDED_PACKET_HIDDEN_CSV = PROCESSED_DIR / "historical_identity_expert_packet_hidden.csv"
+
+# Recorded so the row order is reproducible and carries no signal.
+BLINDED_PACKET_SEED = 20260830
+
+BLINDED_VISIBLE_COLUMNS = (
+    "opaque_review_id",
+    "profile_a_evidence_json",
+    "profile_b_evidence_json",
+    "relevant_source_names_json",
+    "source_specific_name_forms_json",
+    "deaths_json",
+    "kunyahs_json",
+    "nasab_json",
+    "teachers_students_json",
+    "generation_tabaqa_json",
+    "contradictions_json",
+    "missing_information_json",
+    "expert_verdict",
+    "reviewer_notes",
+)
+
+BLINDED_HIDDEN_COLUMNS = (
+    "opaque_review_id",
+    "source_review_id",
+    "itqan_profile_a_id",
+    "itqan_profile_b_id",
+    "mechanical_status",
+    "requires_domain_expert",
+)
+
+# Anything the reviewer must not see, whether or not it is a join key.
+LEAKING_COLUMNS = frozenset({
+    "mechanical_status", "requires_domain_expert", "domain_expert_question",
+    "assistant_mechanical_triage", "assistant_note", "rule_id", "status",
+    "score", "confidence", "rank", "expected_answer", "stratum",
+    "source_review_id", "itqan_profile_a_id", "itqan_profile_b_id",
+})
+
+
+def redact_identifiers(value):
+    """Strip every join key from an evidence payload, at any depth."""
+
+    if isinstance(value, dict):
+        return {
+            key: redact_identifiers(item)
+            for key, item in value.items()
+            if key not in IDENTIFIER_KEYS
+        }
+
+    if isinstance(value, list):
+        return [redact_identifiers(item) for item in value]
+
+    return value
+
+
+def _redacted_json(raw):
+    return json.dumps(redact_identifiers(json.loads(raw)), ensure_ascii=False, sort_keys=True)
+
+
+def build_blinded_packet(expert_rows, calibrated, seed=BLINDED_PACKET_SEED):
+    """Return (visible, hidden) rows for a future validation packet.
+
+    The visible half carries an opaque ID, the evidence a specialist needs, and
+    two blank reviewer columns.  It carries no profile ID, no source review ID,
+    no mechanical status and no ordering signal.  The mapping lives only in the
+    hidden half, which is never handed to the reviewer.
+    """
+
+    by_review = {row["review_id"]: row for row in calibrated}
+
+    order = list(range(len(expert_rows)))
+    random.Random(seed).shuffle(order)
+
+    visible, hidden = [], []
+
+    for position, index in enumerate(order, start=1):
+        row = expert_rows[index]
+        opaque = f"HIR-{position:06d}"
+        diagnostic = by_review.get(row["expert_review_id"], {})
+
+        visible.append({
+            "opaque_review_id": opaque,
+            "profile_a_evidence_json": _redacted_json(row["profile_a_full_evidence_json"]),
+            "profile_b_evidence_json": _redacted_json(row["profile_b_full_evidence_json"]),
+            "relevant_source_names_json": row["relevant_source_names_json"],
+            "source_specific_name_forms_json": row["source_specific_name_forms_json"],
+            "deaths_json": row["deaths_json"],
+            "kunyahs_json": row["kunyahs_json"],
+            "nasab_json": row["nasab_json"],
+            "teachers_students_json": row["teachers_students_json"],
+            "generation_tabaqa_json": row["generation_tabaqa_json"],
+            "contradictions_json": _redacted_json(row["contradictions_json"]),
+            "missing_information_json": row["missing_information_json"],
+            "expert_verdict": "",
+            "reviewer_notes": "",
+        })
+
+        hidden.append({
+            "opaque_review_id": opaque,
+            "source_review_id": row["source_review_id"],
+            "itqan_profile_a_id": row["itqan_profile_a_id"],
+            "itqan_profile_b_id": row["itqan_profile_b_id"],
+            "mechanical_status": diagnostic.get("mechanical_status", ""),
+            "requires_domain_expert": diagnostic.get("requires_domain_expert", ""),
+        })
+
+    return visible, hidden
+
+
+def packet_leakage_report(visible_rows):
+    """Name anything a reviewer could use to recover an automatic label."""
+
+    columns = set(visible_rows[0]) if visible_rows else set()
+    serialised = json.dumps(visible_rows, ensure_ascii=False)
+
+    return {
+        "leaking_columns_present": sorted(columns & LEAKING_COLUMNS),
+        "identifier_keys_in_payloads": sorted(
+            key for key in IDENTIFIER_KEYS if f'"{key}"' in serialised
+        ),
+        "reviewer_columns_blank": all(
+            not row["expert_verdict"] and not row["reviewer_notes"]
+            for row in visible_rows
+        ),
+        "residual_reidentification_vector": (
+            "teacher/student profile-ID lists remain visible because they are "
+            "evidence a specialist needs; recovering the pair from them would "
+            "require corpus-wide matching, not a lookup"
+        ),
+    }
+
+
 def load_expert_cases(path=EXPERT_REVIEW_PATH):
     with open(path, "r", encoding="utf-8-sig", newline="") as handle:
         return list(csv.DictReader(handle))
@@ -832,6 +981,24 @@ def file_sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def _write_rows(path, columns, rows, guard=()):
+    """Write a CSV, refusing to discard any reviewer work already in it."""
+
+    if guard and Path(path).exists():
+        for existing in _read_csv(path):
+            if any(existing.get(column, "").strip() for column in guard):
+                raise SystemExit(
+                    f"{Path(path).name} already contains reviewer verdicts; "
+                    f"refusing to overwrite adjudicated work."
+                )
+
+    with open(path, "w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(columns))
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({column: row.get(column, "") for column in columns})
+
+
 def write_calibration_cases(rows, path=CALIBRATION_CASES_CSV):
     """Write the case artifact, refusing to discard reviewer work."""
 
@@ -861,6 +1028,15 @@ def main():
     }
 
     write_calibration_cases(cases)
+
+    visible, hidden = build_blinded_packet(load_expert_cases(), cases)
+    leakage = packet_leakage_report(visible)
+
+    if leakage["leaking_columns_present"] or leakage["identifier_keys_in_payloads"]:
+        raise SystemExit(f"blinded packet would leak: {leakage}")
+
+    _write_rows(BLINDED_PACKET_CSV, BLINDED_VISIBLE_COLUMNS, visible, guard=REVIEWER_COLUMNS[:1] + ("reviewer_notes",))
+    _write_rows(BLINDED_PACKET_HIDDEN_CSV, BLINDED_HIDDEN_COLUMNS, hidden)
 
     risk_81 = _read_csv(NARRATOR_81_PATH)
     risk_890 = _read_csv(NARRATOR_890_PATH)
@@ -912,6 +1088,18 @@ def main():
             "independence_claim": "UNKNOWN for every profile biography field",
         },
         "historical_narrator_contract": HISTORICAL_NARRATOR_CONTRACT,
+        "expert_packet_blinding": {
+            "visible_artifact": BLINDED_PACKET_CSV.name,
+            "hidden_mapping_artifact": BLINDED_PACKET_HIDDEN_CSV.name,
+            "opaque_id_format": "HIR-000001",
+            "shuffle_seed": BLINDED_PACKET_SEED,
+            "previous_packet_weakness": (
+                "the 40-row calibration packet exposed source_review_id and "
+                "Itqan profile IDs, either of which joins to "
+                "assistant_mechanical_triage in one step"
+            ),
+            "leakage_report": leakage,
+        },
         "rule_safety": safety,
         "impact_on_frozen_81": risk_distribution(risk_81),
         "impact_on_short_name_890": risk_distribution(risk_890),

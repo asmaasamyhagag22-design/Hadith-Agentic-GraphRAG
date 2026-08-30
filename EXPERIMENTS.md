@@ -1837,6 +1837,45 @@ parser exists and hallucinated decomposition would be worse than none. Rule
 safety is measured as exposure to audited classes, and those classes are
 evidence labels, not historical ground truth.
 
+### REPRODUCIBILITY AND BLINDING FIXES
+
+Two defects surfaced by this calibration were repaired afterwards.
+
+**Working-directory-dependent data paths.** `ITQAN_DIR`, `MIS_DIR` and the two
+default artifact paths in `audit_linkage_validation_identity` were declared
+relative, so they resolved against the caller's working directory rather than
+the project. Running any audit from another directory produced **zero profiles
+with no error** — a measured population of 0 that would have been reported as
+though it were real. All four now derive from `config.BASE_DIR`, which is
+computed from the module location, and `load_profiles()` raises a
+`FileNotFoundError` naming the directory and pointing at `DATA_SOURCES.md`
+instead of returning an empty list. Tests assert that the resolved paths are
+identical from the repository root and from an unrelated directory, that a
+relative path would have differed, and that absent shards raise.
+
+The refactor is behaviour-preserving: the calibration artifacts reproduce
+byte-for-byte afterwards, and the frozen linkage and 40-row packet hashes are
+unchanged.
+
+**One-join blinding weakness.** The 40-row calibration packet exposed
+`source_review_id` and both Itqan profile IDs. Each of the three joins directly
+to `itqan_profile_duplication_strict_mechanical_triage.csv`, which carries
+`assistant_mechanical_triage`. No label was ever visible in the packet, and the
+40 rows were never adjudicated, so no verdict is contaminated — but a reviewer
+could have reached the machine's opinion in one lookup, which is a weakness in
+the artifact, not in the results.
+
+Future packets close it. `build_blinded_packet` emits an opaque
+`HIR-000001` identifier, redacts every identifier key from the evidence
+payloads at any depth, shuffles rows under a recorded seed so position carries
+no signal, and writes the mapping to a separate hidden file that is never given
+to the reviewer. A leakage report is computed on every build and the generator
+refuses to write a packet that would expose a join key or an automatic label.
+One residual vector is recorded rather than hidden: teacher and student profile
+ID lists remain visible because they are evidence a specialist needs, and
+recovering the pair from them would require corpus-wide matching rather than a
+lookup.
+
 ### DECISION
 
 The evidence needed to identify a historical narrator is not present in this

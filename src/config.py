@@ -6,6 +6,13 @@ DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
 
+# مجلدات البيانات الخارجية. كانت متعرّفة نسبيًا جوّه الموديولات،
+# فكانت بتتحلّ بالنسبة لمجلد التشغيل مش لمكان المشروع — يعني نفس
+# الكود بيرجّع صفر بروفايل من غير أي خطأ لو اتنفّذ من مجلد تاني.
+EXTERNAL_DIR = RAW_DIR / "external"
+ITQAN_DIR = EXTERNAL_DIR / "itqan"
+MIS_DIR = EXTERNAL_DIR / "mis"
+
 MUSLIM_JSON_PATH = RAW_DIR / "muslim.json"
 QUESTIONS_PATH = RAW_DIR / "questions.txt"
 GOLDEN_PATH = RAW_DIR / "golden.jsonl"

@@ -13,10 +13,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from config import PROCESSED_DIR
+from config import ITQAN_DIR, PROCESSED_DIR
 from utils import strip_diacritics
 
-ITQAN_DIR = Path("data/raw/external/itqan")
 REPORT_PATH = PROCESSED_DIR / "itqan_profile.json"
 
 PROFILE_FILES = [
@@ -92,6 +91,17 @@ def load_profiles():
             entry["_file"] = name
         records.extend(entries)
         per_file[name] = len(entries)
+
+    if not records:
+        # Every shard missing means the download is absent or the paths are
+        # wrong.  Returning an empty list here would let downstream audits
+        # report "0 profiles" as though it were a measured population.
+        raise FileNotFoundError(
+            f"No Itqan profile shards found under {ITQAN_DIR}. "
+            f"Expected {', '.join(name + '.json' for name in PROFILE_FILES)}. "
+            f"See DATA_SOURCES.md for how to obtain them."
+        )
+
     return records, per_file
 
 

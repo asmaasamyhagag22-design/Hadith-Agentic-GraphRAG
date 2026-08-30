@@ -24,10 +24,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import openpyxl
 
-from config import MUSLIM_JSON_PATH, PROCESSED_DIR
+from config import MIS_DIR, MUSLIM_JSON_PATH, PROCESSED_DIR
 from utils import split_isnad_matn, strip_diacritics
-
-MIS_DIR = Path("data/raw/external/mis")
 
 CONTENT = MIS_DIR / "1_Hadith_SahihMuslim_HadithContent.xlsx"
 NODES = MIS_DIR / "2_Hadith_SahihMuslim_Narrators_Nodes_for_Graph.xlsx"

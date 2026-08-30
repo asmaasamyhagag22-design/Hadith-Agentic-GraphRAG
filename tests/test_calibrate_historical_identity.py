@@ -7,18 +7,25 @@ import unittest
 from pathlib import Path
 
 from src.calibrate_historical_identity import (
+    BLINDED_PACKET_SEED,
+    BLINDED_VISIBLE_COLUMNS,
     CALIBRATION_CASES_CSV,
+    IDENTIFIER_KEYS,
+    LEAKING_COLUMNS,
     PROCESSED_DIR,
     EVIDENCE_TAXONOMY,
     HISTORICAL_NARRATOR_CONTRACT,
     NARRATOR_81_PATH,
     REVIEWER_COLUMNS,
     RULES_NOT_TESTABLE_ON_GROUPS,
+    build_blinded_packet,
     calibrate_case,
     death_relation,
     evaluate_rule_safety,
     evidence_dependency_groups,
     independent_evidence,
+    packet_leakage_report,
+    redact_identifiers,
     rule_definitions,
     rule_triggers,
     scalar_relation,
@@ -359,6 +366,124 @@ class RuleSafetyTests(unittest.TestCase):
 
         for rule in rule_definitions():
             self.assertIn(rule["status"], allowed)
+
+
+class BlindedPacketTests(unittest.TestCase):
+    """الحزمة المستقبلية ما تسمحش بالوصول للتصنيف الآلي."""
+
+    @staticmethod
+    def expert_rows(count=3):
+        rows = []
+        for index in range(count):
+            evidence_a = profile(itqan_profile_id=str(100 + index))
+            evidence_b = profile(itqan_profile_id=str(200 + index))
+            row = case_row(evidence_a, evidence_b)
+            row["expert_review_id"] = f"ITQ-EXPERT-{index:04d}"
+            row["source_review_id"] = f"ITQ-DUP-{index:04d}"
+            row.update({
+                "relevant_source_names_json": "[]",
+                "source_specific_name_forms_json": "{}",
+                "deaths_json": '["291 هـ","291 هـ"]',
+                "kunyahs_json": '["أبو بكر","أبو بكر"]',
+                "nasab_json": '["العامري","العامري"]',
+                "teachers_students_json": "{}",
+                "generation_tabaqa_json": "{}",
+            })
+            rows.append(row)
+        return rows
+
+    def packet(self):
+        rows = self.expert_rows()
+        calibrated = [calibrate_case(row) for row in rows]
+        return build_blinded_packet(rows, calibrated)
+
+    def test_visible_rows_use_opaque_sequential_ids(self):
+        visible, _ = self.packet()
+        ids = [row["opaque_review_id"] for row in visible]
+
+        self.assertEqual(ids, ["HIR-000001", "HIR-000002", "HIR-000003"])
+        self.assertEqual(len(set(ids)), len(ids))
+
+    def test_visible_packet_exposes_no_join_key_to_the_labelled_triage(self):
+        visible, _ = self.packet()
+        blob = json.dumps(visible, ensure_ascii=False)
+
+        for token in ("ITQ-DUP", "ITQ-EXPERT", "itqan_profile_id",
+                      "source_review_id", "itqan_profile_a_id"):
+            self.assertNotIn(token, blob)
+
+    def test_visible_columns_carry_no_automatic_label_or_score(self):
+        self.assertEqual(set(BLINDED_VISIBLE_COLUMNS) & LEAKING_COLUMNS, set())
+
+    def test_redaction_strips_identifiers_at_any_depth(self):
+        payload = {
+            "death": "291 هـ",
+            "itqan_profile_id": "2527",
+            "records": [{"source_record_id": "1", "profile_id": "2527", "grade": "ثقة"}],
+        }
+        redacted = redact_identifiers(payload)
+
+        self.assertNotIn("itqan_profile_id", redacted)
+        self.assertNotIn("profile_id", redacted["records"][0])
+        self.assertEqual(redacted["death"], "291 هـ")
+        self.assertEqual(redacted["records"][0]["grade"], "ثقة")
+
+    def test_redaction_keeps_the_evidence_a_specialist_needs(self):
+        visible, _ = self.packet()
+        payload = json.loads(visible[0]["profile_a_evidence_json"])
+
+        for field in ("full_name", "kunya", "nasab", "city", "death"):
+            self.assertIn(field, payload)
+
+    def test_reviewer_fields_are_blank_in_the_visible_packet(self):
+        visible, _ = self.packet()
+
+        for row in visible:
+            self.assertEqual(row["expert_verdict"], "")
+            self.assertEqual(row["reviewer_notes"], "")
+
+    def test_hidden_mapping_covers_every_visible_row(self):
+        visible, hidden = self.packet()
+
+        self.assertEqual(
+            {row["opaque_review_id"] for row in visible},
+            {row["opaque_review_id"] for row in hidden},
+        )
+        for row in hidden:
+            self.assertTrue(row["itqan_profile_a_id"])
+            self.assertTrue(row["source_review_id"])
+
+    def test_leakage_report_is_clean_for_the_blinded_packet(self):
+        visible, _ = self.packet()
+        report = packet_leakage_report(visible)
+
+        self.assertEqual(report["leaking_columns_present"], [])
+        self.assertEqual(report["identifier_keys_in_payloads"], [])
+        self.assertTrue(report["reviewer_columns_blank"])
+
+    def test_leakage_report_detects_an_introduced_label(self):
+        visible, _ = self.packet()
+        leaked = [dict(row, mechanical_status="STRONGLY_COMPATIBLE") for row in visible]
+
+        self.assertIn("mechanical_status",
+                      packet_leakage_report(leaked)["leaking_columns_present"])
+
+    def test_row_order_is_deterministic_under_the_recorded_seed(self):
+        rows = self.expert_rows(5)
+        calibrated = [calibrate_case(row) for row in rows]
+
+        first, _ = build_blinded_packet(rows, calibrated, seed=BLINDED_PACKET_SEED)
+        second, _ = build_blinded_packet(rows, calibrated, seed=BLINDED_PACKET_SEED)
+
+        self.assertEqual(first, second)
+
+    def test_shuffle_decouples_position_from_source_order(self):
+        rows = self.expert_rows(12)
+        calibrated = [calibrate_case(row) for row in rows]
+        _, hidden = build_blinded_packet(rows, calibrated, seed=BLINDED_PACKET_SEED)
+
+        source_order = [row["source_review_id"] for row in hidden]
+        self.assertNotEqual(source_order, sorted(source_order))
 
 
 class FrozenStateTests(unittest.TestCase):
