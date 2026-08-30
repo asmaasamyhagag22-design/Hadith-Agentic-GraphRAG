@@ -1888,3 +1888,185 @@ are rejected outright.
 merged profile, final MIS mapping, grade aggregation or graph was created. The
 next permitted step is adjudication under the validation protocol — the gate
 opens on adjudicated identity evidence, never on rule coverage.
+
+---
+
+## 17. Deterministic MIS Sanad Graph — Chain Layer
+
+### QUESTION
+
+Can the sanad chain layer be built, verified and queried using MIS narrator
+identities alone, while Itqan historical-person identity stays unresolved? The
+readiness assessment argued yes from source measurements; this builds it and
+checks the claim against a rebuilt database.
+
+### SOURCE SEMANTICS
+
+Keys were measured before the schema was written, not assumed.
+
+`HadithNo` alone is unique across all 7,748 MIS hadiths, and so is
+`(BookNo, HadithNo)`; `ChapterNo` and `UnitNo` are functionally determined by
+that pair (0 hadiths carry more than one chapter/unit). The composite
+`(book_no, hadith_no)` is used as the primary key rather than the bare hadith
+number, because it is how every edge addresses a hadith and it keeps the source
+identity intact.
+
+An isnad is `(BookNo, HadithNo, SanadNo)` → 14,155 chains. Adding chapter and
+unit to the key changes nothing, and no edge disagrees with its hadith's
+chapter/unit (0 of 63,642). A transmission step is that key plus its position,
+unique across all 63,642 rows; the full `intractionLabel` is likewise 63,642
+distinct and is stored verbatim as provenance.
+
+`SanadCount` parses as an integer in all 7,748 rows.
+
+### SCHEMA
+
+Four tables, no decorative nodes:
+
+- `mis_narrator` — `narrator_id` PK, complete Arabic name, mapped short name,
+  English mapped name, gender, generation.
+- `mis_hadith` — `(book_no, hadith_no)` PK, chapter/unit, titles, declared
+  sanad count.
+- `isnad` — `(book_no, hadith_no, sanad_no)` PK, step and narrator counts,
+  FK to its hadith.
+- `transmission` — `(book_no, hadith_no, sanad_no, position)` PK,
+  `from_narrator_id` → `to_narrator_id`, unique `source_label`, FKs to the
+  isnad and to both narrators.
+
+Direction is stored as MIS records it: `from` is the narrator transmitted from,
+`to` the one who received. No `ItqanProfile`, `SourceRecord`,
+`HistoricalNarrator`, candidate link or grading table exists, and the build
+raises if any appears.
+
+### BUILD
+
+`python -m src.build_sanad_graph` reads the frozen workbooks and writes a
+git-ignored `data/processed/sanad_graph.sqlite` plus a manifest. Paths derive
+from the project root, so the build does not depend on the working directory.
+
+Constraints are enforced by the database rather than by tests alone: primary
+keys, composite foreign keys, a unique source label, and `CHECK` constraints on
+position and on `narrator_count = step_count + 1`. `PRAGMA foreign_keys` is on,
+and `PRAGMA foreign_key_check` runs after load.
+
+### POPULATION COUNTS
+
+| table | rows | source |
+|---|---:|---:|
+| `mis_narrator` | **2,092** | 2,092 |
+| `mis_hadith` | **7,748** | 7,748 |
+| `isnad` | **14,155** | 14,155 |
+| `transmission` | **63,642** | 63,642 |
+
+### CHAIN FIDELITY
+
+Every chain was rebuilt from SQLite and compared step by step against the
+workbook: **14,155 exact, 0 mismatched, 0 missing, 0 extra.**
+
+Structural checks are all clean: 0 dangling `from` endpoints, 0 dangling `to`
+endpoints, 0 isnads without a hadith, 0 broken chain transitions, and 0
+narrators unreferenced by any edge.
+
+### EDGE FIDELITY
+
+63,642 stored transmissions against 63,642 source edges, with 63,642 distinct
+`source_label` values — no duplication and no loss.
+
+### MULTI-ISNAD FIDELITY
+
+Declared `SanadCount` was compared with the number of stored isnads for all
+7,748 hadiths: **0 mismatches.** Chains from one hadith are never merged; each
+is addressable by its sanad number, and the query API returns them as separate
+records.
+
+### DETERMINISM
+
+Two builds from identical inputs produce the **same canonical hash** —
+`496ccf1da21d2e849a94fb2d2e0d4ae66e3bfa549f4ce555f5cf2f4d490bfbce` — computed
+from the schema plus every table's rows in primary-key order. The two files
+also happened to be byte-identical and the same size, but that is not claimed
+as a guarantee: SQLite's format carries non-semantic variation, so logical
+content is what is hashed and what the manifest records.
+
+### DIRECTION — MEASURED, NOT ENFORCED
+
+MIS records `source → target` as the direction of transmission, and the
+generation labels agree overwhelmingly: 41,687 steps run earlier generation to
+later, 21,692 within one generation, 220 involve an unranked `NotMapped`
+narrator — and **43 run later to earlier**.
+
+Those 43 are preserved exactly as recorded. An elder narrating from a junior is
+a recognised occurrence in transmission, so a constraint forcing generation
+order would have corrupted real source records to satisfy a rule the source
+never claimed. The count is reported in the manifest instead.
+
+### QUERY API
+
+`src/sanad_graph.py` — deterministic reads, no model, no ranking, no inference:
+`get_narrator`, `get_mis_hadith`, `get_isnads_for_mis_hadith`,
+`get_ordered_chain`, `get_hadiths_for_narrator`, `get_predecessors_in_chain`,
+`get_successors_in_chain`.
+
+Every result carries `recorded_in: "MIS"`, narrator results carry the MIS ID
+with both name forms and the generation, and chain results carry positions.
+Predecessor and successor queries are scoped to one named isnad and say so in
+the payload: a single occurrence is not a general claim about who taught whom.
+
+Absence is typed rather than empty. An unknown narrator, hadith or isnad raises
+`UnknownNarratorError`, `UnknownHadithError` or `UnknownIsnadError`; a known
+narrator with no recorded transmission returns an empty occurrence list. A
+caller can always distinguish a bad identifier from a valid record with nothing
+recorded.
+
+### PERFORMANCE
+
+| step | measured |
+|---|---|
+| workbook read | 7.29 s |
+| database build + constraint load | 1.18 s |
+| full rebuild | **8.47 s** |
+| all-chain validation (14,155) | 0.43 s |
+| canonical hash | 0.78 s |
+| database size | 11.8 MB |
+
+Query medians: `get_narrator` 0.069 ms · `get_isnads_for_mis_hadith` 0.141 ms ·
+`get_successors_in_chain` 0.271 ms · `get_ordered_chain` 0.577 ms · the busiest
+narrator's 1,996 occurrences 9.4 ms. Nothing was optimised, because nothing is
+slow.
+
+### SAFE CAPABILITIES
+
+Answerable now, as recorded in MIS: the ordered isnads of a hadith; the
+narrators in a chain with their positions; every hadith and chain a narrator
+appears in; who precedes or follows a narrator within a named chain; how many
+chain variants a hadith has; a narrator's MIS-recorded generation and name
+forms.
+
+### BLOCKED CAPABILITIES
+
+Unchanged by this milestone: all classical gradings for a narrator; a narrator's
+biography; whether a MIS narrator is the same person as an Itqan profile;
+whether two differently-named profiles are one person; any chain-wide
+reliability judgement. These need the identity layer, which does not exist.
+
+### LIMITATIONS
+
+MIS narrator IDs are stable and non-colliding inside this frozen snapshot; they
+are not canonical historical-person identifiers, and 14 short/mapped names are
+still shared by more than one ID. 80 narrators carry `NotMapped` as their
+generation. Coverage is MIS's own: 7,748 MIS hadiths, of which 7,015 have an
+accepted link to the local corpus — the local hadiths are deliberately not
+attached in this milestone, so the chain graph stands or falls on its own. The
+graph records transmission as MIS asserts it and does not verify those
+assertions against the classical literature.
+
+### DECISION
+
+The chain layer is built, verified and reproducible on MIS identities alone,
+which confirms the decoupling the readiness assessment proposed: chain structure
+does not depend on historical-person identity.
+
+**ENTITY-RESOLUTION GATE CLOSED.** No Itqan profile, source record, grading,
+candidate identity link or `HistoricalNarrator` exists in the graph, and the
+build fails if one appears. The frozen linkage is unchanged and remains
+readable at 7,015 rows.

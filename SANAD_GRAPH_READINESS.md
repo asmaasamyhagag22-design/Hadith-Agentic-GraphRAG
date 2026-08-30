@@ -1,9 +1,14 @@
 # Sanad graph readiness
 
-> **STATUS: PROPOSED / NOT IMPLEMENTED.**
-> No graph, node, edge, database or loader exists. Nothing in this document is
-> built. It records what the data can support so the design can be reviewed
-> before anything is constructed.
+> **STATUS: CHAIN LAYER IMPLEMENTED; EVERYTHING ELSE STILL PROPOSED.**
+>
+> Built and verified (EXPERIMENTS §17): `MisHadith`, `Isnad`, `MisNarrator`,
+> `TRANSMITTED_TO`, the SQLite build (`src/build_sanad_graph.py`) and the
+> read-only query API (`src/sanad_graph.py`).
+>
+> Still proposed and **not** built: `ItqanProfile`, `SourceRecord`,
+> `LINKED_TO_MIS`, `CANDIDATE_PROFILE`, `ATTESTED_BY`, `RECORDS_GRADE`, and
+> every capability in sections 5B and 5C. No `HistoricalNarrator` exists.
 
 The question this answers is narrow: **can a truthful sanad graph be built on
 MIS narrator identities while Itqan historical-person identity stays
@@ -69,6 +74,13 @@ with same-generation edges also present (Follower→Follower 14,354,
 Successor→Successor 5,543, Companion→Companion 1,357) and 75 `NotMapped→Follower`.
 A worked chain confirms it end to end: `i1` starts at the Companion and `i5`
 ends at the 3rd-century compiler's immediate teacher.
+
+Measured exhaustively during implementation: 41,687 steps run earlier→later,
+21,692 within one generation, 220 involve an unranked `NotMapped` narrator, and
+**43 run later→earlier**. Those 43 are preserved as recorded rather than
+corrected — an elder narrating from a junior is a recognised occurrence, so a
+generation-order constraint would corrupt real records to satisfy a rule the
+source never claimed.
 
 Chains are short and bounded: **1–8 edges (2–9 narrators), mean 4.50**.
 Distribution: 4 edges 6,323 · 5 edges 5,091 · 6 edges 1,340 · 3 edges 1,161 ·
@@ -258,9 +270,11 @@ integrity: unique keys, foreign keys, mandatory status on provisional links, and
 grades that cannot exist detached from a source record. Those are relational
 constraints, and they are exactly what Neo4j does not enforce for free.
 
-## 10. Recommendation
+## 10. Recommendation — adopted
 
-**SQLite for the deterministic foundation.**
+**SQLite for the deterministic foundation.** Implemented in EXPERIMENTS §17:
+full rebuild in 8.47 s to an 11.8 MB file, identical canonical hash across
+builds, and all 14,155 chains reconstructing exactly.
 
 It enforces the invariants declaratively, adds no dependency and no service, and
 produces a single file that can be hashed and pinned like every other artifact

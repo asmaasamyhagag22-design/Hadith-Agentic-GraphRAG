@@ -2,7 +2,7 @@
 
 **Grounded retrieval over Sahih Muslim.** Musnad answers questions from the corpus with the exact hadith number, refuses when the answer is not in the sources, and never cites a hadith it did not retrieve — every claim in this README is either measured or explicitly marked as not yet built.
 
-> «مُسنَد» نظام بيجاوب على أسئلة من **صحيح مسلم** بمصدرها ورقم الحديث، وبيرفض صراحةً لما الإجابة مش موجودة في المصادر. الهدف النهائي إنه يتتبّع **سند** الحديث راوي راوي بحكم الجرح والتعديل — والجزء ده لسه مش مبني، وموصوف تحت في [Planned](#planned).
+> «مُسنَد» نظام بيجاوب على أسئلة من **صحيح مسلم** بمصدرها ورقم الحديث، وبيرفض صراحةً لما الإجابة مش موجودة في المصادر. الهدف النهائي إنه يتتبّع **سند** الحديث راوي راوي بحكم الجرح والتعديل. سلسلة السند نفسها مبنية دلوقتي من MIS، لكن **الجرح والتعديل لسه مش مربوط** — الرواة لسه ملهمش هوية تاريخية محسومة، وده موصوف تحت في [Planned](#planned).
 
 ---
 
@@ -12,7 +12,8 @@
 |---|---|
 | **Built and measured** | ingestion · isnād/matn separation · e5 embeddings · BM25 · hybrid RRF retrieval · cross-encoder reranking · grounded generation with enforced citations · two evaluation harnesses |
 | **Built, disabled by default** | CRAG self-grading + one query rewrite — measured, no gain (see [`EXPERIMENTS.md`](EXPERIMENTS.md)) |
-| **Not built yet** | knowledge graph · isnād tracing · agents/router · MCP server · web UI · tracing |
+| **Built and measured** | MIS sanad chain graph — 2,092 narrator nodes, 14,155 ordered isnads, deterministic SQLite build with a read-only query API |
+| **Not built yet** | narrator gradings · MIS↔Itqan identity resolution · agents/router · MCP server · web UI · tracing |
 
 There is no UI and no agent layer yet. The system runs from the command line and is evaluated by scripts.
 
@@ -73,7 +74,7 @@ Two evaluation sets, each with a distinct job:
 | False refusal (the answer was in context) | 0% | **0%** |
 | Correct refusal on unanswerable questions | 3/3 | **3/3** |
 
-Narrator questions ("who transmitted this, and how was each one graded?") score **0%** and are excluded from the tables above: they are structurally unanswerable from text, which is exactly the gap the planned knowledge graph exists to close.
+Narrator questions ("who transmitted this, and how was each one graded?") score **0%** and are excluded from the tables above: they are structurally unanswerable from text. The chain half of that gap is now closed by the MIS sanad graph, which can return an ordered isnad; the grading half is not, because narrator identity is unresolved.
 
 [`EXPERIMENTS.md`](EXPERIMENTS.md) is the single source of truth for every number, including four negative results, three falsified hypotheses, and the significance tests behind each decision.
 
@@ -120,7 +121,8 @@ Narrator questions ("who transmitted this, and how was each one graded?") score 
 | `data/raw/golden.jsonl` | 33 hand-verified evaluation questions | present |
 | `data/raw/synthetic_eval.jsonl` | 224 generated evaluation questions | present |
 | `data/processed/` | chunks, embeddings, id lists | generated, git-ignored |
-| Narrator chains (MIS) and Itqan *rijal* profiles | present locally under `data/raw/external/`, git-ignored; acquisition/provenance in [`DATA_SOURCES.md`](DATA_SOURCES.md) | **data present; graph and entity resolution not built** |
+| Narrator chains (MIS) and Itqan *rijal* profiles | present locally under `data/raw/external/`, git-ignored; acquisition/provenance in [`DATA_SOURCES.md`](DATA_SOURCES.md) | **MIS chain graph built; entity resolution not** |
+| `data/processed/sanad_graph.sqlite` | MIS chain graph — narrators, hadiths, isnads, ordered transmissions | generated, git-ignored |
 
 Record shape of the corpus:
 
@@ -228,8 +230,13 @@ uv run python -m src.check_docs
 
 None of the following is built. It is recorded here because it is the point of the project, not because it exists.
 
-- **Knowledge graph of narrators** — narrators as nodes carrying *al-jarḥ wa-l-taʿdīl* gradings, "narrated from" as edges, built from a narrator-chain dataset joined to a *rijal* dataset by normalised name matching with a reported match rate.
-- **Isnād tracing** — `get_sanad(hadith_id)` returning the chain narrator by narrator with each grading and its source, and returning "not found in the sources" rather than guessing when a narrator has no recorded grading.
+The chain layer is the one piece that has since been built — see
+[`SANAD_GRAPH_READINESS.md`](SANAD_GRAPH_READINESS.md) and EXPERIMENTS §17. It answers
+chain-structure questions as recorded in MIS and deliberately answers nothing about
+narrator identity or reliability.
+
+- **Narrator gradings on the graph** — *al-jarḥ wa-l-taʿdīl* attached to a narrator, kept source-specific so conflicting verdicts stay visible. Blocked: it needs an adjudicated MIS↔Itqan identity that does not exist.
+- **Isnād tracing with gradings** — the ordered chain is available today; returning each narrator's grading with its source is not, and the graph abstains rather than guessing.
 - **Ambiguity display** — when a narrator name matches several people, listing the candidates with their *ṭabaqa* instead of silently picking one.
 - **Router and two agents** — a matn agent and a sanad agent behind a classifier, orchestrated as a state machine.
 - **Metadata filtering** — book/chapter constraints applied at retrieval time.
