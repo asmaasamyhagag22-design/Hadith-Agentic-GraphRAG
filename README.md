@@ -14,6 +14,7 @@
 | **Built, disabled by default** | CRAG self-grading + one query rewrite — measured, no gain (see [`EXPERIMENTS.md`](EXPERIMENTS.md)) |
 | **Built and measured** | MIS sanad chain graph — 2,092 narrator nodes, 14,155 ordered isnads, deterministic SQLite build with a read-only query API |
 | **Built and measured** | local corpus attached to the graph — a retrieved hadith resolves through the frozen 7,015-link mapping to its recorded MIS isnads |
+| **Built and measured** | one deterministic read-only context surface (`src/sanad_context.py`) that hands a caller a retrieved hadith together with its recorded chains — a composition API, not an agent |
 | **Not built yet** | narrator gradings · MIS↔Itqan identity resolution · agents/router · MCP server · web UI · tracing |
 
 There is no UI and no agent layer yet. The system runs from the command line and is evaluated by scripts.

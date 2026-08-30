@@ -2271,3 +2271,101 @@ The retrieval pipeline and the sanad graph are now joined by a deterministic,
 provenance-carrying path, and the chain layer kept its identity while gaining
 one. **ENTITY-RESOLUTION GATE REMAINS CLOSED** — attaching the local corpus
 required no identity claim and made none.
+
+---
+
+## 19. Deterministic Retrieval → Sanad Context Surface
+
+### WHAT THIS IS, AND IS NOT
+
+A read-only composition API over reads that already existed. It is **not** an
+agent, **not** routing, **not** query classification, and **not** GraphRAG
+orchestration. It adds no capability: no search, no scoring, no ranking, no
+inference, no identity reasoning, and no model or network call of any kind.
+
+It exists so a caller does not have to know the table joins — not so it can stop
+knowing why an answer is missing.
+
+### QUESTION
+
+Can a caller hand over one hadith identifier and receive its recorded sanad,
+with every provenance layer intact and the reason for any missing layer named?
+
+### INPUT CONTRACT
+
+Two explicit entry points, both deterministic; no free-form text is accepted and
+no intent is inferred.
+
+- `context_for_local_hadith(connection, local_id)` — the canonical form, taking
+  the local corpus `id`.
+- `context_for_retrieval_result(connection, result)` — an adapter taking **one**
+  retrieval result. It reads `hadith_id` (what `retrieve.py` exposes) or
+  `hadith_number` (the same value in chunk metadata), directly or under
+  `metadata`. Any other shape raises `MissingRetrievalIdentifierError` rather
+  than guessing.
+
+The adapter enriches the one result it is given. It does not re-run retrieval,
+alter ranking, choose between results, or decide whether the lookup was
+worthwhile — verified by a test that passes two results through and checks both
+survive in order, including the unlinked one.
+
+### OUTPUT CONTRACT
+
+One structure carrying `status`, `local_hadith`, `linkage`, `mis_hadith`,
+`isnads` (each with `sanad_no` and ordered `narrators`), `isnad_count`,
+`declared_sanad_count`, `requested_local_id`, `detail`, and `basis`.
+
+Narrator records are exactly the ones `sanad_graph` already returns — MIS
+narrator id, both Arabic name forms, generation and chain position — rather than
+restated under second names, so there is one representation of a narrator in the
+codebase and not two.
+
+Every result carries its `basis` verbatim: *as recorded in MIS for the record
+joined by the accepted local↔MIS linkage; MIS narrator identities, not
+adjudicated historical persons.* The linkage is never hidden: `link_status`,
+`link_relation`, `linkage_version` and the artifact SHA-256 travel with the
+answer, and a test asserts the reported SHA is the frozen `9c3a48e7…`.
+
+### STATUS / ABSTENTION CONTRACT
+
+Four outcomes, each named, none collapsed into `[]`, `None` or `NOT_FOUND`:
+
+| status | meaning | what survives |
+|---|---|---|
+| `LINKED_WITH_RECORDED_ISNAD` | full traversal | everything |
+| `LINKED_BUT_NO_RECORDED_ISNAD` | linked, MIS records no chain | local + linkage + MIS record |
+| `VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK` | real hadith, no accepted link (the 444) | local record kept |
+| `INVALID_LOCAL_HADITH_ID` | no such hadith | the requested id, for the caller's error message |
+
+The surface returns these rather than raising, so a caller branching on `status`
+does not also have to catch two exception types. `sanad_graph` still raises, so
+the precise API underneath is unchanged. A test asserts all four are distinct.
+
+### PROVENANCE AND PERFORMANCE
+
+Verified on live retrieval output with no LLM call: the dense matn retriever's
+top results for two golden questions each resolved through
+`hadith_id → local hadith → ACCEPTED_LINK_V1 → MIS record → ordered chain`, with
+rank and score passed through untouched.
+
+Adapter latency: **0.816 ms** median over 200 runs, on top of a
+`context_for_local_hadith` that is itself sub-millisecond. Nothing cached,
+nothing optimised.
+
+### IDENTITY UNCHANGED
+
+`MIS_CHAIN_HASH` `496ccf1d…`, `FULL_GRAPH_HASH` `c8818da0…` and the frozen
+linkage `9c3a48e7…` are all unchanged — this milestone touched no data, only
+composition. Tests assert each.
+
+Static checks keep the boundary honest: the module's imports are exactly
+`{__future__, sys, pathlib, sanad_graph}`; its source mentions no model or
+network library; and no function or class it defines has a routing, planning,
+classification or agent name.
+
+### DECISION
+
+The deterministic foundation is complete. **ENTITY-RESOLUTION GATE REMAINS
+CLOSED** — no Itqan profile, grading, candidate identity edge or
+`HistoricalNarrator` is reachable from this surface, and a test asserts none of
+those words appears in its output.
