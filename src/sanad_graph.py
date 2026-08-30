@@ -47,6 +47,31 @@ class UnknownIsnadError(SanadGraphError):
     """The hadith exists but has no isnad with that sanad number."""
 
 
+class UnknownLocalHadithError(SanadGraphError):
+    """No such local corpus hadith ID."""
+
+
+class NoAcceptedMisLinkError(SanadGraphError):
+    """The local hadith exists, but the frozen linkage accepted no MIS record.
+
+    Distinct from an unknown ID: the hadith is real and in the corpus, and the
+    missing layer is the linkage, not the hadith.
+    """
+
+    def __init__(self, message, local_id=None):
+        super().__init__(message)
+        self.local_id = local_id
+
+
+# The exact layer a caller is missing, so a failure is diagnostic rather than
+# an empty list.
+STATUS_OK = "OK"
+STATUS_NO_RECORDED_ISNAD = "VALID_LINKED_HADITH_WITH_NO_RECORDED_ISNAD"
+STATUS_NO_ACCEPTED_LINK = "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK"
+STATUS_INVALID_LOCAL_ID = "INVALID_LOCAL_HADITH_ID"
+STATUS_INVALID_MIS_RECORD = "INVALID_MIS_RECORD"
+
+
 def open_graph(db_path=GRAPH_DB_PATH):
     """Open the graph read-only-ish, with foreign keys enforced."""
 
@@ -266,10 +291,149 @@ def _neighbours(connection, narrator_id, book_no, hadith_no, sanad_no,
     }
 
 
+# ---------------------------------------------------------------------------
+# local corpus -> frozen linkage -> MIS chain
+# ---------------------------------------------------------------------------
+
+def _local_row(connection, local_id):
+    row = connection.execute(
+        "SELECT local_id, id_in_book, book_id, chapter_id, chapter_ar, chapter_en "
+        "FROM local_hadith WHERE local_id = ?",
+        (int(local_id),),
+    ).fetchone()
+
+    if row is None:
+        raise UnknownLocalHadithError(
+            f"No local hadith with id {local_id!r}. This is a corpus id "
+            f"(muslim.json 'id'), not idInBook."
+        )
+
+    return dict(row)
+
+
+def _link_row(connection, local_id):
+    return connection.execute(
+        "SELECT mis_book_no, mis_hadith_no, link_status, link_relation, "
+        "linkage_version, linkage_artifact_sha256, candidate_status, "
+        "similarity, quick_similarity FROM hadith_mis_link WHERE local_id = ?",
+        (int(local_id),),
+    ).fetchone()
+
+
+def get_local_hadith(connection, local_id):
+    """One local corpus hadith, with whether the frozen linkage accepted a MIS record."""
+
+    local = _local_row(connection, local_id)
+    link = _link_row(connection, local_id)
+
+    return {
+        "local_hadith": local,
+        "has_accepted_mis_link": link is not None,
+        "status": STATUS_OK if link is not None else STATUS_NO_ACCEPTED_LINK,
+        "recorded_in": "local corpus (Sahih Muslim)",
+    }
+
+
+def get_mis_record_for_local_hadith(connection, local_id):
+    """Resolve a local hadith to its MIS record through the frozen linkage.
+
+    The three layers stay visible in the result: the local hadith, the linkage
+    that joins them, and the MIS record. The linkage is never made invisible.
+    """
+
+    local = _local_row(connection, local_id)
+    link = _link_row(connection, local_id)
+
+    if link is None:
+        raise NoAcceptedMisLinkError(
+            f"Local hadith {local_id} is in the corpus but the frozen linkage "
+            f"accepted no MIS record for it.",
+            local_id=int(local_id),
+        )
+
+    mis = _require_hadith(connection, link["mis_book_no"], link["mis_hadith_no"])
+
+    return {
+        "local_hadith": local,
+        "linkage": dict(link),
+        "mis_hadith": {**mis, "recorded_in": RECORDED_IN},
+        "status": STATUS_OK,
+    }
+
+
+def get_isnads_for_local_hadith(connection, local_id):
+    """The isnads recorded in MIS for a local hadith, kept separate."""
+
+    resolved = get_mis_record_for_local_hadith(connection, local_id)
+    mis = resolved["mis_hadith"]
+
+    isnads = get_isnads_for_mis_hadith(connection, mis["book_no"], mis["hadith_no"])
+
+    return {
+        **resolved,
+        "isnads": isnads["isnads"],
+        "declared_sanad_count": isnads["declared_sanad_count"],
+        "recorded_isnad_count": isnads["recorded_isnad_count"],
+        "status": STATUS_OK if isnads["isnads"] else STATUS_NO_RECORDED_ISNAD,
+    }
+
+
+def get_ordered_chains_for_local_hadith(connection, local_id):
+    """Every recorded chain of a local hadith, in order, narrator by narrator."""
+
+    result = get_isnads_for_local_hadith(connection, local_id)
+    mis = result["mis_hadith"]
+
+    chains = [
+        get_ordered_chain(connection, mis["book_no"], mis["hadith_no"], isnad["sanad_no"])
+        for isnad in result["isnads"]
+    ]
+
+    return {**result, "chains": chains}
+
+
+def get_local_hadith_for_mis_record(connection, book_no, hadith_no):
+    """Reverse direction: which local hadith, if any, is linked to a MIS record."""
+
+    mis = _require_hadith(connection, book_no, hadith_no)
+
+    row = connection.execute(
+        "SELECT local_id, id_in_book, link_status, linkage_version "
+        "FROM hadith_mis_link WHERE mis_book_no = ? AND mis_hadith_no = ?",
+        (str(book_no), str(hadith_no)),
+    ).fetchone()
+
+    return {
+        "mis_hadith": {**mis, "recorded_in": RECORDED_IN},
+        "linkage": dict(row) if row else None,
+        "local_hadith": _local_row(connection, row["local_id"]) if row else None,
+        "status": STATUS_OK if row else "VALID_MIS_RECORD_BUT_NO_ACCEPTED_LOCAL_LINK",
+    }
+
+
+def linkage_coverage(connection):
+    """Coverage of the frozen accepted linkage. Coverage, not identity accuracy."""
+
+    local_total = connection.execute("SELECT COUNT(*) FROM local_hadith").fetchone()[0]
+    mis_total = connection.execute("SELECT COUNT(*) FROM mis_hadith").fetchone()[0]
+    linked = connection.execute("SELECT COUNT(*) FROM hadith_mis_link").fetchone()[0]
+
+    return {
+        "local_total": local_total,
+        "local_linked": linked,
+        "local_unlinked": local_total - linked,
+        "mis_total": mis_total,
+        "mis_linked": linked,
+        "mis_unlinked": mis_total - linked,
+        "measurement_kind": "LINKAGE_COVERAGE_NOT_IDENTITY_ACCURACY",
+    }
+
+
 def graph_counts(connection):
     """Row counts, for verification and reporting."""
 
     return {
         table: connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-        for table in ("mis_narrator", "mis_hadith", "isnad", "transmission")
+        for table in ("mis_narrator", "mis_hadith", "isnad", "transmission",
+                      "local_hadith", "hadith_mis_link")
     }

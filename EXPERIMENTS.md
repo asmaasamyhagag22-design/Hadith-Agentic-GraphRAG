@@ -2070,3 +2070,204 @@ does not depend on historical-person identity.
 candidate identity link or `HistoricalNarrator` exists in the graph, and the
 build fails if one appears. The frozen linkage is unchanged and remains
 readable at 7,015 rows.
+
+---
+
+## 18. Local Hadith ↔ MIS Graph Attachment
+
+### QUESTION
+
+Can a hadith returned by the matn retrieval pipeline be connected, deterministically
+and without guessing, to the isnads recorded for it in MIS? The chain layer was
+built to stand alone; this attaches the local corpus to it through the frozen
+linkage and nothing else.
+
+### FROZEN LINKAGE
+
+Consumed, never recomputed. `mis_linkage_accepted_v1.jsonl`,
+`9c3a48e7…a572c77`, 7,015 rows, every one `accepted: true` and
+`candidate_status: unique`. The builder refuses to load a file containing a
+non-accepted row.
+
+Its endpoints were measured rather than assumed: the local side is
+`our_idInBook` (7,015 unique, 0 null) and the MIS side is `mis_HadithNo`
+(7,015 unique, 0 null). There is no `mis_BookNo` field, and none is needed —
+`book_no` is `'2'` for all 7,748 MIS hadiths, so the graph key
+`(book_no, hadith_no)` is reached with the book held constant and recorded
+explicitly rather than inferred per row.
+
+Resolution against the graph before any schema change: 0 duplicate local
+sources, 0 duplicate MIS targets, 0 local sources absent from the corpus, 0 MIS
+targets absent from `mis_hadith`. Strict 1:1 confirmed.
+
+### SCHEMA EXTENSION
+
+Two tables, and deliberately not one. `local_hadith` is keyed by the corpus
+`id` with `id_in_book` unique beside it; `hadith_mis_link` carries the local id,
+the MIS composite key, and the linkage's own provenance — version, artifact
+SHA-256, candidate status and both similarity scores.
+
+A local hadith and a MIS hadith are different records from different corpora.
+The accepted mapping happens to be 1:1 today, which is a fact about this
+artifact, not a licence to store them in one row: the linkage is revisable and
+the two identities are not.
+
+The relation is named `LINKS_TO_MIS_RECORD` with status `ACCEPTED_LINK_V1`. It
+is not called `SAME_HISTORICAL_HADITH`, because the frozen artifact records a
+narrow-normalised textual match, and no document in this project adjudicates
+the stronger claim.
+
+Local Arabic text is **not** stored. It is 7.2 MB the retrieval layer already
+owns, and the join needs identity, not content — the database grew 11.8 → 13.8 MB
+as it is.
+
+### POPULATION
+
+| table | rows |
+|---|---:|
+| `mis_narrator` | 2,092 |
+| `mis_hadith` | 7,748 |
+| `isnad` | 14,155 |
+| `transmission` | 63,642 |
+| `local_hadith` | **7,459** |
+| `hadith_mis_link` | **7,015** |
+
+Every local hadith is present, linked or not. Every MIS hadith remains, linked
+or not. Neither side was trimmed to make the join look complete.
+
+### LINKAGE FIDELITY
+
+Every frozen mapping compared against the database:
+
+| check | result |
+|---|---:|
+| accepted source links | 7,015 |
+| stored links | 7,015 |
+| exact matches | **7,015** |
+| missing | 0 |
+| extra | 0 |
+| duplicate local endpoints | 0 |
+| duplicate MIS endpoints | 0 |
+| dangling local endpoints | 0 |
+| dangling MIS endpoints | 0 |
+
+Enforced in the schema rather than only in tests: `local_id` is the primary key
+and `id_in_book` is unique, so one accepted link per local hadith;
+`UNIQUE (mis_book_no, mis_hadith_no)` gives one per MIS hadith; three foreign
+keys reject a dangling endpoint; and a `CHECK` rejects any status other than
+`ACCEPTED_LINK_V1`. A duplicate mapping fails loudly.
+
+### COVERAGE
+
+| side | linked | unlinked | linked % |
+|---|---:|---:|---:|
+| local corpus (7,459) | 7,015 | **444** | 94.05% |
+| MIS (7,748) | 7,015 | **733** | 90.54% |
+
+This is linkage coverage, not identity accuracy, and the artifact says so in
+its own field name. The 444 local and 733 MIS hadiths outside the accepted set
+are first-class records that report their own missing layer.
+
+### RETRIEVAL IDENTIFIER JOIN
+
+Retrieval was not changed — no embedding, index, BM25, RRF or reranker was
+touched. What was needed was proof that its identifier joins.
+
+`src/ingest.py` sets `hadith_number` from the corpus `id`, and `retrieve.py`
+surfaces it as `hadith_id`. That is the corpus `id` (range 7,278–14,736), not
+`idInBook` (1–7,459) — both unique, and the linkage keys on the latter, so
+`local_hadith` stores both and the join runs `id → id_in_book → link`.
+
+Measured over the whole chunk store: 7,570 chunks carry 7,459 distinct
+identifiers, **0 of which fail to resolve** to a `local_hadith`; 7,015 reach an
+accepted link and 444 do not, exactly matching the unlinked population.
+
+Confirmed end to end on real retrieval output, with no LLM call: querying the
+dense matn retriever and traversing each returned `hadith_id` produced
+`local hadith → ACCEPTED_LINK_V1 → MIS 2/2327 → 1 isnad → 5 narrators` and
+similar for every result inspected.
+
+### QUERY API
+
+`get_local_hadith`, `get_mis_record_for_local_hadith`,
+`get_isnads_for_local_hadith`, `get_ordered_chains_for_local_hadith`,
+`get_local_hadith_for_mis_record`, `linkage_coverage`. Deterministic reads, no
+model, no ranking.
+
+Every traversal result keeps the three layers visibly separate — `local_hadith`,
+`linkage` (status, relation, version, artifact SHA-256), `mis_hadith`, then
+`isnads` and `chains`. The linkage is never collapsed into the answer.
+
+### ABSTENTION
+
+Four states, distinguishable rather than all rendered as an empty list:
+
+- `INVALID_LOCAL_HADITH_ID` → `UnknownLocalHadithError`;
+- `VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK` → `NoAcceptedMisLinkError`,
+  carrying the local id, for all 444 unlinked hadiths;
+- `VALID_LINKED_HADITH_WITH_NO_RECORDED_ISNAD` → returned as a status with an
+  empty `isnads` list;
+- `INVALID_MIS_RECORD` → `UnknownHadithError`.
+
+Reverse lookup adds `VALID_MIS_RECORD_BUT_NO_ACCEPTED_LOCAL_LINK` for the 733.
+A caller can always tell which layer is missing.
+
+### DETERMINISM
+
+Two builds from identical inputs: identical row counts, identical accepted-link
+population, identical file size, and identical hashes.
+
+Adding tables would have changed a whole-database hash, so the canonical hash is
+now computed per layer, with `sqlite_master` filtered to the layer's own tables.
+The chain hash is therefore **unchanged**:
+
+```
+MIS_CHAIN_HASH   496ccf1da21d2e849a94fb2d2e0d4ae66e3bfa549f4ce555f5cf2f4d490bfbce
+FULL_GRAPH_HASH  c8818da00bf27f74750105ed6bf2d57e674c26e3dfe63b9ec8774c6a4d6e481c
+```
+
+`canonical_graph_sha256` in the manifest still holds the MIS-chain value, so the
+identity earlier milestones pinned did not silently become a different number.
+A test asserts the chain hash survives deleting the entire local layer, and that
+the full hash does not.
+
+### PERFORMANCE
+
+Full rebuild **9.0 s** (7.7 s reading workbooks, corpus and linkage; 1.3 s
+building) to a **13.8 MB** database. Query medians over 200 runs:
+`get_local_hadith` 0.148 ms · `get_local_hadith_for_mis_record` 0.184 ms ·
+`get_mis_record_for_local_hadith` 0.191 ms · `get_isnads_for_local_hadith`
+0.313 ms · `get_ordered_chains_for_local_hadith` 0.806 ms. Nothing optimised.
+
+### SAFE CAPABILITIES
+
+A retrieved hadith can now be connected to its recorded isnads: the ordered
+chains of a local hadith, its MIS record, the narrators and their positions, the
+chain-variant count, and the reverse direction from a MIS record to its local
+hadith — each answered *as recorded in MIS, via the frozen accepted linkage*,
+with the linkage visible in the result.
+
+### STILL BLOCKED
+
+Everything that needs historical-person identity: narrator gradings, narrator
+biography, whether a MIS narrator is a given Itqan profile, and any reliability
+judgement about a chain. No Itqan profile, source record, grading, candidate
+identity link or `HistoricalNarrator` exists in the database — verified by table
+and column inspection, and the build fails if one appears.
+
+### LIMITATIONS
+
+Coverage is partial by construction: 444 local hadiths have no accepted MIS
+record and 733 MIS records have no accepted local hadith, so a retrieval answer
+may legitimately have no chain to show. The link asserts a frozen textual match,
+not that two records are the same historical hadith. `book_no` is held constant
+at `'2'` because this corpus is one book; a multi-book MIS snapshot would need
+the book carried in the linkage artifact itself. The graph stores no local text,
+so any presentation of the matn still comes from the retrieval layer.
+
+### DECISION
+
+The retrieval pipeline and the sanad graph are now joined by a deterministic,
+provenance-carrying path, and the chain layer kept its identity while gaining
+one. **ENTITY-RESOLUTION GATE REMAINS CLOSED** — attaching the local corpus
+required no identity claim and made none.

@@ -29,14 +29,30 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import openpyxl
 
-from config import PROCESSED_DIR
+from config import MUSLIM_JSON_PATH, PROCESSED_DIR
 from profile_mis import CONTENT, EDGES, NODES
 
-SCHEMA_VERSION = "sanad_chain_v1"
-BUILDER_VERSION = "build_sanad_graph_v1"
+SCHEMA_VERSION = "sanad_chain_v1+local_link_v1"
+BUILDER_VERSION = "build_sanad_graph_v2"
 
 GRAPH_DB_PATH = PROCESSED_DIR / "sanad_graph.sqlite"
 MANIFEST_PATH = PROCESSED_DIR / "sanad_graph_manifest.json"
+
+FROZEN_LINKAGE_PATH = PROCESSED_DIR / "mis_linkage_accepted_v1.jsonl"
+
+# The linkage is frozen upstream.  This build consumes it and never recomputes,
+# rematches or extends it.
+LINKAGE_VERSION = "mis_linkage_accepted_v1"
+
+# Deliberately factual.  The frozen artifact records that a local hadith was
+# matched to a MIS record by narrow-normalised text; it does not adjudicate
+# that the two are the same historical hadith, so the status must not say so.
+LINK_STATUS = "ACCEPTED_LINK_V1"
+LINK_RELATION = "LINKS_TO_MIS_RECORD"
+
+# The chain layer keeps its own identity even as tables are added around it.
+CHAIN_TABLES = ("mis_narrator", "mis_hadith", "isnad", "transmission")
+LOCAL_TABLES = ("local_hadith", "hadith_mis_link")
 
 # B2-H0001-C01-U01-S01-i1 — book, hadith, chapter, unit, sanad, position.
 LABEL = re.compile(
@@ -113,6 +129,45 @@ CREATE TABLE transmission (
 CREATE INDEX idx_transmission_from ON transmission (from_narrator_id);
 CREATE INDEX idx_transmission_to   ON transmission (to_narrator_id);
 CREATE INDEX idx_isnad_hadith      ON isnad (book_no, hadith_no);
+"""
+
+# A local hadith is not a MIS hadith.  The accepted mapping happens to be 1:1
+# today, which is not a reason to store them in one row: they are different
+# identities from different corpora, joined by a frozen, revisable artifact.
+LOCAL_DDL = """
+CREATE TABLE local_hadith (
+    local_id     INTEGER PRIMARY KEY NOT NULL,
+    id_in_book   INTEGER NOT NULL UNIQUE,
+    book_id      INTEGER NOT NULL,
+    chapter_id   INTEGER NOT NULL,
+    chapter_ar   TEXT,
+    chapter_en   TEXT,
+    CHECK (local_id > 0),
+    CHECK (id_in_book > 0)
+);
+
+CREATE TABLE hadith_mis_link (
+    local_id                INTEGER PRIMARY KEY NOT NULL,
+    id_in_book              INTEGER NOT NULL UNIQUE,
+    mis_book_no             TEXT NOT NULL,
+    mis_hadith_no           TEXT NOT NULL,
+    link_status             TEXT NOT NULL,
+    link_relation           TEXT NOT NULL,
+    linkage_version         TEXT NOT NULL,
+    linkage_artifact_sha256 TEXT NOT NULL,
+    candidate_status        TEXT NOT NULL,
+    similarity              REAL NOT NULL,
+    quick_similarity        REAL NOT NULL,
+    UNIQUE (mis_book_no, mis_hadith_no),
+    FOREIGN KEY (local_id)   REFERENCES local_hadith (local_id),
+    FOREIGN KEY (id_in_book) REFERENCES local_hadith (id_in_book),
+    FOREIGN KEY (mis_book_no, mis_hadith_no)
+        REFERENCES mis_hadith (book_no, hadith_no),
+    CHECK (link_status = 'ACCEPTED_LINK_V1'),
+    CHECK (link_relation = 'LINKS_TO_MIS_RECORD')
+);
+
+CREATE INDEX idx_link_mis ON hadith_mis_link (mis_book_no, mis_hadith_no);
 """
 
 
@@ -276,6 +331,111 @@ def isnad_rows(transmissions):
     return sorted(rows)
 
 
+def read_local_corpus(path=None):
+    with open(path or MUSLIM_JSON_PATH, "r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def read_frozen_links(path=FROZEN_LINKAGE_PATH):
+    """Load the frozen accepted linkage.  Accepted rows only, never rebuilt."""
+
+    rows = []
+
+    with open(path, "r", encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                rows.append(json.loads(line))
+
+    rejected = [row for row in rows if not row.get("accepted")]
+
+    if rejected:
+        raise ValueError(
+            f"{Path(path).name} contains {len(rejected)} non-accepted rows; "
+            f"this build consumes accepted links only."
+        )
+
+    return rows
+
+
+def local_hadith_rows(corpus):
+    """One row per local hadith, linked or not.
+
+    The Arabic text is deliberately not stored: it is 7.2 MB the retrieval
+    layer already owns, and the graph needs identity, not content.
+    """
+
+    chapters = {
+        chapter.get("id"): chapter for chapter in corpus.get("chapters") or []
+    }
+
+    rows = []
+
+    for hadith in corpus.get("hadiths") or []:
+        local_id = hadith.get("id")
+        id_in_book = hadith.get("idInBook")
+        book_id = hadith.get("bookId")
+        chapter_id = hadith.get("chapterId")
+
+        if local_id is None or id_in_book is None or book_id is None or chapter_id is None:
+            raise ValueError(f"Local hadith missing source identity: {hadith!r}")
+
+        chapter = chapters.get(chapter_id) or {}
+
+        rows.append((
+            int(local_id),
+            int(id_in_book),
+            int(book_id),
+            int(chapter_id),
+            text(chapter.get("arabic")),
+            text(chapter.get("english")),
+        ))
+
+    return sorted(rows)
+
+
+def link_rows(links, local_rows, artifact_sha256, mis_book_no="2"):
+    """Turn frozen accepted links into rows keyed to both identities.
+
+    The artifact stores the local side as `our_idInBook` and the MIS side as
+    `mis_HadithNo`.  The graph keys local hadiths by their corpus `id`, so the
+    local id is resolved through `id_in_book`, which is unique on both sides.
+    """
+
+    by_id_in_book = {row[1]: row[0] for row in local_rows}
+    rows = []
+
+    for link in links:
+        id_in_book = link.get("our_idInBook")
+        mis_hadith_no = link.get("mis_HadithNo")
+
+        if id_in_book is None or mis_hadith_no is None:
+            raise ValueError(f"Accepted link missing an endpoint: {link!r}")
+
+        local_id = by_id_in_book.get(int(id_in_book))
+
+        if local_id is None:
+            raise ValueError(
+                f"Accepted link references idInBook {id_in_book}, which is not "
+                f"in the local corpus."
+            )
+
+        rows.append((
+            local_id,
+            int(id_in_book),
+            str(mis_book_no),
+            str(mis_hadith_no),
+            LINK_STATUS,
+            LINK_RELATION,
+            LINKAGE_VERSION,
+            artifact_sha256,
+            str(link.get("candidate_status")),
+            float(link.get("similarity")),
+            float(link.get("quick_similarity")),
+        ))
+
+    return sorted(rows)
+
+
 # ---------------------------------------------------------------------------
 # build
 # ---------------------------------------------------------------------------
@@ -286,8 +446,14 @@ def connect(db_path):
     return connection
 
 
-def build(db_path, nodes=None, content=None, edges=None):
-    """Create and populate the chain graph.  Returns the row counts."""
+def build(db_path, nodes=None, content=None, edges=None,
+          corpus=None, links=None, linkage_sha256=None):
+    """Create and populate the graph from frozen inputs.
+
+    A clean rebuild is the only supported path: the chain layer, the local
+    corpus and the frozen linkage are loaded together, never patched into an
+    existing file.  Returns the row counts.
+    """
 
     nodes = read_sheet(NODES) if nodes is None else nodes
     content = read_sheet(CONTENT) if content is None else content
@@ -297,6 +463,16 @@ def build(db_path, nodes=None, content=None, edges=None):
     hadiths = hadith_rows(content)
     transmissions = transmission_rows(edges)
     isnads = isnad_rows(transmissions)
+
+    if corpus is None:
+        corpus = read_local_corpus()
+
+    if links is None:
+        links = read_frozen_links()
+        linkage_sha256 = linkage_sha256 or file_sha256(FROZEN_LINKAGE_PATH)
+
+    locals_ = local_hadith_rows(corpus)
+    accepted = link_rows(links, locals_, artifact_sha256=linkage_sha256 or "")
 
     path = Path(db_path)
 
@@ -323,6 +499,15 @@ def build(db_path, nodes=None, content=None, edges=None):
             "INSERT INTO transmission VALUES (?,?,?,?,?,?,?)", transmissions
         )
 
+        connection.executescript(LOCAL_DDL)
+
+        connection.executemany(
+            "INSERT INTO local_hadith VALUES (?,?,?,?,?,?)", locals_
+        )
+        connection.executemany(
+            "INSERT INTO hadith_mis_link VALUES (?,?,?,?,?,?,?,?,?,?,?)", accepted
+        )
+
         connection.commit()
 
         violations = connection.execute("PRAGMA foreign_key_check").fetchall()
@@ -339,6 +524,8 @@ def build(db_path, nodes=None, content=None, edges=None):
         "mis_hadith": len(hadiths),
         "isnad": len(isnads),
         "transmission": len(transmissions),
+        "local_hadith": len(locals_),
+        "hadith_mis_link": len(accepted),
     }
 
 
@@ -381,29 +568,63 @@ CANONICAL_QUERIES = (
 )
 
 
-def canonical_hash(connection):
-    """Hash the logical contents, not the SQLite file.
+LOCAL_QUERIES = (
+    ("local_hadith",
+     "SELECT local_id, id_in_book, book_id, chapter_id, chapter_ar, chapter_en "
+     "FROM local_hadith ORDER BY local_id"),
+    ("hadith_mis_link",
+     "SELECT local_id, id_in_book, mis_book_no, mis_hadith_no, link_status, "
+     "link_relation, linkage_version, linkage_artifact_sha256, candidate_status, "
+     "similarity, quick_similarity FROM hadith_mis_link ORDER BY local_id"),
+)
 
-    The file format carries page layout and other non-semantic variation, so
-    two correct builds need not be byte-identical.  This hashes ordered rows
-    plus the schema, which is what "the same graph" actually means.
+
+def _canonical_hash(connection, queries, tables):
+    """Hash the logical contents of a named set of tables, not the file.
+
+    The schema is filtered to the same tables, so a layer keeps its identity
+    when other tables are added beside it.  The file format carries page
+    layout and other non-semantic variation, so two correct builds need not be
+    byte-identical; ordered rows plus schema is what "the same graph" means.
     """
 
     digest = hashlib.sha256()
 
+    placeholders = ",".join("?" * len(tables))
     schema = connection.execute(
-        "SELECT type, name, sql FROM sqlite_master ORDER BY type, name"
+        f"SELECT type, name, sql FROM sqlite_master WHERE tbl_name IN ({placeholders}) "
+        f"ORDER BY type, name",
+        tuple(sorted(tables)),
     ).fetchall()
 
     digest.update(json.dumps(schema, ensure_ascii=False, sort_keys=True).encode("utf-8"))
 
-    for table, query in CANONICAL_QUERIES:
+    for table, query in queries:
         digest.update(f"\n#{table}\n".encode("utf-8"))
         for row in connection.execute(query):
             digest.update(json.dumps(row, ensure_ascii=False).encode("utf-8"))
             digest.update(b"\n")
 
     return digest.hexdigest()
+
+
+def chain_canonical_hash(connection):
+    """Identity of the MIS chain layer alone.  Unchanged by later layers."""
+
+    return _canonical_hash(connection, CANONICAL_QUERIES, CHAIN_TABLES)
+
+
+def full_canonical_hash(connection):
+    """Identity of the whole graph: chain layer plus local corpus and linkage."""
+
+    return _canonical_hash(
+        connection, CANONICAL_QUERIES + LOCAL_QUERIES, CHAIN_TABLES + LOCAL_TABLES
+    )
+
+
+# The chain hash is what earlier milestones pinned, so the original name keeps
+# pointing at it rather than silently becoming a different number.
+canonical_hash = chain_canonical_hash
 
 
 # ---------------------------------------------------------------------------
@@ -541,6 +762,68 @@ def verify_structure(connection):
     }
 
 
+def verify_link_fidelity(connection, links):
+    """Compare every frozen accepted mapping against what was stored."""
+
+    expected = {
+        (int(link["our_idInBook"]), str(link["mis_HadithNo"])) for link in links
+    }
+
+    actual = {
+        (row[0], row[1]) for row in connection.execute(
+            "SELECT id_in_book, mis_hadith_no FROM hadith_mis_link"
+        )
+    }
+
+    local_ids = [row[0] for row in connection.execute(
+        "SELECT local_id FROM hadith_mis_link")]
+    mis_keys = [(row[0], row[1]) for row in connection.execute(
+        "SELECT mis_book_no, mis_hadith_no FROM hadith_mis_link")]
+
+    dangling_local = connection.execute(
+        "SELECT COUNT(*) FROM hadith_mis_link l LEFT JOIN local_hadith h "
+        "ON l.local_id = h.local_id WHERE h.local_id IS NULL"
+    ).fetchone()[0]
+
+    dangling_mis = connection.execute(
+        "SELECT COUNT(*) FROM hadith_mis_link l LEFT JOIN mis_hadith m "
+        "ON l.mis_book_no = m.book_no AND l.mis_hadith_no = m.hadith_no "
+        "WHERE m.hadith_no IS NULL"
+    ).fetchone()[0]
+
+    return {
+        "accepted_source_links": len(links),
+        "stored_links": len(local_ids),
+        "exact_matches": len(expected & actual),
+        "missing": len(expected - actual),
+        "extra": len(actual - expected),
+        "duplicate_local_endpoints": len(local_ids) - len(set(local_ids)),
+        "duplicate_mis_endpoints": len(mis_keys) - len(set(mis_keys)),
+        "dangling_local_endpoints": dangling_local,
+        "dangling_mis_endpoints": dangling_mis,
+    }
+
+
+def coverage_report(connection):
+    """Linkage coverage on both sides.  Coverage, never identity accuracy."""
+
+    local_total = connection.execute("SELECT COUNT(*) FROM local_hadith").fetchone()[0]
+    mis_total = connection.execute("SELECT COUNT(*) FROM mis_hadith").fetchone()[0]
+    linked = connection.execute("SELECT COUNT(*) FROM hadith_mis_link").fetchone()[0]
+
+    return {
+        "local_total": local_total,
+        "local_linked": linked,
+        "local_unlinked": local_total - linked,
+        "local_linked_pct": round(100 * linked / local_total, 2) if local_total else None,
+        "mis_total": mis_total,
+        "mis_linked": linked,
+        "mis_unlinked": mis_total - linked,
+        "mis_linked_pct": round(100 * linked / mis_total, 2) if mis_total else None,
+        "measurement_kind": "LINKAGE_COVERAGE_NOT_IDENTITY_ACCURACY",
+    }
+
+
 def generation_direction_report(connection):
     """Measure, do not enforce.
 
@@ -583,8 +866,11 @@ def main():
     nodes = read_sheet(NODES)
     content = read_sheet(CONTENT)
     edges = read_sheet(EDGES)
+    corpus = read_local_corpus()
+    links = read_frozen_links()
+    linkage_sha = file_sha256(FROZEN_LINKAGE_PATH)
 
-    counts = build(GRAPH_DB_PATH, nodes, content, edges)
+    counts = build(GRAPH_DB_PATH, nodes, content, edges, corpus, links, linkage_sha)
 
     connection = connect(GRAPH_DB_PATH)
 
@@ -593,8 +879,11 @@ def main():
         sanad = verify_sanad_counts(connection)
         edge = verify_edge_fidelity(connection, edges)
         structure = verify_structure(connection)
+        linkage = verify_link_fidelity(connection, links)
+        coverage = coverage_report(connection)
         direction = generation_direction_report(connection)
-        digest = canonical_hash(connection)
+        digest = chain_canonical_hash(connection)
+        full_digest = full_canonical_hash(connection)
         tables = assert_chain_layer_only(connection)
     finally:
         connection.close()
@@ -607,16 +896,39 @@ def main():
         and structure["dangling_to_narrator"] == 0
         and structure["isnads_without_hadith"] == 0
         and structure["broken_chain_transitions"] == 0
+        and linkage["missing"] == 0 and linkage["extra"] == 0
+        and linkage["stored_links"] == linkage["accepted_source_links"]
+        and linkage["duplicate_local_endpoints"] == 0
+        and linkage["duplicate_mis_endpoints"] == 0
+        and linkage["dangling_local_endpoints"] == 0
+        and linkage["dangling_mis_endpoints"] == 0
     )
 
     manifest = {
         "canonical": {
             "schema_version": SCHEMA_VERSION,
             "builder_version": BUILDER_VERSION,
+            # The MIS-only identity earlier milestones pinned. Unchanged by the
+            # local layer, and kept under its original key so history is not lost.
             "canonical_graph_sha256": digest,
+            "mis_chain_sha256": digest,
+            "full_graph_sha256": full_digest,
             "row_counts": counts,
             "source_files": {
                 path.name: file_sha256(path) for path in (NODES, CONTENT, EDGES)
+            },
+            "local_corpus": {
+                "path": MUSLIM_JSON_PATH.name,
+                "sha256": file_sha256(MUSLIM_JSON_PATH),
+                "rows": counts["local_hadith"],
+            },
+            "frozen_linkage": {
+                "path": FROZEN_LINKAGE_PATH.name,
+                "sha256": linkage_sha,
+                "version": LINKAGE_VERSION,
+                "accepted_rows": counts["hadith_mis_link"],
+                "status": LINK_STATUS,
+                "relation": LINK_RELATION,
             },
             "tables": tables,
         },
@@ -625,12 +937,15 @@ def main():
             "sanad_count_fidelity": sanad,
             "edge_fidelity": edge,
             "structure": structure,
+            "linkage_fidelity": linkage,
+            "coverage": coverage,
             "generation_direction": direction,
             "acceptance": "PASS" if passed else "FAIL",
         },
         "scope": {
-            "layer": "MIS chain layer only",
-            "identity_semantics": "MIS narrator identity, not historical person",
+            "layer": "MIS chain layer + local corpus and frozen accepted linkage",
+            "identity_semantics": "MIS narrator identity, not historical person; "
+                                  "local and MIS hadiths remain distinct records",
             "itqan_attached": False,
             "historical_narrator_created": False,
             "gradings_stored": 0,
@@ -652,8 +967,17 @@ def main():
     print(f"edges          : {edge['stored_transmissions']:,} stored, "
           f"counts_match={edge['counts_match']}")
     print(f"structure      : {structure}")
+    print(f"linkage        : {linkage['exact_matches']:,} exact, "
+          f"{linkage['missing']} missing, {linkage['extra']} extra, "
+          f"dup_local={linkage['duplicate_local_endpoints']}, "
+          f"dup_mis={linkage['duplicate_mis_endpoints']}, "
+          f"dangling={linkage['dangling_local_endpoints']}/{linkage['dangling_mis_endpoints']}")
+    print(f"coverage       : local {coverage['local_linked']:,}/{coverage['local_total']:,} "
+          f"({coverage['local_linked_pct']}%), MIS {coverage['mis_linked']:,}/"
+          f"{coverage['mis_total']:,} ({coverage['mis_linked_pct']}%)")
     print(f"direction      : {direction}")
-    print(f"canonical hash : {digest}")
+    print(f"MIS chain hash : {digest}")
+    print(f"full graph hash: {full_digest}")
     print(f"\nACCEPTANCE: {'PASS' if passed else 'FAIL'}")
 
     return 0 if passed else 1

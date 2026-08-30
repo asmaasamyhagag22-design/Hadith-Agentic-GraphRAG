@@ -6,9 +6,13 @@
 > `TRANSMITTED_TO`, the SQLite build (`src/build_sanad_graph.py`) and the
 > read-only query API (`src/sanad_graph.py`).
 >
+> Built and verified (EXPERIMENTS §18): `Hadith` (`local_hadith`) and
+> `LINKED_TO_MIS` (`hadith_mis_link`), carrying the frozen 7,015 accepted links
+> with their provenance. The MIS chain hash is unchanged by it.
+>
 > Still proposed and **not** built: `ItqanProfile`, `SourceRecord`,
-> `LINKED_TO_MIS`, `CANDIDATE_PROFILE`, `ATTESTED_BY`, `RECORDS_GRADE`, and
-> every capability in sections 5B and 5C. No `HistoricalNarrator` exists.
+> `CANDIDATE_PROFILE`, `ATTESTED_BY`, `RECORDS_GRADE`, and every capability in
+> sections 5B and 5C. No `HistoricalNarrator` exists.
 
 The question this answers is narrow: **can a truthful sanad graph be built on
 MIS narrator identities while Itqan historical-person identity stays

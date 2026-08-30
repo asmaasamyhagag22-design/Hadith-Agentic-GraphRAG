@@ -48,6 +48,8 @@ EXPECTED_COUNTS = {
     "mis_hadith": 7748,
     "isnad": 14155,
     "transmission": 63642,
+    "local_hadith": 7459,
+    "hadith_mis_link": 7015,
 }
 
 
@@ -83,8 +85,30 @@ def edge(book, number, sanad, position, source, target, chapter="1", unit="1"):
     }
 
 
+def local_corpus():
+    """Three local hadiths; the third has no accepted MIS link."""
+
+    return {
+        "chapters": [{"id": 1, "arabic": "باب", "english": "Chapter"}],
+        "hadiths": [
+            {"id": 100, "idInBook": 1, "bookId": 2, "chapterId": 1},
+            {"id": 101, "idInBook": 2, "bookId": 2, "chapterId": 1},
+            {"id": 102, "idInBook": 3, "bookId": 2, "chapterId": 1},
+        ],
+    }
+
+
+def accepted_links():
+    return [
+        {"our_idInBook": 1, "mis_HadithNo": 1, "accepted": True,
+         "candidate_status": "unique", "similarity": 1.0, "quick_similarity": 1.0},
+        {"our_idInBook": 2, "mis_HadithNo": 2, "accepted": True,
+         "candidate_status": "unique", "similarity": 1.0, "quick_similarity": 1.0},
+    ]
+
+
 def fixture():
-    """Two hadiths; the first carries two separate chains."""
+    """Two MIS hadiths (the first with two chains), three local hadiths."""
 
     nodes = [node("1", "أ"), node("2", "ب", "Follower(Tabi')"),
              node("3", "ج", "Succ. (Taba' Tabi')"), node("4", "د")]
@@ -95,7 +119,7 @@ def fixture():
         edge("2", "1", "2", 1, "4", "2"),
         edge("2", "2", "1", 1, "1", "3"),
     ]
-    return nodes, content, edges
+    return nodes, content, edges, local_corpus(), accepted_links(), "fixture-sha"
 
 
 class SchemaTests(unittest.TestCase):
@@ -111,9 +135,10 @@ class SchemaTests(unittest.TestCase):
             finally:
                 connection.close()
 
-            self.assertEqual(
-                sorted(tables), ["isnad", "mis_hadith", "mis_narrator", "transmission"]
-            )
+            self.assertEqual(sorted(tables), [
+                "hadith_mis_link", "isnad", "local_hadith",
+                "mis_hadith", "mis_narrator", "transmission",
+            ])
 
     def test_foreign_keys_are_enabled_on_the_connection(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -134,6 +159,7 @@ class SchemaTests(unittest.TestCase):
 
             self.assertEqual(counts, {
                 "mis_narrator": 4, "mis_hadith": 2, "isnad": 3, "transmission": 4,
+                "local_hadith": 3, "hadith_mis_link": 2,
             })
 
 
@@ -271,10 +297,10 @@ class ChainFidelityTests(unittest.TestCase):
     """السلسلة بتترجع بنفس الترتيب بالظبط."""
 
     def test_every_fixture_chain_reconstructs_exactly(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "g.sqlite"
-            build(path, nodes, content, edges)
+            build(path, nodes, content, edges, *rest)
             connection = connect(path)
             try:
                 report = verify_chain_fidelity(connection, edges)
@@ -286,10 +312,10 @@ class ChainFidelityTests(unittest.TestCase):
                 connection.close()
 
     def test_a_corrupted_order_is_detected(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "g.sqlite"
-            build(path, nodes, content, edges)
+            build(path, nodes, content, edges, *rest)
             connection = connect(path)
             try:
                 connection.execute(
@@ -305,10 +331,10 @@ class ChainFidelityTests(unittest.TestCase):
                 connection.close()
 
     def test_multiple_isnads_stay_separate(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "g.sqlite"
-            build(path, nodes, content, edges)
+            build(path, nodes, content, edges, *rest)
             connection = connect(path)
             try:
                 chains = stored_chains(connection)
@@ -320,10 +346,10 @@ class ChainFidelityTests(unittest.TestCase):
                 connection.close()
 
     def test_declared_sanad_count_mismatch_is_reported_not_repaired(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "g.sqlite"
-            build(path, nodes, content, edges)
+            build(path, nodes, content, edges, *rest)
             connection = connect(path)
             try:
                 connection.execute(
@@ -337,10 +363,10 @@ class ChainFidelityTests(unittest.TestCase):
                 connection.close()
 
     def test_edge_and_structure_reports_are_clean_for_the_fixture(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "g.sqlite"
-            build(path, nodes, content, edges)
+            build(path, nodes, content, edges, *rest)
             connection = connect(path)
             try:
                 self.assertTrue(verify_edge_fidelity(connection, edges)["counts_match"])
@@ -359,13 +385,13 @@ class DeterminismTests(unittest.TestCase):
     """نفس المدخلات = نفس البصمة المنطقية."""
 
     def test_two_builds_produce_the_same_canonical_hash(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         digests = []
 
         with tempfile.TemporaryDirectory() as directory:
             for name in ("a.sqlite", "b.sqlite"):
                 path = Path(directory) / name
-                build(path, nodes, content, edges)
+                build(path, nodes, content, edges, *rest)
                 connection = connect(path)
                 try:
                     digests.append(canonical_hash(connection))
@@ -375,11 +401,11 @@ class DeterminismTests(unittest.TestCase):
         self.assertEqual(digests[0], digests[1])
 
     def test_a_changed_row_changes_the_canonical_hash(self):
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
 
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "g.sqlite"
-            build(path, nodes, content, edges)
+            build(path, nodes, content, edges, *rest)
             connection = connect(path)
             try:
                 before = canonical_hash(connection)
@@ -396,7 +422,7 @@ class DeterminismTests(unittest.TestCase):
     def test_build_is_independent_of_the_working_directory(self):
         import os
 
-        nodes, content, edges = fixture()
+        nodes, content, edges, *rest = fixture()
         digests = []
         original = os.getcwd()
 
@@ -405,7 +431,7 @@ class DeterminismTests(unittest.TestCase):
                 for name in ("a.sqlite", "b.sqlite"):
                     os.chdir(original if name == "a.sqlite" else directory)
                     path = Path(directory) / name
-                    build(path, nodes, content, edges)
+                    build(path, nodes, content, edges, *rest)
                     connection = connect(path)
                     try:
                         digests.append(canonical_hash(connection))

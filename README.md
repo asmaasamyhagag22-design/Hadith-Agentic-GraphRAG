@@ -13,6 +13,7 @@
 | **Built and measured** | ingestion · isnād/matn separation · e5 embeddings · BM25 · hybrid RRF retrieval · cross-encoder reranking · grounded generation with enforced citations · two evaluation harnesses |
 | **Built, disabled by default** | CRAG self-grading + one query rewrite — measured, no gain (see [`EXPERIMENTS.md`](EXPERIMENTS.md)) |
 | **Built and measured** | MIS sanad chain graph — 2,092 narrator nodes, 14,155 ordered isnads, deterministic SQLite build with a read-only query API |
+| **Built and measured** | local corpus attached to the graph — a retrieved hadith resolves through the frozen 7,015-link mapping to its recorded MIS isnads |
 | **Not built yet** | narrator gradings · MIS↔Itqan identity resolution · agents/router · MCP server · web UI · tracing |
 
 There is no UI and no agent layer yet. The system runs from the command line and is evaluated by scripts.
@@ -74,7 +75,7 @@ Two evaluation sets, each with a distinct job:
 | False refusal (the answer was in context) | 0% | **0%** |
 | Correct refusal on unanswerable questions | 3/3 | **3/3** |
 
-Narrator questions ("who transmitted this, and how was each one graded?") score **0%** and are excluded from the tables above: they are structurally unanswerable from text. The chain half of that gap is now closed by the MIS sanad graph, which can return an ordered isnad; the grading half is not, because narrator identity is unresolved.
+Narrator questions ("who transmitted this, and how was each one graded?") score **0%** and are excluded from the tables above: they are structurally unanswerable from text. The *who transmitted this* half is now closed: a retrieved hadith joins deterministically to its recorded MIS isnads, narrator by narrator and in order. The *how was each one graded* half is not, because narrator identity to the rijal profiles is unresolved and the entity-resolution gate is closed.
 
 [`EXPERIMENTS.md`](EXPERIMENTS.md) is the single source of truth for every number, including four negative results, three falsified hypotheses, and the significance tests behind each decision.
 
@@ -122,7 +123,7 @@ Narrator questions ("who transmitted this, and how was each one graded?") score 
 | `data/raw/synthetic_eval.jsonl` | 224 generated evaluation questions | present |
 | `data/processed/` | chunks, embeddings, id lists | generated, git-ignored |
 | Narrator chains (MIS) and Itqan *rijal* profiles | present locally under `data/raw/external/`, git-ignored; acquisition/provenance in [`DATA_SOURCES.md`](DATA_SOURCES.md) | **MIS chain graph built; entity resolution not** |
-| `data/processed/sanad_graph.sqlite` | MIS chain graph — narrators, hadiths, isnads, ordered transmissions | generated, git-ignored |
+| `data/processed/sanad_graph.sqlite` | MIS chain graph — narrators, hadiths, isnads, ordered transmissions — plus the local corpus and the frozen accepted linkage | generated, git-ignored |
 
 Record shape of the corpus:
 
@@ -236,7 +237,7 @@ chain-structure questions as recorded in MIS and deliberately answers nothing ab
 narrator identity or reliability.
 
 - **Narrator gradings on the graph** — *al-jarḥ wa-l-taʿdīl* attached to a narrator, kept source-specific so conflicting verdicts stay visible. Blocked: it needs an adjudicated MIS↔Itqan identity that does not exist.
-- **Isnād tracing with gradings** — the ordered chain is available today; returning each narrator's grading with its source is not, and the graph abstains rather than guessing.
+- **Isnād tracing with gradings** — the ordered chain of a retrieved hadith is available today; returning each narrator's grading with its source is not, and the graph abstains rather than guessing. Coverage is partial by construction: 444 of 7,459 local hadiths have no accepted MIS record and report that explicitly.
 - **Ambiguity display** — when a narrator name matches several people, listing the candidates with their *ṭabaqa* instead of silently picking one.
 - **Router and two agents** — a matn agent and a sanad agent behind a classifier, orchestrated as a state machine.
 - **Metadata filtering** — book/chapter constraints applied at retrieval time.
