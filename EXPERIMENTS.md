@@ -1621,3 +1621,231 @@ profile, final MIS mapping, grade aggregation, or graph was created.
 **ENTITY-RESOLUTION GATE CLOSED.** The next permitted step is mechanical review
 of prioritized source-attachment risks and domain review of the bounded
 40-case historical packet, followed by measured error and abstention behavior.
+
+---
+
+## 16. Historical Identity Calibration
+
+### QUESTION
+
+Not "how do we merge profiles" but "what observable evidence would be enough to
+identify one historical narrator without creating unacceptable false merges?"
+A false merge silently corrupts every isnad that touches it; an unresolved
+narrator only costs coverage. Abstention is therefore a success state, and every
+rule below is measured by the damage it would do rather than the reach it adds.
+
+### WHY PROFILE != PERSON
+
+Established earlier and unchanged: `itqan_id` is a generated record key, not a
+canonical historical-person ID. This experiment adds the identity layer's own
+consequence — that no amount of agreement between two profiles is confirmation
+when the agreeing fields cannot be traced to independent records.
+
+### CALIBRATION INPUT
+
+The frozen 40-row expert packet, reproduced byte-for-byte
+(`e8e4335ada47e439573853cba5871511aac47f59c6bfed99c5c81ce5a2a747a0`), plus the
+19,757 audited duplication groups and the full 115,735-profile corpus. The
+packet composition verifies against its metadata: 25 biographically compatible,
+3 relationally compatible, 12 largest death gaps without a shared source record.
+Reviewer columns are blank in all 40 rows and no score, rank or automatic label
+is among its visible columns.
+
+One blinding gap was found and is recorded rather than patched:
+`source_review_id` joins back to the strict triage file, which holds
+`assistant_mechanical_triage`. The label is not visible in the packet, but it is
+one join away, so future packets must carry an opaque row ID.
+
+### EVIDENCE TAXONOMY
+
+Derived from the fields the corpus actually carries, not from a template.
+
+**A — identity-bearing: empty.** No field in v1.20 identifies a person
+independently of the name being compared. `itqan_id` is generated,
+`provenance.arsanad_id` equals it in all 112,220 populated cases, classical
+`entry_id` is source-local, `gk_id` is assigned by Itqan's own matching, and
+`unique_key` is derived from the name itself.
+
+**B — supporting:** full_name, namings, kunya, nasab, laqab, city, death,
+tabaqat, generation, teachers, students, classical_sources.
+
+**C — contradicting:** only what a machine can check — an explicit disagreement
+between parsed death intervals, or a relational cycle. A differing kunya or
+nisba is recorded as `DIFFERENT`, never as a contradiction: whether a variation
+is incompatible is a rijal question, not a string comparison.
+
+**D — non-independent:** `global_id` == `provenance.kaggle_id`;
+`provenance.arsanad_id` == profile id; a classical grade mirrored into
+`provenance.sources`; Itqan's own `unique_key`/`uniqueness`/`confidence`/
+`id_score`; and every profile biography field, which has no source pointer.
+
+**E — unknown:** missing stays missing, and is never read as a difference.
+
+### EVIDENCE INDEPENDENCE
+
+The decisive measurement: **0 of the 40 pairs share a single independent source
+record.** None share a source key at all, by construction of the packet, and
+`arsanad:profile_row` is excluded because it merely repeats the profile ID.
+
+Worse for any future rule, v1.20 carries no field-level provenance, so
+`full_name`, `death`, `kunya`, `nasab`, `city`, `tabaqat`, `generation`,
+`teachers` and `students` collapse into **one dependency group per profile** of
+unknown origin. Two profiles agreeing on five fields is therefore one
+unattributable agreement, not five confirmations. Every independence claim in
+this corpus is `UNKNOWN`.
+
+### POSITIVE ANCHOR SEARCH
+
+Searched for a genuinely independent identity relation: a shared `unique_key`, a
+shared `gk_id`, a shared Kaggle `scholar_indx`, and any explicit cross-reference
+field. Across the 40 pairs: 0 share a `unique_key`, and of the 12 pairs where
+both profiles carry a `gk_id`, 0 share it.
+
+**NO GOLD-STANDARD POSITIVE IDENTITY ANCHOR FOUND.** This is a result, not a
+gap in the search: it means no rule in this corpus can be validated against a
+known-correct positive, and the first real positive labels must come from
+adjudication.
+
+A related negative result, measured here for the first time: Itqan ships its own
+identity machinery — `unique_key`, `uniqueness`, `confidence` (A–F), `id_score`
+(15–90), `id_flags`, and `gk_match_method`. It cannot be used. `unique_key` is
+computed from the same name evidence being compared, so it is circular; and in
+**25.7% of the 99,596 `name_unique` profiles its name core does not match the
+profile's own `full_name`**, frequently naming an ancestor from the nasab chain
+instead. `gk_match_method` further shows the GK linkage itself was made by
+`prefix3_unique`, `naming_variant` and `prefix4_death_±1` heuristics — precisely
+the fuzzy matching this project rejected.
+
+### NEGATIVE ANCHOR SEARCH
+
+Four pairs share an exact name form while their reported deaths differ by more
+than 25 years — shared representation with strong independent evidence pointing
+away from one person. With `ITQ-DUP-0017` (one classical `tabaqat` entry
+attached to profiles 188 years apart) these are the corpus's clearest
+demonstrations that name agreement, and even record sharing, are not identity.
+
+### 40-CASE CALIBRATION RESULTS
+
+| mechanical status | cases | of which share a name form |
+|---|---:|---:|
+| REQUIRES_DOMAIN_EXPERT | 16 | 11 |
+| SOURCE_DATA_CONTRADICTION | 12 | 4 |
+| INSUFFICIENT_EVIDENCE | 10 | 10 |
+| STRONGLY_COMPATIBLE_BUT_UNCONFIRMED | 2 | 2 |
+
+No case received `SAME_PERSON` or `DIFFERENT_PERSON`; no authoritative crosswalk
+exists to justify either. Relational evidence is mostly absent — 31 of 40 pairs
+have no comparable teacher/student neighbourhood, 6 share one, and 3 have
+populated neighbourhoods that do not overlap. Chronology found no mechanical
+impossibility in any case: 12 show a suspicious death separation, which is
+explicitly not the same claim.
+
+### RULE CANDIDATES AND FAILURE ANALYSIS
+
+Seven rules were defined and exercised against the 19,757 audited groups. The
+decisive column is the third: a rule that fires on sets the audit already
+supports as *distinct people* would manufacture false merges.
+
+| rule | triggered | on strongly-distinct sets | abstention | status |
+|---|---:|---:|---:|---|
+| R-01 shared upstream record key | 983 | 0 | 95.0% | REJECTED |
+| R-02 full biography agreement | 806 | 0 | 95.9% | NEEDS_MORE_EVIDENCE |
+| R-03 Itqan native identity fields | not testable here | — | — | REJECTED |
+| R-04 adjacent IDs, same name and death | 9 | 0 | 99.95% | SAFE_FOR_FURTHER_VALIDATION |
+| R-05 arsanad_restore stub absorption | 171 | 0 | 99.1% | NEEDS_MORE_EVIDENCE |
+| R-06 relational neighbourhood overlap | 3,165 | **305** | 84.0% | DOMAIN_EXPERT_REQUIRED |
+| R-07 exact name equality alone | 19,253 | **1,569** | 2.6% | REJECTED |
+
+R-07 fires on *every* strongly-distinct set in the corpus while abstaining on
+almost nothing — the exact collision behaviour the whole audit exists to
+prevent. R-06 touching 305 of them shows a shared teacher list is not identity
+evidence either. R-03 could not be exercised on the group payload; reporting it
+as "0 triggered" would have read as safe, so it is reported as untested and was
+rejected on the direct 25.7% corpus measurement instead.
+
+These are **proxy safety measurements, not precision.** No adjudicated identity
+labels exist, so no precision, recall or accuracy figure is computable and none
+is reported.
+
+### IMPACT ON THE 81 AND THE 890
+
+Unchanged and unpromoted. The 81 remain 14 `LOW_TARGET_DATA_RISK`, 6
+multiplicity-only, 61 `MULTIPLE_RISKS`; the 890 remain 55 / 10 / 825. No tier
+moved. Calibration changes what we know about the evidence, not the tiers.
+
+### MECHANICAL AND DOMAIN-EXPERT BOUNDARY
+
+A machine can answer: same source key, same field value, explicit numeric death
+disagreement, same teacher or student ID, source independence, and what is
+missing. 10 of the 40 cases are closed mechanically as
+`INSUFFICIENT_EVIDENCE` — no specialist time is warranted on them.
+
+**30 of 40 require a rijal specialist**, and each carries the specific question
+to answer: whether two death reports are accepted opinions for one narrator,
+whether an abbreviated or variant name form refers to this narrator, and whether
+agreement across every populated field is one narrator recorded twice or two
+narrators sharing a name, kunya and death year. Reviewing CSV rows is not the
+same skill; these are not questions the engineering owner should be asked to
+adjudicate.
+
+### VALIDATION PROTOCOL
+
+Specified in `historical_identity_validation_protocol.md`. The statistical goal
+is stated before the sample size: a rule is adopted only if its false-merge rate
+is credibly below a ceiling, sized by the rule of three — zero false merges in
+`n` adjudications puts the 95% upper bound at `3/n`. A 1% ceiling gives n = 300
+per auto-merging rule; a review-flag-only rule is validated at n = 60. Seven
+strata, two independent specialists, blind adjudication, kappa >= 0.6 required
+before any sample validates anything, and a citation required to support a
+`SAME_HISTORICAL_PERSON` verdict.
+
+### HISTORICALNARRATOR CONTRACT
+
+Described, deliberately not instantiated. Calibration adds four requirements the
+earlier sketch lacked: every evidence item carries a `dependency_group_id`,
+because same-record evidence must never count twice; membership is an assertion
+with its own status rather than a foreign key, so a profile can be attached
+provisionally and detached without deletion; `QUARANTINED` is distinct from
+`AMBIGUOUS`, separating a profile whose own record integrity is in doubt from a
+genuinely uncertain identity; and death is a list of reported opinions with
+sources, never one canonical value. Singleton and unresolved narrators stay
+valid terminal states. Grade aggregation, merged payloads and transitive
+identity propagation remain forbidden.
+
+### FAILED / REJECTED RULES
+
+R-07 (name equality alone), R-01 (shared upstream record key), and R-03 (Itqan's
+native identity fields) are rejected with recorded reasons. R-06 is confined to
+single-hop supporting evidence: propagating it would bootstrap identity across
+the graph, which is prohibited.
+
+### UNKNOWN
+
+Whether any of the 40 pairs is one historical person. Whether the agreeing
+fields in the 2 strongly-compatible cases are independent or copied. The
+direction of derivation between an `arsanad_restore` stub and its classical
+counterpart. Whether the 25.7% `unique_key` divergence is a builder defect or an
+undocumented convention.
+
+### LIMITATIONS
+
+The taxonomy is derived from one corpus snapshot and one 40-case packet, which
+is a calibration sample rather than a representative one. Death evidence is
+reduced to explicit numeric intervals; prose disagreement is not parsed. Name
+decomposition into ism/nasab/kunya/nisba is not attempted — no deterministic
+parser exists and hallucinated decomposition would be worse than none. Rule
+safety is measured as exposure to audited classes, and those classes are
+evidence labels, not historical ground truth.
+
+### DECISION
+
+The evidence needed to identify a historical narrator is not present in this
+corpus: there is no identity-bearing field, no independent corroboration in any
+of the 40 pairs, and no positive anchor to validate against. Two rules are worth
+carrying forward (R-04 as a data-quality flag, R-05 with more evidence); three
+are rejected outright.
+
+**ENTITY-RESOLUTION GATE CLOSED.** No `HistoricalNarrator` instance, person map,
+merged profile, final MIS mapping, grade aggregation or graph was created. The
+next permitted step is adjudication under the validation protocol — the gate
+opens on adjudicated identity evidence, never on rule coverage.
