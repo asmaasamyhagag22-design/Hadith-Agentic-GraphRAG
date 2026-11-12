@@ -54,9 +54,22 @@ _RECORD = re.compile(r"^([\w.]+)\s*\|\s*([\w.]+)\s*\|\s*([^|]+?)\s*\|\s*([^|]*?)
 
 # Each README results table, sliced by the markers around it.
 README_TABLES = {
-    "retrieval_golden": ("**Retrieval** (golden set", "**Answer quality**"),
-    "answer_quality": ("**Answer quality**", "Narrator questions"),
+    "retrieval_golden": (
+        "**Retrieval, hand-verified set",
+        "**Retrieval, development set",
+    ),
+    "retrieval_synthetic": (
+        "**Retrieval, development set",
+        "**Answer quality",
+    ),
+    "answer_quality": (
+        "**Answer quality",
+        "Improving retrieval",
+    ),
 }
+
+_PERCENT = re.compile(r"(?<![.\d])\d{1,3}(?:\.\d+)?%")
+_DECIMAL = re.compile(r"(?<![.\d])0\.\d{3}\b")
 
 
 def canonical_bytes(data):
@@ -300,6 +313,20 @@ def denominator_problems(experiments):
     return problems, checked
 
 
+def prose_problems(readme, experiments):
+    """Every percentage or 3-decimal metric in README must appear in EXPERIMENTS."""
+
+    claimed = sorted(set(_PERCENT.findall(readme)) | set(_DECIMAL.findall(readme)))
+    recorded = set(_PERCENT.findall(experiments)) | set(_DECIMAL.findall(experiments))
+    problems = [
+        f"README figure {value!r} does not appear in {EXPERIMENTS.name}"
+        for value in claimed
+        if value not in recorded
+    ]
+
+    return problems, len(claimed)
+
+
 def _report(problems, checked, ok_message, fail_message):
 
     if problems:
@@ -348,6 +375,19 @@ def check_denominators():
     )
 
 
+def check_prose_numbers():
+
+    problems, checked = prose_problems(
+        README.read_text(encoding="utf-8"), EXPERIMENTS.read_text(encoding="utf-8")
+    )
+
+    return _report(
+        problems, checked,
+        "all {checked} distinct percentages/decimals in README.md appear in EXPERIMENTS.md",
+        "README contains figures not backed by EXPERIMENTS.md:",
+    )
+
+
 def check_hashes():
 
     experiments = EXPERIMENTS.read_text(encoding="utf-8")
@@ -390,6 +430,7 @@ def main():
         check_results(),
         check_canonical_sections(),
         check_denominators(),
+        check_prose_numbers(),
         check_hashes(),
     ])
 

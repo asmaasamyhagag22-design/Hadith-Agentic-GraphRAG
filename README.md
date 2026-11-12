@@ -13,7 +13,7 @@ Musnad answers questions about hadith from the source text, cites the exact hadi
 
 ## Highlights
 
-- **Hybrid retrieval tuned by measurement.** Arabic-normalised BM25 + multilingual-e5 dense search, fused with Reciprocal Rank Fusion and reranked by a cross-encoder. Reranking raised MRR from 0.565 to **0.665** on the hand-verified set, and the full pipeline reaches **0.330 vs 0.189** for dense-only (+75%) on a 224-query development set.
+- **Hybrid retrieval tuned by measurement.** Arabic-normalised BM25 + multilingual-e5 dense search, fused with Reciprocal Rank Fusion and reranked by a cross-encoder. Reranking raised MRR from 0.565 to **0.665** on the hand-verified set, and the full pipeline reaches **0.330 vs 0.189** for dense-only on a 224-query development set.
 - **Citations enforced in code, not just requested in the prompt.** A hadith number outside the retrieved evidence triggers one regeneration, then a refusal. Invalid citation attempts: **0%**. Correct refusals on unanswerable questions: **3/3**.
 - **Sanad graph.** 2,092 narrators, 63,642 ordered transmissions, 14,155 isnads in a deterministic SQLite build, joined to the local corpus through 7,015 verified hadith links.
 - **Decisions backed by statistics.** The reranker was chosen with a paired McNemar test: no significant quality difference against a 17× larger model, at ~6× lower latency.
@@ -89,7 +89,7 @@ The development questions are generated from random hadiths and are deliberately
 | False refusals | 0% | **0%** |
 | Correct refusals | 3/3 | **3/3** |
 
-Improving retrieval translated directly into better answers: the reranker brought the gold hadith into context for two more questions and lifted correct citation by 11 points. Full methodology, denominators and every experiment are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+Improving retrieval translated directly into better answers: the reranker brought the gold hadith into context for two more questions and lifted correct citation by 11 points. Citation enforcement blocks citations outside the retrieved evidence; it does not by itself catch a wrong hadith chosen from within it — the claim-level verification on the roadmap targets that case. Full methodology, denominators and every experiment are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
 
 ---
 

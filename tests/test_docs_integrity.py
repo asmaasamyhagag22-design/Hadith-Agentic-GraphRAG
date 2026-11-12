@@ -16,6 +16,7 @@ from src.check_docs import (
     canonical_hash,
     denominator_problems,
     parse_canonical,
+    prose_problems,
     recorded_hash,
     results_problems,
     section_problems,
@@ -48,6 +49,7 @@ class CheckerPassesOnCurrentDocsTests(unittest.TestCase):
         self.assertEqual(results_problems(readme, experiments)[0], [])
         self.assertEqual(section_problems(experiments)[0], [])
         self.assertEqual(denominator_problems(experiments)[0], [])
+        self.assertEqual(prose_problems(readme, experiments)[0], [])
 
     def test_the_checker_actually_inspects_something(self):
         readme, experiments = readme_text(), experiments_text()
@@ -95,6 +97,14 @@ class CheckerRejectsMisattributionTests(unittest.TestCase):
 
         self.assertTrue(problems)
 
+    def test_an_unrecorded_derived_percentage_in_prose_is_rejected(self):
+        readme = readme_text() + "\nRelative gain: +75%.\n"
+
+        problems, _ = prose_problems(readme, experiments_text())
+
+        self.assertTrue(problems)
+        self.assertTrue(any("75%" in problem for problem in problems))
+
 
 class CheckerRejectsDenominatorProblemsTests(unittest.TestCase):
     """النسبة من غير مقام، أو بمقام غلط، لازم تتمسك."""
@@ -138,8 +148,8 @@ class CheckerRejectsWrongSectionTests(unittest.TestCase):
         # Point the reranked row at the hybrid section; the value 0.665 lives
         # in section 6, not section 5.
         experiments = experiments_text().replace(
-            "retrieval_golden | hybrid_rerank | Hybrid + reranking | dataset=golden.jsonl n=27 section=6",
-            "retrieval_golden | hybrid_rerank | Hybrid + reranking | dataset=golden.jsonl n=27 section=5",
+            "retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=6",
+            "retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=5",
         )
 
         self.assertNotEqual(experiments, experiments_text(), "mutation was a no-op")
@@ -234,11 +244,11 @@ class QueryExpansionClaimTests(unittest.TestCase):
         self.assertNotIn("The immediate next retrieval step is query expansion", readme)
 
     def test_readme_marks_query_expansion_as_an_unvalidated_hypothesis(self):
-        readme = readme_text()
-        window = readme[readme.find("Query expansion"):][:400]
+        experiments = experiments_text()
+        window = experiments[experiments.find("Query expansion"):][:400]
 
         self.assertIn("hypothesis", window.lower())
-        self.assertIn("not been validated", window.lower())
+        self.assertIn("unvalidated", window.lower())
 
     def test_the_unretrievable_cases_have_provenance(self):
         experiments = experiments_text()
@@ -262,15 +272,16 @@ class RefusalClaimTests(unittest.TestCase):
     def test_readme_separates_out_of_context_from_wrong_in_context(self):
         readme = readme_text().lower()
 
-        self.assertIn("outside", readme)
-        self.assertIn("wrong hadith from within", readme)
+        self.assertIn("outside the retrieved evidence", readme)
+        self.assertIn("wrong hadith chosen from within it", readme)
 
     def test_the_wrong_in_context_rate_is_stated_where_the_claim_is_made(self):
         readme = readme_text()
-        window = readme[readme.find("Two failure modes"):][:700]
+        window = readme[readme.find("**Answer quality"):][:700]
 
         self.assertIn("10%", window)
         self.assertIn("13%", window)
+        self.assertIn("wrong hadith chosen from within it", window)
 
 
 class FrozenIdentityTests(unittest.TestCase):

@@ -70,12 +70,15 @@
 retrieval_golden | dense_matn | Dense only | dataset=golden.jsonl n=27 section=5 | hit@1=41%@27 hit@3=56%@27 hit@5=59%@27 hit@10=63%@27 MRR=0.493
 retrieval_golden | bm25_matn | BM25 only | dataset=golden.jsonl n=27 section=5 | hit@1=33%@27 hit@3=59%@27 hit@5=63%@27 hit@10=67%@27 MRR=0.464
 retrieval_golden | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl n=27 section=5 | hit@1=44%@27 hit@3=67%@27 hit@5=74%@27 hit@10=85%@27 MRR=0.565
-retrieval_golden | hybrid_rerank | Hybrid + reranking | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
-answer_quality | invalid_citation | Invalid citation attempts | dataset=golden.jsonl section=9 | Hybrid=0%@30 Hybrid_+_reranking=0%@30
-answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=9 | Hybrid=70%@27 Hybrid_+_reranking=81%@27
-answer_quality | wrong_citation | Cited the wrong hadith from context | dataset=golden.jsonl section=9 | Hybrid=13%@30 Hybrid_+_reranking=10%@30
-answer_quality | false_refusal | False refusal (the answer was in context) | dataset=golden.jsonl section=9 | Hybrid=0%@20 Hybrid_+_reranking=0%@22
-answer_quality | refusal_tests | Correct refusal on unanswerable questions | dataset=golden.jsonl section=9 | Hybrid=3/3 Hybrid_+_reranking=3/3
+retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
+retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
+retrieval_synthetic | hybrid_rrf | Hybrid (RRF) | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=18%@224 hit@3=30%@224 hit@5=37%@224 hit@10=44%@224 MRR=0.256
+retrieval_synthetic | hybrid_rerank | Hybrid + rerank | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
+answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=9 | Hybrid=70%@27 Hybrid_+_rerank=81%@27
+answer_quality | invalid_citation | Invalid citation attempts (measured before filtering) | dataset=golden.jsonl section=9 | Hybrid=0%@30 Hybrid_+_rerank=0%@30
+answer_quality | wrong_citation | Cited a non-gold hadith from the context | dataset=golden.jsonl section=9 | Hybrid=13%@30 Hybrid_+_rerank=10%@30
+answer_quality | false_refusal | False refusals | dataset=golden.jsonl section=9 | Hybrid=0%@20 Hybrid_+_rerank=0%@22
+answer_quality | refusal_tests | Correct refusals | dataset=golden.jsonl section=9 | Hybrid=3/3 Hybrid_+_rerank=3/3
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
