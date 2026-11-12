@@ -277,7 +277,9 @@ class RefusalClaimTests(unittest.TestCase):
 
     def test_the_wrong_in_context_rate_is_stated_where_the_claim_is_made(self):
         readme = readme_text()
-        window = readme[readme.find("**Answer quality"):][:700]
+        start = readme.find("**Answer quality")
+        end = readme.find("\n---\n", start)
+        window = readme[start:end]
 
         self.assertIn("10%", window)
         self.assertIn("23%", window)
