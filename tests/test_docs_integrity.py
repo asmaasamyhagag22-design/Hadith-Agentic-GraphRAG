@@ -111,7 +111,7 @@ class CheckerRejectsDenominatorProblemsTests(unittest.TestCase):
 
     def test_a_rate_without_a_denominator_is_rejected(self):
         original = experiments_text()
-        experiments = original.replace("Hybrid=70%@27", "Hybrid=70%", 1)
+        experiments = original.replace("Hybrid=63%@27", "Hybrid=63%", 1)
         self.assertNotEqual(experiments, original, "mutation was a no-op")
 
         problems, _ = denominator_problems(experiments)
@@ -280,7 +280,7 @@ class RefusalClaimTests(unittest.TestCase):
         window = readme[readme.find("**Answer quality"):][:700]
 
         self.assertIn("10%", window)
-        self.assertIn("13%", window)
+        self.assertIn("23%", window)
         self.assertIn("wrong hadith chosen from within it", window)
 
 

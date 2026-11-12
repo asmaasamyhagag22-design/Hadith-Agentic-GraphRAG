@@ -83,13 +83,14 @@ The development questions are generated from random hadiths and are deliberately
 
 | Metric | Hybrid | **Hybrid + rerank** |
 |---|---|---|
-| Correct citation | 70% | **81%** |
+| Correct citation | 63% | **81%** |
 | Invalid citation attempts (measured before filtering) | 0% | **0%** |
-| Cited a non-gold hadith from the context | 13% | **10%** |
+| Missing citation attempts (raw output) | 0% | **0%** |
+| Cited a non-gold hadith from the context | 23% | **10%** |
 | False refusals | 0% | **0%** |
 | Correct refusals | 3/3 | **3/3** |
 
-Improving retrieval translated directly into better answers: the reranker brought the gold hadith into context for two more questions and lifted correct citation by 11 points. Citation enforcement blocks citations outside the retrieved evidence; it does not by itself catch a wrong hadith chosen from within it — the claim-level verification on the roadmap targets that case. Full methodology, denominators and every experiment are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+Improving retrieval translated directly into better answers: the reranker brought the gold hadith into context for two more questions and lifted correct citation from 63% to 81%. Citation enforcement blocks citations outside the retrieved evidence; it does not by itself catch a wrong hadith chosen from within it — the claim-level verification on the roadmap targets that case. Full methodology, denominators and every experiment are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
 
 ---
 

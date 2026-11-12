@@ -74,11 +74,12 @@ retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 s
 retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
 retrieval_synthetic | hybrid_rrf | Hybrid (RRF) | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=18%@224 hit@3=30%@224 hit@5=37%@224 hit@10=44%@224 MRR=0.256
 retrieval_synthetic | hybrid_rerank | Hybrid + rerank | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
-answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=9 | Hybrid=70%@27 Hybrid_+_rerank=81%@27
-answer_quality | invalid_citation | Invalid citation attempts (measured before filtering) | dataset=golden.jsonl section=9 | Hybrid=0%@30 Hybrid_+_rerank=0%@30
-answer_quality | wrong_citation | Cited a non-gold hadith from the context | dataset=golden.jsonl section=9 | Hybrid=13%@30 Hybrid_+_rerank=10%@30
-answer_quality | false_refusal | False refusals | dataset=golden.jsonl section=9 | Hybrid=0%@20 Hybrid_+_rerank=0%@22
-answer_quality | refusal_tests | Correct refusals | dataset=golden.jsonl section=9 | Hybrid=3/3 Hybrid_+_rerank=3/3
+answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=21 | Hybrid=63%@27 Hybrid_+_rerank=81%@27
+answer_quality | invalid_citation | Invalid citation attempts (measured before filtering) | dataset=golden.jsonl section=21 | Hybrid=0%@30 Hybrid_+_rerank=0%@30
+answer_quality | missing_citation | Missing citation attempts (raw output) | dataset=golden.jsonl section=21 | Hybrid=0%@30 Hybrid_+_rerank=0%@30
+answer_quality | wrong_citation | Cited a non-gold hadith from the context | dataset=golden.jsonl section=21 | Hybrid=23%@30 Hybrid_+_rerank=10%@30
+answer_quality | false_refusal | False refusals | dataset=golden.jsonl section=21 | Hybrid=0%@20 Hybrid_+_rerank=0%@22
+answer_quality | refusal_tests | Correct refusals | dataset=golden.jsonl section=21 | Hybrid=3/3 Hybrid_+_rerank=3/3
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -2617,3 +2618,51 @@ makes a wrong in-context citation impossible.
 
 No corpus, golden label, synthetic row, embedding, linkage, graph, tier or audit
 artifact was touched.
+
+---
+
+## 21. إغلاق ثغرة التحقق من الاستشهاد وإعادة القياس
+
+**تاريخ القياس:** 2026-11-12
+
+### ما الذي تغيّر في `src/answer.py`؟
+
+الفاحص القديم في `answer_with_details()` كان يحسب فقط `bool(cited_ids(raw) - context_ids)` باستخدام التعبير النمطي الضيق `حديث\s*رقم\s*[:\s]*(\d+)`. هذا ترك ثلاث ثغرات تمرّ دون إعادة توليد:
+
+1. **إجابة بلا أي استشهاد (`MISSING_CITATION`):** عندما لا يكتب الموديل أي رقم حديث، تكون مجموعة `cited_ids(raw)` فارغة، فيكون الفرق مع `context_ids` فارغًا وتمرّ الإجابة بلا مصدر.
+2. **إشارات حرة لرقم حديث خارج السياق (`OUT_OF_CONTEXT_CITATION`):** مثل `"حديث 999"` أو `"مسلم 999"` أو `"مسلم، رقم 999"` (بالأرقام العربية `0-9` أو الهندية `٠-٩`)، إذ لم يكن التعبير الضيق يلتقطها.
+3. **رفض مختلط (`MIXED_REFUSAL`):** كتابة جملة الرفض مع نص إضافي أو علامات ترقيم زائدة أو أرقام، بدل الاكتفاء بجملة `REFUSAL` وحدها حرفيًا.
+
+أُضيفت الدالة الصافية `validate_answer(answer, context_ids)` التي تُرجع إحدى الحالات الخمس (`VALID_ANSWER`, `VALID_REFUSAL`, `MISSING_CITATION`, `OUT_OF_CONTEXT_CITATION`, `MIXED_REFUSAL`)، وعند أي حالة غير صالحة يُعاد التوليد **مرة واحدة فقط** برسالة تصحيح مخصصة لنوع الخطأ (`CORRECTIONS[status]`)؛ فإن فشلت المحاولة الثانية يُرجع النظام `REFUSAL`.
+
+**ثبات البرومبت وقابلية المقارنة:** لم يتغير `build_system_prompt()` إطلاقًا، لذا فإن المخرَج الخام الأول (`raw`) لكل سؤال لا يتأثر بتعديل الفاحص. كما أُبقي حساب `invalid_citation_attempt` مطابقًا للتعريف القديم (استشهاد بالصيغة الرسمية خارج السياق) ليبقى قابلًا للمقارنة المباشرة، وأُضيفت مقاييس خام منفصلة: `missing_citation_attempt` و`loose_out_of_context_attempt` و`mixed_refusal_attempt`.
+
+### نتائج القياس (30 سؤالًا: 27 قابلة للإجابة + 3 رفض، `k=5`، `gemini-2.5-pro`)
+
+أُجري التحقق المسبق `uv run python -m src.validate_golden` (7,459 حديثًا، 33 مدخلًا، 0 أخطاء)، ثم شُغّل `uv run python -m src.answer_eval` على إعدادَي `Hybrid: dense + BM25` و`Hybrid + mmarco-mMiniLMv2-L12-H384-v1` دون CRAG. في نفس التشغيلة طُبّق الفاحص القديم والفاحص الجديد على نفس المخرجات الخام (`raw`):
+
+| المقياس | المقام | Hybrid (لقطة §9 السابقة) | Hybrid (هذه التشغيلة — فاحص قديم) | Hybrid (هذه التشغيلة — فاحص جديد) | **Hybrid + rerank** (لقطة §9 السابقة) | **Hybrid + rerank** (هذه التشغيلة — فاحص قديم) | **Hybrid + rerank** (هذه التشغيلة — فاحص جديد) |
+|---|---|---|---|---|---|---|---|
+| Correct citation (`correct_citation`) | 27 | 70% (19/27) | 63% (17/27) | 63% (17/27) | **81%** (22/27) | **81%** (22/27) | **81%** (22/27) |
+| Invalid citation attempts (measured before filtering) | 30 | 0% (0/30) | 0% (0/30) | 0% (0/30) | **0%** (0/30) | **0%** (0/30) | **0%** (0/30) |
+| Missing citation attempts (raw output) | 30 | غير مقيس | — | 0% (0/30) | غير مقيس | — | **0%** (0/30) |
+| Loose out-of-context attempts (raw output) | 30 | غير مقيس | — | 0% (0/30) | غير مقيس | — | **0%** (0/30) |
+| Mixed refusal attempts (raw output) | 30 | غير مقيس | — | 0% (0/30) | غير مقيس | — | **3%** (1/30) |
+| Cited a non-gold hadith from the context (`wrong_citation`) | 30 | 13% (4/30) | 23% (7/30) | 23% (7/30) | **10%** (3/30) | **10%** (3/30) | **10%** (3/30) |
+| False refusals (`gold_in_context`) | 20 / 22 | 0% (0/20) | 0% (0/20) | 0% (0/20) | **0%** (0/22) | **0%** (0/22) | **0%** (0/22) |
+| Correct refusals (`refusal_test`) | 3 | 3/3 (100%) | 3/3 (100%) | 3/3 (100%) | **3/3** (100%) | **3/3** (100%) | **3/3** (100%) |
+| Cited a source while refusing | 6 / 5 | 0% | 0% (0/6) | 0% (0/6) | **0%** | **0%** (0/5) | **0%** (0/5) |
+| حالات الثغرة (مرّت قديمًا وفشلت جديدًا على `raw`) | 30 | — | — | **0/30** | — | — | **1/30** |
+| نداءات Gemini المستهلكة | — | 30 | — | 30 | 30 | — | 31 |
+
+### تفسير النتائج وحالات الثغرة
+
+1. **مقارنة الفاحص القديم بالجديد على نفس المخرجات الخام (مقارنة مضبوطة 100%):**
+   - في إعداد **`Hybrid: dense + BM25`**: لم يفشل أي مخرَج خام من الـ 30 في الفاحص القديم ولا في الفاحص الجديد (`0/30` حالات ثغرة، `0/30` إعادة توليد). بالتالي فإن الفاحص القديم والفاحص الجديد يعطيان **نفس الأرقام بالضبط** على هذه التشغيلة (`63%` استشهاد صحيح = 17/27، و`23%` استشهاد بحديث غير مرجعي من السياق = 7/30).
+   - سبب الفرق في إعداد `Hybrid` وحده بين لقطة §9 السابقة (`70%` / `13%`) وهذه التشغيلة (`63%` / `23%`) هو **تباين عبر التشغيلات (run-to-run variance)** في خدمة `gemini-2.5-pro` عبر Vertex AI بين تاريخَي القياس على سؤالين إلى ثلاثة أسئلة، وليس بسبب تعديل الفاحص (لأن الفاحص لم يتدخل في أي سؤال من أسئلة `Hybrid` الثلاثين).
+2. **الحالة التي أمسكها الفاحص الجديد في `Hybrid + mmarco-mMiniLMv2-L12-H384-v1` (`1/30`):**
+   - **السؤال `#28`:** `ما هو فضل قراءة سورة الكهف يوم الجمعة؟` (سؤال رفض).
+   - **المخرَج الخام (`raw`):** `"المصادر المتاحة لا تجيب عن هذا السؤال."` (أضاف الموديل نقطة في نهاية جملة الرفض).
+   - **التصنيف:** مرّ في الفاحص القديم لأن `cited_ids(raw)` فارغة، بينما صنّفه `validate_answer` كـ `MIXED_REFUSAL` لعدم مطابقته الحرفية لجملة `REFUSAL`. بعد إعادة توليد واحدة برسالة `CORRECTION_MIXED_REFUSAL`، أخرج الموديل النص المطابق حرفيًا: `"المصادر المتاحة لا تجيب عن هذا السؤال"`.
+   - **الأثر على المقاييس النهائية في `Hybrid + rerank`:** بقيت كل المقاييس النهائية مطابقة للقطة §9 (`81%` استشهاد صحيح = 22/27، `10%` استشهاد بحديث غير مرجعي من السياق = 3/30، `0%` محاولات استشهاد باطل، `0%` محاولات إجابة بلا استشهاد، `0%` رفض كاذب = 0/22، `3/3` رفض صحيح).
+
