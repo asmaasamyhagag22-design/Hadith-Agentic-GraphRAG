@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import time
+from enum import Enum
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -150,16 +151,94 @@ def format_context(relevant_chunks):
 # الصيغة مفروضة في build_system_prompt
 CITATION = re.compile(r"حديث\s*رقم\s*[:\s]*(\d+)")
 
-CORRECTION = (
+# إشارات غير منضبطة لرقم حديث (مثل: "حديث 999"، "حديث رقم: 999"، "مسلم 999"، "مسلم، رقم 999")
+LOOSE_CITATION = re.compile(
+    r"(?:حديث(?:\s*رقم)?|مسلم(?:\s*[،,]?\s*رقم)?)\s*[:\s]*(\d+)"
+)
+
+_DIGIT = re.compile(r"\d")
+
+
+class ValidationResult(Enum):
+    VALID_ANSWER = "valid_answer"
+    VALID_REFUSAL = "valid_refusal"
+    MISSING_CITATION = "missing_citation"
+    OUT_OF_CONTEXT_CITATION = "out_of_context_citation"
+    MIXED_REFUSAL = "mixed_refusal"
+
+
+VALID_ANSWER = ValidationResult.VALID_ANSWER
+VALID_REFUSAL = ValidationResult.VALID_REFUSAL
+MISSING_CITATION = ValidationResult.MISSING_CITATION
+OUT_OF_CONTEXT_CITATION = ValidationResult.OUT_OF_CONTEXT_CITATION
+MIXED_REFUSAL = ValidationResult.MIXED_REFUSAL
+
+CORRECTION_OUT_OF_CONTEXT = (
     "الرقم الذي ذكرته غير موجود في السياق. "
     "أعد الإجابة مستشهدًا برقم من أرقام الأحاديث المعروضة فقط، "
     "أو اكتب جملة الرفض وحدها إن لم تكن الإجابة موجودة."
 )
 
+CORRECTION = CORRECTION_OUT_OF_CONTEXT
+
+CORRECTION_MISSING_CITATION = (
+    "إجابتك لم تتضمن استشهادًا برقم الحديث بالصيغة المطلوبة. "
+    "أعد الإجابة واختم برقم الحديث من السياق بهذا الشكل: "
+    "(المصدر: صحيح مسلم، حديث رقم XXXX)، "
+    "أو اكتب جملة الرفض وحدها إن لم تكن الإجابة موجودة."
+)
+
+CORRECTION_MIXED_REFUSAL = (
+    "لقد جمعت بين جملة الرفض وكلام آخر. "
+    f'إما أن تكتب جملة الرفض وحدها دون أي إضافة أو أرقام: "{REFUSAL}"، '
+    "وإما أن تجيب من السياق مستشهدًا برقم الحديث بالصيغة المطلوبة."
+)
+
+CORRECTIONS = {
+    OUT_OF_CONTEXT_CITATION: CORRECTION_OUT_OF_CONTEXT,
+    MISSING_CITATION: CORRECTION_MISSING_CITATION,
+    MIXED_REFUSAL: CORRECTION_MIXED_REFUSAL,
+}
+
 
 def cited_ids(answer):
 
     return {int(match) for match in CITATION.findall(answer)}
+
+
+def loose_cited_ids(answer):
+
+    return {int(match) for match in LOOSE_CITATION.findall(answer)}
+
+
+def validate_answer(answer, context_ids):
+    """
+    فحص صافي لمخرَج الموديل:
+    - الرفض صالح فقط إذا طابق جملة الرفض حرفيًا بعد إزالة الفراغات وخلا من الأرقام.
+    - جمع جملة الرفض مع أي نص أو رقم آخر يُعدّ رفضًا مختلطًا.
+    - أي رقم حديث (بصيغة رسمية أو حرة، بأرقام عربية أو هندية) خارج السياق يُرفض.
+    - أي إجابة غير رافضة لا تحوي استشهادًا بالصيغة المطلوبة تُرفض لغياب المصدر.
+    """
+
+    stripped = (answer or "").strip()
+    allowed_ids = set(context_ids)
+
+    if stripped == REFUSAL and not _DIGIT.search(stripped):
+        return VALID_REFUSAL
+
+    if REFUSAL in stripped:
+        return MIXED_REFUSAL
+
+    strict_ids = cited_ids(stripped)
+    loose_ids = loose_cited_ids(stripped)
+
+    if (strict_ids | loose_ids) - allowed_ids:
+        return OUT_OF_CONTEXT_CITATION
+
+    if not strict_ids:
+        return MISSING_CITATION
+
+    return VALID_ANSWER
 
 
 GRADE_PROMPT = """قيّم مدى صلة الأحاديث التالية بالسؤال.
@@ -262,6 +341,9 @@ def answer_with_details(
             "raw": REFUSAL,
             "chunks": [],
             "invalid_citation_attempt": False,
+            "missing_citation_attempt": False,
+            "loose_out_of_context_attempt": False,
+            "mixed_refusal_attempt": False,
             "regenerated": False,
             "rewritten": rewritten,
             "retried": retried,
@@ -273,24 +355,33 @@ def answer_with_details(
 
     raw = generate(question, system_instruction=system_instruction)
 
+    status = validate_answer(raw, context_ids)
     invalid = bool(cited_ids(raw) - context_ids)
+    missing_citation = status == MISSING_CITATION
+    loose_out_of_context = bool(
+        (loose_cited_ids(raw) - cited_ids(raw)) - context_ids
+    )
+    mixed_refusal = status == MIXED_REFUSAL
 
     answer = raw
     regenerated = False
 
-    if invalid and enforce_citations:
+    if status not in (VALID_ANSWER, VALID_REFUSAL) and enforce_citations:
 
         # مرة واحدة بس. لو فشل تاني بنرفض — إجابة بلا مصدر
         # في المجال ده أسوأ من الاعتراف بعدم المعرفة.
         regenerated = True
 
         answer = generate(
-            CORRECTION,
+            CORRECTIONS[status],
             system_instruction=system_instruction,
             history=[("user", question), ("model", raw)],
         )
 
-        if cited_ids(answer) - context_ids:
+        if validate_answer(answer, context_ids) not in (
+            VALID_ANSWER,
+            VALID_REFUSAL,
+        ):
             answer = REFUSAL
 
     return {
@@ -298,6 +389,9 @@ def answer_with_details(
         "raw": raw,
         "chunks": chunks,
         "invalid_citation_attempt": invalid,
+        "missing_citation_attempt": missing_citation,
+        "loose_out_of_context_attempt": loose_out_of_context,
+        "mixed_refusal_attempt": mixed_refusal,
         "regenerated": regenerated,
         "rewritten": rewritten,
         "retried": retried,
