@@ -6,8 +6,33 @@ Musnad answers questions about hadith from the source text, cites the exact hadi
 
 > «مُسنَد» بيجاوب على أسئلة من صحيح مسلم برقم الحديث ونص المتن، وبيرفض لما الإجابة مش موجودة في المصدر، وبيقدر يعرض سلسلة رواة الحديث اللي رجع.
 
-<!-- DEMO: paste a real CLI run here (one answered question + one refusal),
-     or a short GIF/asciinema recording. Do not write an example by hand. -->
+```text
+================================================================================
+ما جزاء من صام رمضان إيماناً واحتساباً؟
+
+Answer:
+من صام رمضان إيماناً واحتساباً يُغفر له ما تقدم من ذنبه.
+(المصدر: صحيح مسلم، حديث رقم 8950)
+
+Retrieved Chunks:
+Rank: 1 | Chunk ID: 8950_0 | Hadith ID: 8950 | Score: 0.7367
+Rank: 2 | Chunk ID: 8948_0 | Hadith ID: 8948 | Score: -2.4623
+Rank: 3 | Chunk ID: 8949_0 | Hadith ID: 8949 | Score: -3.5978
+Rank: 4 | Chunk ID: 9823_0 | Hadith ID: 9823 | Score: -4.1154
+Rank: 5 | Chunk ID: 9769_0 | Hadith ID: 9769 | Score: -4.6486
+================================================================================
+ما هو فضل قراءة سورة الكهف يوم الجمعة؟
+
+Answer:
+المصادر المتاحة لا تجيب عن هذا السؤال
+
+Retrieved Chunks:
+Rank: 1 | Chunk ID: 9195_0 | Hadith ID: 9195 | Score: -2.8054
+Rank: 2 | Chunk ID: 9181_0 | Hadith ID: 9181 | Score: -2.9952
+Rank: 3 | Chunk ID: 9200_0 | Hadith ID: 9200 | Score: -3.0003
+Rank: 4 | Chunk ID: 9163_0 | Hadith ID: 9163 | Score: -3.1959
+Rank: 5 | Chunk ID: 9146_0 | Hadith ID: 9146 | Score: -3.6841
+```
 
 ---
 
