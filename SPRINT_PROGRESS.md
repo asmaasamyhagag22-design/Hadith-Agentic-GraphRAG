@@ -85,8 +85,11 @@
   - Clean `3+3` live CLI smoke test passed (`6/6` in `53.14 s`; `10` Pro `<= 15`, `2` Flash, `4` Embed; `data/processed/auto_smoke_cli.txt`).
   - **Verification**: `check_docs` 5/5 green; CI pytest `292 passed, 26 deselected, 74 subtests passed`; full pytest `318 passed, 74 subtests passed`.
 
+### Step 2 — Correct Cached vs Uncached Latency Comparisons (`EXPERIMENTS.md` §32)
+- Replaced the misleading cached-vs-uncached headline comparison (`+253.2%`, `3.53×` vs cached `golden OFF` `4906.0 ms`) in `EXPERIMENTS.md` §32 with the fair uncached comparison against §29 (`17,326.3 ms` agent ON vs `12,550.5 ms` live single-turn RAG = **`+38.1%`**, **`1.38×`**), while keeping all measured numbers intact, distinguishing cached `4906.0 ms` (`4` live Flash calls vs `57`), and retaining Pro-call doubling (`181` vs `98`) and refusal drop (`1.67/3` vs `3.0/3`).
+- **Verification**: Confirmed zero `+253.2%`/`3.53×` occurrences in `EXPERIMENTS.md` and `README.md`; `check_docs` 5/5 green; CI pytest `292 passed, 26 deselected, 74 subtests passed`; full pytest `318 passed, 74 subtests passed`.
+
 ## Next Step
-- **Step 2**: Fix cached-vs-uncached latency comparisons in `EXPERIMENTS.md` §32 (`17,326.3 ms` agent ON vs §29 `12,550.5 ms` uncached `+38.1%`, distinguish `4,906.0 ms` cached `golden` OFF, keep Pro calls `181` vs `98` and refusal drop `1.67/3` vs `3.0/3`), commit and push.
 - **Step 3**: Phase D2 README update (`README.md`, `src/check_docs.py` tables, `"SQLite sanad graph"`).
 - **Step 4**: Phase E1 `docs/holdout_review.md` via `src/build_holdout_review.py` without editing/evaluating `holdout_draft.jsonl`.
 - **Step 5**: Final consistency & verification pass and report.
