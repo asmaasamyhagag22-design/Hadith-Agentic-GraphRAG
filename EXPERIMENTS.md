@@ -84,6 +84,10 @@ golden_agent | off_3runs | Baseline non-agent (3-run mean) | dataset=golden.json
 golden_agent | on_3runs | Tool-calling agent (3-run mean) | dataset=golden.jsonl section=32 | Correct_citation=100.0%@27 False_refusals=0.0%@27 Correct_refusals=55.6%@3 Pooled_median_ms=17326.3 Pooled_p95_ms=29167.4
 chain_eval_test | agent_off | Non-agent baseline (frozen test) | dataset=chain_eval_test.jsonl n=25 section=32 | Routing_accuracy=0.0%@25 Answer_accuracy=12.0%@25 Hallucinated_narrators=0.0%@25 Abstention_accuracy=100.0%@3 Median_latency_ms=11033.5
 chain_eval_test | agent_on | Tool-calling agent ON (frozen test) | dataset=chain_eval_test.jsonl n=25 section=32 | Routing_accuracy=100.0%@25 Answer_accuracy=100.0%@25 Hallucinated_narrators=0.0%@25 Abstention_accuracy=100.0%@3 Median_latency_ms=8560.4
+router_eval | golden | Deterministic router (golden) | dataset=golden.jsonl n=33 section=33 | Overall_accuracy=97.0%@33 Chain_recall=66.7%@3 Text_specificity=100.0%@30
+router_eval | synthetic_eval | Deterministic router (synthetic) | dataset=synthetic_eval.jsonl n=224 section=33 | Overall_accuracy=99.6%@224 Text_specificity=99.6%@224
+router_eval | chain_eval_dev | Deterministic router (chain dev) | dataset=chain_eval_dev.jsonl n=15 section=33 | Overall_accuracy=100.0%@15 Chain_recall=100.0%@15
+router_eval | chain_eval_test | Deterministic router (chain frozen test) | dataset=chain_eval_test.jsonl n=25 section=33 | Overall_accuracy=88.0%@25 Chain_recall=88.0%@25
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3576,7 +3580,42 @@ artifact was touched.
 - ارتفاع الوسيط الزمني على `golden`: `17326.3 ms` مقابل `4906.0 ms` (**`+253.2%`** > **`+50%`**) — **⛔ شرط إيقاف مُفعَّل**.
 - **الوضع الملتزَم به عند التوقف:** يبقى `DEFAULT_AGENT_MODE = "off"` (`MUSNAD_AGENT=off` افتراضيًا) بانتظار قرار المستخدم عند البوابة 1.
 
+---
 
+## 33. تقييم الموجّه الحتمي للنوايا (`src/router.py`) دون استدعاء نموذج
 
+- **السياق:** تنفيذًا لقرار المستخدم عند البوابة 1 (الخيار 1 المبسّط دون تعديل موجه الوكيل أو مسار النص المفرد)، أُضيف الموجّه الحتمي `src/router.py` المصمّم من دلالات لغوية عربية عامة في علم الحديث والرجال ودون أي استدعاء لنموذج (`0` استدعاءات API، ودون قراءة `data/raw/holdout_draft.jsonl`). جرى تثبيت القواعد ورفعها في الالتزام [`ea9c282`](src/router.py) (وتسجيلها في [`8b04d92`](SPRINT_PROGRESS.md)) **قبل** حساب أي مقياس توجيه، ولم تُعدَّل بعد رؤية نتيجة التقسيم الاختباري المجمّد `chain_eval_test.jsonl`.
+- **مصدر أسئلة السند (`chain_eval*.jsonl`):** جميع أسئلة السند الأربعين في `chain_eval.jsonl` (`15` تطويري + `25` اختباري مجمّد، وتضم الأسئلة الثلاثة من نوع `narrator` في `golden.jsonl`) **مُولّدة من قوالب نصية مع حساب إجاباتها المرجعية حتميًا من قاعدة البيانات `sanad_graph.sqlite`**، وليست أسئلة مستخدمين طبيعيين حرّة.
+- **السكربت المخرِج والنتائج الخام:** [`src/evaluate_router.py`](src/evaluate_router.py) → `data/processed/router_eval_results.json` (`0` Pro، `0` Flash، `0` Embed).
 
+### 1) مصفوفات الالتباس عبر المجموعات الأربع (الفئة الموجبة = `chain`، الفئة السالبة = `text`)
+
+| المجموعة | `sha256` (أول 16 خانة) | `n` | المتوقَّع (`chain` / `text`) | `TP` (`chain→chain`) | `FN` (`chain→text`) | `TN` (`text→text`) | `FP` (`text→chain`) | الدقة الكلية | استدعاء السند (`chain`) | نوعية النص (`text`) |
+| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `golden.jsonl` | `a7ec05f48ec0491a` | `33` | `3` / `30` | `2` | `1` | `30` | `0` | `97.0%` (`32/33`, `96.97%`) | `66.7%` (`2/3`) | `100.0%` (`30/30`) |
+| `synthetic_eval.jsonl` | `4bec52d5a56a8fc8` | `224` | `0` / `224` | `0` | `0` | `223` | `1` | `99.6%` (`223/224`, `99.55%`) | `—` | `99.6%` (`223/224`) |
+| `chain_eval_dev.jsonl` | `ee90b7fa0eed67ae` | `15` | `15` / `0` | `15` | `0` | `0` | `0` | `100.0%` (`15/15`) | `100.0%` (`15/15`) | `—` |
+| `chain_eval_test.jsonl` (تشغيل وحيد مجمّد) | `7cb399587827ddde` | `25` | `25` / `0` | `22` | `3` | `0` | `0` | `88.0%` (`22/25`) | `88.0%` (`22/25`) | `—` |
+| **المجموع المجمّع (`POOLED`)** | — | **`297`** | `43` / `254` | `39` | `4` | `253` | `1` | `98.3%` (`292/297`, `98.32%`) | `90.7%` (`39/43`) | `99.6%` (`253/254`) |
+
+### 2) القائمة الكاملة للعناصر مُخطَأة التوجيه (دون أي تعديل على `src/router.py` بعد الاختبار)
+
+1. **`golden.jsonl` — `1/33` مُخطأ التوجيه:**
+   - `[golden_033]` (`type="narrator"`, المتوقَّع=`chain` → المتنبَّأ=`text`, `matched_rule=None`):
+     `«ما حكم الإمام ابن حجر على رواة سند حديث «الدين النصيحة»؟»`
+2. **`synthetic_eval.jsonl` — `1/224` مُخطأ التوجيه (`99.6% >= 99%` على النص):**
+   - `[synthetic_eval_134]` (`type="matn"`, المتوقَّع=`text` → المتنبَّأ=`chain`, `matched_rule="narrators_or_grading_query"`):
+     `«من هم رواة الحديث عن ابن شهاب؟»`
+3. **`chain_eval_dev.jsonl` — `0/15` مُخطأ التوجيه (`100.0%`).**
+4. **`chain_eval_test.jsonl` — `3/25` مُخطأة التوجيه:**
+   - `[chain_comp_04]` (`type="who_narrated_companion"`, المتوقَّع=`chain` → المتنبَّأ=`text`, `matched_rule=None`):
+     `«على لسان أي صحابي رُوي الحديث رقم 7448 في صحيح مسلم؟»`
+   - `[chain_count_06]` (`type="isnad_count"`, المتوقَّع=`chain` → المتنبَّأ=`text`, `matched_rule=None`):
+     `«كم عدد طرق السند للحديث رقم 8100؟»`
+   - `[chain_topic_05]` (`type="topic_who_narrated"`, المتوقَّع=`chain` → المتنبَّأ=`text`, `matched_rule=None`):
+     `«ما حكم الإمام ابن حجر على رواة سند حديث «الدين النصيحة»؟»` (نفس سؤال `golden_033`، وقد وُضع أصلًا ضمن عناصر `chain` لاختبار الامتناع الجزئي/الجرح والتعديل).
+
+### 3) حالة شرط الإيقاف والقرار المطلوب
+
+- تحقّق شرط الإيقاف عند البوابة الجديدة بسبب وجود أخطاء توجيه على `chain_eval_test` (`3/25`) و`golden` (`1/33`) و`synthetic_eval` (`1/224`): أُوقف التنفيذ فورًا مع **عدم** ضبط القواعد على التقسيم الاختباري، و**عدم** تشغيل اختبار الدخان الحي (`3+3`)، وبقاء **`DEFAULT_AGENT_MODE = "off"`** افتراضيًا لحين قرار المستخدم.
 

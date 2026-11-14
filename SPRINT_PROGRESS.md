@@ -50,5 +50,14 @@
 - **Composition (`src/pipeline.py`, `src/answer.py`)**: Extended `MUSNAD_AGENT` modes to `auto|on|off` (keeping `DEFAULT_AGENT_MODE="off"` until routing evaluation + 3+3 live smoke check pass). In `auto`, `chain` queries dispatch to unchanged `src/agent.py`, and `text` queries dispatch to unchanged single-turn RAG + Phase A `attach_sanad()`.
 - **Verification (`tests/test_router.py`)**: `4 passed, 23 subtests passed`; full pytest `313 passed, 58 subtests passed`; CI marker pytest `287 passed, 26 deselected`; `check_docs` green (`0` API calls).
 
-## Next Step
-- Run 0-API routing evaluation + confusion matrices across `golden.jsonl` (33), `synthetic_eval.jsonl` (224), `chain_eval_dev.jsonl` (15), and frozen `chain_eval_test.jsonl` (25), then (if thresholds pass) run 3+3 live smoke test (`<= 15` Pro) and flip `DEFAULT_AGENT_MODE = "auto"`.
+### Gate 1 Resolution Step 3 — Zero-API Routing Evaluation & ⛔ STOP (`src/evaluate_router.py`, `EXPERIMENTS.md` §33)
+- **Evaluated committed router (`ea9c282`) with `0` API calls (`data/processed/router_eval_results.json`)**:
+  - `golden.jsonl` (`n=33`): `32/33` (`97.0%`; `chain 2/3` `66.7%`, `text 30/30` `100.0%`; misrouted `golden_033` `chain→text`)
+  - `synthetic_eval.jsonl` (`n=224`): `223/224` (`99.6%`; `text 223/224`; misrouted `synthetic_eval_134` `text→chain`)
+  - `chain_eval_dev.jsonl` (`n=15`): `15/15` (`100.0%`; `chain 15/15`)
+  - `chain_eval_test.jsonl` (`n=25`, frozen): `22/25` (`88.0%`; `chain 22/25`; misrouted `chain_comp_04`, `chain_count_06`, `chain_topic_05`)
+  - Pooled (`n=297`): `292/297` (`98.3%`; `TP=39, FN=4, TN=253, FP=1`).
+- **⛔ STOP TRIGGERED**: Stopped immediately without modifying `src/router.py` on the test split, without running the 3+3 live smoke test, and keeping `DEFAULT_AGENT_MODE = "off"`.
+
+## Next Step (Blocked at ⛔ Router Gate)
+- Waiting for user decision on how to handle the `chain_eval_test` / `golden` / `synthetic_eval` misroutes (e.g., fix general Arabic regex bugs in `src/router.py` without looking at further test items / evaluate vs switch to 1-shot Flash router / re-run Gate decision) before enabling `auto`, doing Phase D2, and preparing Phase E (`docs/holdout_review.md`).
