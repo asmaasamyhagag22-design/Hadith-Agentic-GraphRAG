@@ -2,7 +2,7 @@
 
 - **Branch**: `retrieval-upgrade` (never push to `main`)
 - **Baseline commit**: `354c01a` (`docs: update README roadmap and document target architecture assets`)
-- **Budget used**: `0 / 500` Pro-class calls, `0 / 800` Flash-class calls
+- **Budget used**: `434 / 500` Pro-class calls, `110 / 800` Flash-class calls (`218` Embed calls; tracked in `data/processed/c5_api_ledger.json`)
 
 ## Completed Steps
 
@@ -24,16 +24,26 @@
   - Deterministic scorer checking routing (`get_isnad` / `search_hadith`), zero out-of-chain narrator names, expected narrators/counts/booleans, full abstention (`isnad_count=0` & grading-blocked `7380`), and partial grading abstention (`12068`).
 - **Verification**: Full pytest `300 passed`, CI marker pytest `274 passed, 26 deselected`, `check_docs` green.
 
-### Phase C1–C4 — Agent, C2 validators, MUSNAD_AGENT flag, and unit tests (`96f4cbb`)
+### Phase C1–C4 — Agent, C2 validators, MUSNAD_AGENT flag, and unit tests (`96f4cbb`, progress commit `59e2443`)
 - **C1 (`src/agent.py`)**: `gemini-4-argon` with `search_hadith(query)` (default pipeline top-5: ids + matn + chapter) and `get_isnad(hadith_id)` (`sanad_context` ordered lists + companion/teacher anchors), `MAX_TOOL_CALLS = 3`, thread-pool non-blocking tool timeout, deterministic fallback to non-agent `answer_with_details` on model/tool/timeout failure.
 - **C2 (`src/answer.py`, `src/agent.py`)**: Extended `validate_answer(..., tool_ids=...)` for cited-ID subset enforcement plus `validate_narrator_names` (`find_disallowed_narrators` against returned `get_isnad` chains); invalid → regenerate once → refuse; then Phase A `attach_sanad()` attaches verified SQLite chains.
 - **C3 (`src/pipeline.py`, `src/answer.py`)**: `MUSNAD_AGENT=on|off` (default `off`) resolved in `build_pipeline` (`agent_enabled`) and `answer_with_details` (`_resolve_use_agent`), routing CLI (`main`), `answer_eval`, and `smoke_test` through one unified entry point.
 - **C4 (`tests/test_agent.py`)**: 7 offline unit tests covering routing (`search_hadith`, `get_isnad`, 2-step topic resolution), max-3 tool-call loop cap, ID-subset and narrator-name regenerate→refuse validators, timeout/error fallback, and `MUSNAD_AGENT` flag across `answer_with_details`, `answer_eval`, and `smoke_test`.
 - **Verification**: `tests/test_agent.py` `7 passed`, full pytest `307 passed, 35 subtests passed`, CI marker pytest `281 passed, 26 deselected`, `check_docs` green (`0` API calls used).
 
-## Next Step
-- **Phase C5 — Live evaluation (`dev` tuning → `golden` 3× ON vs OFF → frozen `chain_eval_test` ON vs OFF)**:
-  - Build `src/experiment_c5_agent.py` with exact Pro/Flash API call tracking and budget guardrails (`<= 500` Pro, `<= 800` Flash).
-  - Run `chain_eval_dev.jsonl` (`15`) first to verify live prompt/tool behavior before touching `golden` or `chain_eval_test.jsonl`.
-  - Run 3× golden text (`ON` vs `OFF`, `n=30` each) and 1 final frozen `chain_eval_test.jsonl` (`n=25`, `ON` vs `OFF`), record everything in `EXPERIMENTS.md`, and check Gate 1 thresholds.
-- **Then**: Gate 1 decision (`DEFAULT_AGENT_MODE = "on"` if passed) → Phase D + Gate 2 → Phase E (`docs/holdout_review.md`) + Gate 3.
+### Phase C5 — Live evaluation & Gate 1 check (`8031c8e`)
+- **Fixes prior to live runs (`src/agent.py`, `src/sanad_names.py`, tests)**:
+  - Routed `gemini-3*`/`gemini-4*` tool-calling agent requests through `get_client(location="global")` with transient retry backoff (verified via `test_global_location_client_used_for_argon`).
+  - Expanded `_NON_PERSON_PREFIXES` in `src/sanad_names.py` so anonymous `NM_*`/`_*` MIS descriptions (`"من الصحابة"`, `"بعض أزواج النبي"`, `"أصحاب رسول الله"`, `"إحدى نسوة النبي"`) do not trigger false-positive disallowed-narrator regenerations (verified via `test_anonymous_mis_descriptions_do_not_false_trigger`).
+- **`chain_eval_dev.jsonl` (`n=15`, `agent_on`, `c5_dev_results.json`)**: Routing `15/15` (`100.0%`), Answer `14/15` (`93.3%`; 1 sibling-ID citation difference `11242` vs `11245` on `chain_topic_03`), Hallucinated narrators `0/15`, Abstention `2/2` (`100.0%`), Median `9,587.6 ms`, p95 `51,108.4 ms`.
+- **`golden.jsonl` text (`n=30`: `27` answerable + `3` refusal; 3 runs each, `c5_golden_results.json`)**:
+  - `OFF`: Correct citation `26.0/27` (`96.3%`), False refusals `1.0/27` (`3.7%`), Correct refusals `3.0/3` (`100.0%`), Pooled median `4,906.0 ms`, p95 `25,074.3 ms` (`98` Pro, `4` Flash).
+  - `ON`: Correct citation `27.0/27` (`100.0%`), False refusals `0.0/27` (`0.0%`), Correct refusals `1.67/3` (`55.6%`; `[1,2,2]`), Pooled median `17,326.3 ms`, p95 `29,167.4 ms` (`181` Pro, `57` Flash; `1/90` live timeout fallback succeeded).
+- **Frozen `chain_eval_test.jsonl` (`n=25`, 1 final run, `c5_chain_test_results.json`, sha256 verified)**:
+  - `OFF`: Routing `0/25` (`0.0%`), Answer `3/25` (`12.0%`; `0/22` answerable + `3/3` blind refusals), Median `11,033.5 ms`, p95 `16,778.9 ms` (`25` Pro, `25` Flash).
+  - `ON`: Routing `25/25` (`100.0%`), Answer `25/25` (`100.0%`), Hallucinated narrators `0/25`, Abstention `3/3` (`100.0%`), Median `8,560.4 ms`, p95 `50,520.4 ms` (`59` Pro, `5` Flash).
+- **Documentation & Verification**: Added canonical rows and Section 32 (and fixed `## 31.` heading syntax) in `EXPERIMENTS.md`. Full pytest `309 passed, 35 subtests passed`, CI marker pytest `283 passed, 26 deselected`, `check_docs` all 5 checks passed.
+- **⛔ GATE 1 STATUS**: Stopped because `correct_refusals` dropped by `1.33` (`> 1.0`) and `golden` pooled median latency rose `+253.2%` (`> +50%`). `MUSNAD_AGENT` remains `off` by default.
+
+## Next Step (Blocked at ⛔ GATE 1)
+- Waiting for user decision among Gate 1 options before modifying default flag or proceeding to Phase D (or skipping D1 if keeping `off`) and Phase E (`docs/holdout_review.md`).
