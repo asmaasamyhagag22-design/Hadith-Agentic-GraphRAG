@@ -11,10 +11,18 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import numpy as np
+
 import src.answer as ans
 import src.router as router_mod
 from src.pipeline import resolve_agent_enabled, resolve_agent_mode
-from src.router import classify_intent, matched_chain_rule
+from src.retrieve import UpgradedRetriever
+from src.router import (
+    classify_intent,
+    classify_intent_with_trace,
+    load_router_weights,
+    matched_chain_rule,
+)
 
 
 class _TextPipelineDummy:
@@ -195,6 +203,8 @@ class RouterClassifierTests(unittest.TestCase):
 
 class AgentModeCompositionTests(unittest.TestCase):
     def test_resolve_agent_mode_supports_auto_on_off(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(resolve_agent_mode(), "auto")
         self.assertEqual(resolve_agent_mode("auto"), "auto")
         self.assertEqual(resolve_agent_mode("ON"), "on")
         self.assertEqual(resolve_agent_mode("off"), "off")
@@ -252,6 +262,138 @@ class AgentModeCompositionTests(unittest.TestCase):
                     self.assertEqual(mock_gen.call_count, 1)
                     self.assertEqual(mock_agent.call_count, 1)
                     self.assertEqual(chain_out["answer"], fake_agent_out["answer"])
+
+
+class RouterV3EmbeddingTests(unittest.TestCase):
+    def test_v2_fast_path_skips_embedding_and_falls_back_when_missing(self) -> None:
+        called = 0
+
+        def _fail_if_called(q: str):
+            nonlocal called
+            called += 1
+            raise RuntimeError("embedding API down")
+
+        # v2 regex fast path must return chain without invoking embedding provider.
+        fast_trace = classify_intent_with_trace(
+            "كم عدد الأسانيد للحديث رقم 5120؟",
+            embedding_provider=_fail_if_called,
+            version="v3",
+        )
+        self.assertEqual(fast_trace["intent"], "chain")
+        self.assertEqual(fast_trace["path"], "v2_fast_path")
+        self.assertEqual(called, 0)
+
+        # When v2 misses and embedding provider raises/returns None, fall back cleanly to v2 ("text").
+        fb_trace = classify_intent_with_trace(
+            "بأي صحابي ارتبط هذا الأثر؟",
+            embedding_provider=_fail_if_called,
+            version="v3",
+        )
+        self.assertEqual(fb_trace["intent"], "text")
+        self.assertEqual(fb_trace["path"], "v2_fallback_no_embedding")
+        self.assertEqual(called, 1)
+
+    def test_v3_logreg_classifies_mocked_embeddings_with_temporary_weights(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            w_path = Path(tmp) / "weights.npz"
+            w = np.zeros(3072, dtype=np.float32)
+            w[0] = 6.0
+            np.savez(
+                w_path,
+                weights=w,
+                intercept=np.array([0.0], dtype=np.float64),
+                threshold=np.array([0.5], dtype=np.float64),
+                metadata=np.array(["{}"], dtype=object),
+            )
+            load_router_weights.cache_clear()
+            try:
+                pos_vec = np.zeros(3072, dtype=np.float32)
+                pos_vec[0] = 1.0
+                neg_vec = np.zeros(3072, dtype=np.float32)
+                neg_vec[0] = -1.0
+
+                chain_trace = classify_intent_with_trace(
+                    "بأي شخص اتصل هذا المروي؟",
+                    embedding=pos_vec,
+                    version="v3",
+                    weights_path=w_path,
+                )
+                self.assertEqual(chain_trace["intent"], "chain")
+                self.assertEqual(chain_trace["path"], "v3_logreg")
+
+                text_trace = classify_intent_with_trace(
+                    "ماذا قال أبو هريرة عن الصيام؟",
+                    embedding=neg_vec,
+                    version="v3",
+                    weights_path=w_path,
+                )
+                self.assertEqual(text_trace["intent"], "text")
+                self.assertEqual(text_trace["path"], "v3_logreg")
+            finally:
+                load_router_weights.cache_clear()
+
+    def test_upgraded_retriever_shares_query_embedding_zero_extra_calls(self) -> None:
+        matn_vecs = np.zeros((1, 3072), dtype=np.float32)
+        matn_vecs[0, 1] = 1.0
+        chunk_lookup = {
+            "8950_0": {
+                "id": "8950_0",
+                "text": "حدثنا زهير عن أبي هريرة قال من صام رمضان",
+                "metadata": {"hadith_number": 8950, "chapter_arabic": "كتاب الصيام"},
+            }
+        }
+        retriever = UpgradedRetriever(
+            matn_vectors=matn_vecs,
+            chunk_ids=["8950_0"],
+            chunk_lookup=chunk_lookup,
+            hyde_alpha=1.0,  # disable HyDE call so only query embed runs once
+        )
+        retriever.agent_mode = "auto"
+
+        embed_calls = 0
+
+        class _FakeEmbedModels:
+            def embed_content(self, **kwargs):
+                nonlocal embed_calls
+                embed_calls += 1
+                vec = np.zeros(3072, dtype=np.float32)
+                vec[1] = 1.0
+                return SimpleNamespace(embeddings=[SimpleNamespace(values=vec.tolist())])
+
+        class _FakeGenAIClient:
+            def __init__(self, **kwargs):
+                self.models = _FakeEmbedModels()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            w_path = Path(tmp) / "weights.npz"
+            w = np.zeros(3072, dtype=np.float32)
+            w[1] = -6.0  # force text classification on vec[1]=1.0
+            np.savez(
+                w_path,
+                weights=w,
+                intercept=np.array([0.0], dtype=np.float64),
+                threshold=np.array([0.5], dtype=np.float64),
+                metadata=np.array(["{}"], dtype=object),
+            )
+            db_path = Path(tmp) / "sanad.sqlite"
+            _create_sanad_fixture(db_path)
+            load_router_weights.cache_clear()
+            try:
+                with (
+                    patch("google.genai.Client", _FakeGenAIClient),
+                    patch.object(router_mod, "ROUTER_WEIGHTS_PATH", w_path),
+                    patch("src.answer.generate", return_value="الصوم جنة (المصدر: صحيح مسلم، حديث رقم 8950)"),
+                ):
+                    out = ans.answer_with_details(
+                        "ماذا قال أبو هريرة عن الصيام؟",
+                        retriever,
+                        sanad_db_path=db_path,
+                    )
+                self.assertEqual(embed_calls, 1)
+                self.assertEqual(len(out["sanad"]), 1)
+                self.assertEqual(out["sanad"][0]["hadith_id"], 8950)
+            finally:
+                load_router_weights.cache_clear()
 
 
 if __name__ == "__main__":

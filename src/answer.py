@@ -1,3 +1,4 @@
+import argparse
 import sys
 import os
 import re
@@ -508,12 +509,12 @@ def _resolve_use_agent(retriever, use_agent=None, question=None):
     if use_agent is not None:
         if isinstance(use_agent, bool):
             return use_agent
-        return _resolve_agent_enabled_fn()(use_agent, question=question)
+        return _resolve_agent_enabled_fn()(use_agent, question=question, retriever=retriever)
     env_val = os.environ.get("MUSNAD_AGENT", "").strip()
     if env_val:
-        return _resolve_agent_enabled_fn()(env_val, question=question)
+        return _resolve_agent_enabled_fn()(env_val, question=question, retriever=retriever)
     if hasattr(retriever, "agent_mode"):
-        return _resolve_agent_enabled_fn()(getattr(retriever, "agent_mode"), question=question)
+        return _resolve_agent_enabled_fn()(getattr(retriever, "agent_mode"), question=question, retriever=retriever)
     return bool(getattr(retriever, "agent_enabled", False))
 
 
@@ -689,24 +690,46 @@ def load_questions(path=QUESTIONS_PATH):
 def format_retrieved_chunk(chunk):
 
     chapter = (chunk.get("metadata") or {}).get("chapter_arabic", "")
+    rank = chunk.get("rank")
+    rank_text = f"Rank: {rank} | " if rank is not None else ""
     score = chunk.get("score")
     score_text = (
         f" | rerank score: {score:.4f}" if score is not None else ""
     )
 
     return (
-        f"Rank: {chunk['rank']} | "
+        f"{rank_text}"
         f"Hadith ID: {chunk['hadith_id']} | "
         f"Chapter: {chapter}"
         f"{score_text}"
     )
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Musnad Sahih Muslim CLI")
+    parser.add_argument(
+        "-q",
+        "--question",
+        action="append",
+        dest="questions",
+        help="Question(s) to answer directly instead of reading QUESTIONS_PATH.",
+    )
+    parser.add_argument(
+        "--questions-file",
+        default=None,
+        help="Optional path to a newline-delimited questions file.",
+    )
+    args = parser.parse_args([] if argv is None else argv)
 
     retriever = build_pipeline()
+    if args.questions:
+        questions = [q.strip() for q in args.questions if q.strip()]
+    elif args.questions_file:
+        questions = load_questions(Path(args.questions_file))
+    else:
+        questions = load_questions()
 
-    for question in load_questions():
+    for question in questions:
 
         print("=" * 80)
         print(question)
@@ -740,4 +763,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

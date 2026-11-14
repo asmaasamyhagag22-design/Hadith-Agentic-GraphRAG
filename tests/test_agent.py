@@ -445,6 +445,34 @@ class AgentTests(unittest.TestCase):
         self.assertFalse(out["agent_fallback"])
         self.assertEqual(observed_locations, ["global"])
 
+    def test_cli_formats_direct_isnad_chunks_without_rank_keyerror(self) -> None:
+        self.assertEqual(
+            ans.format_retrieved_chunk(
+                {"hadith_id": 12068, "metadata": {"chapter_arabic": "كتاب الإيمان"}}
+            ),
+            "Hadith ID: 12068 | Chapter: كتاب الإيمان",
+        )
+        turns = [
+            _fake_resp(function_calls=[_fake_fc("get_isnad", hadith_id=12068)]),
+            _fake_resp(text="الراوي عمر بن الخطاب (المصدر: صحيح مسلم، حديث رقم 12068)"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            db_path = Path(tmp) / "sanad.sqlite"
+            _create_fixture_db(db_path)
+            out = run_agent(
+                "من الصحابي الذي روى حديث رقم 12068؟",
+                _DummyRetriever(),
+                sanad_db_path=db_path,
+                generate_fn=lambda _c, *, allow_tools: turns.pop(0),
+                lexicon=SAMPLE_LEX,
+            )
+        self.assertEqual(len(out["chunks"]), 1)
+        self.assertEqual(out["chunks"][0]["rank"], 1)
+        self.assertEqual(
+            ans.format_retrieved_chunk(out["chunks"][0]),
+            "Rank: 1 | Hadith ID: 12068 | Chapter: كتاب الإمارة",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

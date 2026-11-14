@@ -409,6 +409,40 @@ class UpgradedRetriever:
             ids_path=ids_path,
         )
 
+    def _embed_raw_query_vector(self, question, http_opts=None, embed_client=None):
+        """Return L2-normalized gemini-embedding-001 vector for ``question``, caching it."""
+        if question in self.query_vec_cache:
+            return self.query_vec_cache[question]
+        from dotenv import load_dotenv
+        from google import genai
+        from google.genai import types
+
+        load_dotenv()
+        if http_opts is None and self.api_timeout_ms:
+            http_opts = types.HttpOptions(timeout=self.api_timeout_ms)
+        if embed_client is None:
+            embed_client = genai.Client(http_options=http_opts)
+        resp_q = embed_client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=[strip_diacritics(question)],
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY", output_dimensionality=3072
+            ),
+        )
+        self.query_vec_cache[question] = _l2_normalize_vec(
+            resp_q.embeddings[0].values
+        )
+        return self.query_vec_cache[question]
+
+    def get_query_embedding(self, question):
+        """Return cached or freshly embedded 3072d query vector, or None on API failure."""
+        if question in self.query_vec_cache:
+            return self.query_vec_cache[question]
+        try:
+            return self._embed_raw_query_vector(question)
+        except Exception:
+            return None
+
     def _blended_query_vector(self, question):
         if question not in self.query_vec_cache or (
             self.hyde_alpha < 1.0 and question not in self.hyde_vec_cache
@@ -425,15 +459,8 @@ class UpgradedRetriever:
             )
             embed_client = genai.Client(http_options=http_opts)
             if question not in self.query_vec_cache:
-                resp_q = embed_client.models.embed_content(
-                    model="gemini-embedding-001",
-                    contents=[strip_diacritics(question)],
-                    config=types.EmbedContentConfig(
-                        task_type="RETRIEVAL_QUERY", output_dimensionality=3072
-                    ),
-                )
-                self.query_vec_cache[question] = _l2_normalize_vec(
-                    resp_q.embeddings[0].values
+                self._embed_raw_query_vector(
+                    question, http_opts=http_opts, embed_client=embed_client
                 )
 
             if self.hyde_alpha < 1.0 and question not in self.hyde_vec_cache:

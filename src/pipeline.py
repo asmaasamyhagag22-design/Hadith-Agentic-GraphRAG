@@ -126,7 +126,7 @@ def build_legacy_pipeline(
     return pipeline
 
 
-DEFAULT_AGENT_MODE = "off"
+DEFAULT_AGENT_MODE = "auto"
 AGENT_ENV_VAR = "MUSNAD_AGENT"
 
 
@@ -149,7 +149,7 @@ def resolve_agent_mode(agent=None):
     )
 
 
-def resolve_agent_enabled(agent=None, question=None):
+def resolve_agent_enabled(agent=None, question=None, retriever=None):
     """Resolve whether agent tool-calling is active (evaluating ``auto`` via router)."""
     mode = resolve_agent_mode(agent)
     if mode == "on":
@@ -162,7 +162,7 @@ def resolve_agent_enabled(agent=None, question=None):
         from src.router import classify_intent
     except ImportError:
         from router import classify_intent
-    return classify_intent(question) == "chain"
+    return classify_intent(question, retriever=retriever) == "chain"
 
 
 def build_pipeline(

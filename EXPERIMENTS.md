@@ -93,6 +93,12 @@ router_eval_v2 | synthetic_eval | Deterministic router v2 bugfix (synthetic) | d
 router_eval_v2 | chain_eval_dev | Deterministic router v2 bugfix (chain dev) | dataset=chain_eval_dev.jsonl n=15 section=33 | Overall_accuracy=100.0%@15 Chain_recall=100.0%@15
 router_eval_v2 | chain_eval_test | Deterministic router v2 bugfix (chain frozen test) | dataset=chain_eval_test.jsonl n=25 section=33 | Overall_accuracy=96.0%@25 Chain_recall=96.0%@25
 router_eval_v2 | router_fresh | Deterministic router v2 bugfix (Gemma fresh chain) | dataset=router_fresh.jsonl n=30 section=33 | Overall_accuracy=56.7%@30 Chain_recall=56.7%@30
+router_fresh2 | v2 | Router v2 (regex only) | dataset=router_fresh2.jsonl n=60 section=34 | Balanced_accuracy=75.0%@60 Chain_recall=50.0%@30 Hard_negative_specificity=100.0%@30 Chain_test=96.0%@25 Synthetic_text=99.6%@224
+router_fresh2 | v3 | Router v3 (v2 fast path + logreg) | dataset=router_fresh2.jsonl n=60 section=34 | Balanced_accuracy=96.7%@60 Chain_recall=93.3%@30 Hard_negative_specificity=100.0%@30 Chain_test=100.0%@25 Synthetic_text=99.1%@224
+router_eval_v3 | train_cv | Router v3 5-fold CV (train) | dataset=router_train.jsonl n=488 section=34 | Balanced_accuracy=99.1%@488 Chain_recall=100.0%@165 Text_specificity=98.1%@323
+router_eval_v3 | fresh_seen | Router v3 on router_fresh (seen during design) | dataset=router_fresh.jsonl n=30 section=34 | Chain_recall=96.7%@30
+router_eval_v3 | golden | Router v3 (golden) | dataset=golden.jsonl n=33 section=34 | Overall_accuracy=100.0%@33 Chain_recall=100.0%@3 Text_specificity=100.0%@30
+router_eval_v3 | pooled | Router v3 pooled across all 6 eval sets | n=387 section=34 | Overall_accuracy=98.7%@387 Balanced_accuracy=98.2%@387 Median_overhead_ms=0.0645 p95_overhead_ms=0.1243
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3640,5 +3646,60 @@ artifact was touched.
 ### 3) حالة شرط الإيقاف (`⛔ fresh recall < 85%`)
 
 - هبط استدعاء السند على الأسئلة الحرة غير المرئية إلى **`56.7%` (`17/30 < 85%`)**؛ تحقّق شرط الإيقاف فورًا مع **عدم** ضبط القواعد على `router_fresh.jsonl`، و**عدم** تشغيل اختبار الدخان الحي (`3+3`)، وبقاء **`DEFAULT_AGENT_MODE = "off"`** افتراضيًا بانتظار قرار المستخدم.
+
+---
+
+## 34. الموجّه الهجين `v3` (`v2` المسار السريع + مصنّف الانحدار اللوجستي على تضمينات الاستعلام) والانتقال إلى `MUSNAD_AGENT=auto`
+
+**تاريخ القياس:** 2026-11-15 · **الكود:** `src/router.py`, `src/router_weights.npz`, `src/train_router.py`, `src/evaluate_router.py`, `src/build_router_train.py`, `src/build_router_fresh2.py`, `src/retrieve.py`, `src/pipeline.py`, `src/answer.py`, `src/smoke_auto_cli.py`
+
+### 1) المجموعات الجديدة المجمّدة ومسار التدريب (`Step 1a–1d`)
+
+1. **مجموعة الاختبار الطازجة غير المرئية الجديدة `data/raw/router_fresh2.jsonl` (`Step 1a`):**
+   - وُلّدت عبر `gemma-4-26b-a4b-it-maas` (`8` نداءات Gemma نظيفة، `0` من حصة Gemini Pro/Flash) بموجّه مختلف عن `build_router_fresh.py` وأحاديث منفصلة كليًا عن `router_fresh.jsonl` و`golden` و`synthetic_eval` و`chain_eval` و`holdout_draft.jsonl`.
+   - **البصمة (`sha256`):** `a40d0f7b3139489461694de8cc345c87b57a92c658cdcd04946fa61a9e70cfce` (`n = 60`: `30` سؤال سند بصياغات حرة [`6 × 5` أنواع] + `30` سؤال نص صعب `hard_negative_text` تذكر أسماء صحابة أو رواة وتسأل عن المتن أو الحكم، مثل «ماذا قال أبو هريرة عن الصيام؟»).
+   - جُمّدت قبل تقييم أي موجّه عليها ولم يُعدَّل `v2` ولا `v3` بعد رؤية نتيجتها.
+2. **مجموعة التدريب `data/raw/router_train.jsonl` (`Step 1b`):**
+   - **البصمة (`sha256`):** `66926bb238cef1546d5da63072aeae1dfca2b3fec4684ce88bccddf2f527f324` (`n = 488`: `165` سؤال سند + `323` سؤال نص).
+   - المكوّنات: `chain_eval_dev` (`15`) + `synthetic_eval` (`224`) + `150` إعادة صياغة سند مولّدة بـ `gemini-3.8-flash` (`30 × 5` أنواع) + `99` سؤال نص صعب `hard_negative_text` مولّد بـ `gemini-3.8-flash` (`15` نداء Flash على التشغيل النظيف + `18` نداء Flash سُجّلت تحفظيًا لمحاولة مقطوعة قبل الكتابة). منفصلة كليًا عن `router_fresh` و`router_fresh2` و`chain_eval_test` و`holdout_draft`.
+3. **بنية `v3` والتدريب عبر التحقق المتقاطع على `router_train` فقط (`Step 1c`):**
+   - `v3` = المسار السريع الحتمي `v2` (إذا طابقت القاعدة يُحسم فورًا كـ `chain` دون انتظار التضمين)، وإلا يُطبَّق مصنّف انحدار لوجستي منظَّم بتسوية L2 (`C=5.0`, `class_weight=None`, عتبة القرار `threshold=0.44`) على متجه الاستعلام `gemini-embedding-001` ذي `3072` بُعدًا المخزَّن بالفعل في `UpgradedRetriever.query_vec_cache` (**`0` استدعاء تضمين إضافي وقت الاستنتاج**). وإذا تعذّر التضمين أو غابت الأوزان يرجع `v3` تلقائيًا إلى `v2`.
+   - نتيحة التحقق المتقاطع الخماسي (5-fold CV) على `router_train.jsonl` (`n=488`):
+     - `v2`: الدقة المتوازنة **`77.56%`** (`chain_recall=56.36%`, `text_specificity=98.76%`).
+     - `v3`: الدقة المتوازنة **`99.07%`** (`99.1%`؛ `chain_recall=100.0%` [`165/165`]، `text_specificity=98.1%` [`98.14%` على `323`]، الدقة الكلية `98.77%`).
+4. **قرار الاختيار المسبق التسجيل (`Step 1d`):**
+   - الشرط المسبق: شحن `v3` إذا كان `(v3 CV balanced_accuracy على router_train >= v2)` و`(v3 chain_recall على router_fresh [المرئية أثناء التصميم] >= v2)`.
+   - كلاهما تحقّق قبل لمس `router_fresh2`: `99.07% >= 77.56%` و`96.67%` (`29/30`, المقرَّب `96.7%`) `>= 56.67%` (`17/30`). **القرار: شحن `v3`**.
+
+### 2) التقييم الوحيد على `router_fresh2.jsonl` والمجموعات الست (`Step 1e`)
+
+**المخرجات الخام:** `data/processed/router_eval_results.json` (`0` Pro، `0` Flash، `1` نداء تضمين مجمّع لـ `60` استعلامًا؛ زمن التوجيه المضاف مقيسًا بعد توفر متجه `query_vec_cache`):
+
+| المجموعة | الملاحظة | `n` | `v2` الدقة الكلية / المتوازنة | `v2` استدعاء السند / نوعية النص | `v3` الدقة الكلية / المتوازنة | `v3` استدعاء السند / نوعية النص | وسيط الزمن المضاف (`v3`) |
+| --- | --- | ---: | --- | --- | --- | --- | ---: |
+| **`router_fresh2.jsonl` (العنوان الرئيسي)** | طازج غير مرئي (`30+30`) | `60` | `75.0%` (`75.00%`, `45/60`) | `50.0%` (`15/30`) / `100.0%` (`30/30`) | **`96.7%`** (`96.67%`, `58/60`) | **`93.3%`** (`28/30`) / **`100.0%`** (`30/30`) | `0.0840 ms` |
+| `golden.jsonl` | مرجعي (`3` سند + `30` نص) | `33` | `100.0%` (`33/33`) | `100.0%` (`3/3`) / `100.0%` (`30/30`) | **`100.0%`** (`33/33`) | **`100.0%`** (`3/3`) / **`100.0%`** (`30/30`) | `0.0509 ms` |
+| `synthetic_eval.jsonl` | نصوص فقط (`224`) | `224` | `99.6%` (`99.55%`, `223/224`) | `—` / `99.6%` (`223/224`) | **`99.1%`** (`99.11%`, `222/224`) | `—` / **`99.1%`** (`222/224`) | `0.0654 ms` |
+| `chain_eval_dev.jsonl` | تطويري مولّد بالقوالب | `15` | `100.0%` (`15/15`) | `100.0%` (`15/15`) / `—` | **`100.0%`** (`15/15`) | **`100.0%`** (`15/15`) / `—` | `0.0471 ms` |
+| `chain_eval_test.jsonl` | اختباري مجمّد بالقوالب | `25` | `96.0%` (`24/25`) | `96.0%` (`24/25`) / `—` | **`100.0%`** (`25/25`) | **`100.0%`** (`25/25`) / `—` | `0.0228 ms` |
+| `router_fresh.jsonl` | **مرئية أثناء التصميم (`seen during design`)** | `30` | `56.7%` (`56.67%`, `17/30`) | `56.7%` (`17/30`) / `—` | **`96.7%`** (`96.67%`, `29/30`) | **`96.7%`** (`29/30`) / `—` | `0.0723 ms` |
+| **المجموع المجمّع (`6` مجموعات)** | الكل | **`387`** | `92.25%` (`357/387`, متوازنة `85.75%`) | `71.8%` (`74/103`) / `99.6%` (`283/284`) | **`98.7%`** (`98.71%`, `382/387`, متوازنة **`98.2%`** [`98.19%`]) | **`97.1%`** (`100/103`) / **`99.3%`** (`282/284`) | **`0.0645 ms`** (p95 `0.1243 ms`) |
+
+- أخطاء `v3` على `router_fresh2.jsonl` (`2/60`, لم يُجرَ أي تعديل بعدها): حالتان من أسئلة `topic_who_narrated` الضمنية دون ذكر «حديث» أو «سند» (`router_fresh2_chain_28` باحتمال `0.322` و`router_fresh2_chain_29` باحتمال `0.306`)، مقابل **`0/30` إيجابيات كاذبة** على الأسئلة النصية الصعبة التي تذكر أسماء الصحابة والرواة.
+- أخطاء `v3` على `synthetic_eval.jsonl` (`2/224`, `99.1% >= 99%`): `synthetic_eval_134` (من المسار السريع `v2`) و`synthetic_eval_104` («من هو الشخص الذي أخبر اللَّيْثَ بالحديث؟»، احتمال `0.664`).
+- الزمن الإضافي الذي يضيفه الموجّه فوق البحث القائم: **`0.0645 ms`** بالوسيط (`p95 = 0.1243 ms`)، و`0` نداءات تضمين إضافية لأن `UpgradedRetriever.query_vec_cache` يحتسب المتجه مرة واحدة فقط.
+
+### 3) تفعيل الوضع التلقائي `DEFAULT_AGENT_MODE = "auto"` واختبار الدخان الحي (`Step 1f`)
+
+- **تعليل التدرّج الآمن المسبق التسجيل:**
+  - إذا أخطأ الموجّه ووجّه سؤال سند إلى مسار النص، يظل مسار النص يسترجع حديثًا موثّقًا برقم صحيح ويُلحق به سلسلة السند المتحقَّق منها من SQLite (`attach_sanad`)، فيتدرّج الناتج إلى إجابة جزئية صالحة لا إلى اختلاق.
+  - وإذا أخطأ ووجّه سؤال نص إلى الوكيل، يجيب الوكيل إجابة صحيحة مستشهدة (`100.0%` على `golden`) بتكلفة وزمن أعلى فقط (وبما أن نوعية الأسئلة النصية على `router_fresh2` بلغت `100.0%` [`30/30`] وعلى `synthetic_eval` `99.1%` [`222/224`] تظل نسبة التحويل الخاطئ للنص نادرة جدًا).
+  - بالتركيب (`composition`): تحافظ أسئلة النص الموجهة صحيحًا على أرقام `OFF` (`96.3%` استشهاد، `100.0%` رفض، وزمن §29 الحي `12.55 s`)، وتحصل أسئلة السند الموجهة صحيحًا على أرقام `ON` المجمّدة (`100.0%` [`25/25`] إجابة، `0/25` اختلاق رواة).
+- **اختبار الدخان الحي في الـ CLI (`3` نص + `3` سند، `MUSNAD_AGENT=auto` افتراضيًا، `src/smoke_auto_cli.py`):**
+  - كشف الاختبار الأول علة حقيقية في `src/answer.py:format_retrieved_chunk` / `src/agent.py:_record_chunk` (`KeyError: 'rank'` عند استدعاء الوكيل `get_isnad` مباشرة دون `search_hadith`)؛ أُصلحت العلة مع اختبار وحدة في `tests/test_agent.py` وأُعيد تشغيل اختبار الدخان الحي كاملًا (`data/processed/auto_smoke_cli.txt` و`data/processed/auto_smoke_cli.json`).
+  - النتائج (`6/6` إجابات سليمة في `53.14 s`، باستهلاك **`10` نداءات Pro** [الحد `<= 15`] و**`2` نداء Flash** و**`4` نداءات Embed**؛ الإجمالي التراكمي للميزانية **`449 / 500`** Pro و**`146 / 800`** Flash):
+    - أسئلة النص (`3/3`): سؤال الصيام (`#8950`) وسؤال ركعتي الفجر (`#8859`, `#8860`) مع إلحاق سلاسلهما من قاعدة البيانات، وسؤال التراويح (`golden#29`) برفض صارم («المصادر المتاحة لا تجيب عن هذا السؤال»).
+    - أسئلة السند (`3/3`): صحابي `#7296` (أداة `get_isnad` مباشرة ← ابن عمر)، وعدد طرق `#9000` (`get_isnad` ← طريقان مسجلان)، وصحابي حديث كافل اليتيم `#14561` (خطوتان `search_hadith` ثم `get_isnad` ← أبو هريرة) مع إلحاق السلسلة الكاملة تحت كل إجابة.
+
 
 

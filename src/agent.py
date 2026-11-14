@@ -337,8 +337,10 @@ def run_agent(
     def _record_chunk(chunk: dict[str, Any]) -> None:
         hid = int(chunk["hadith_id"])
         if hid not in chunks_by_id:
-            chunks_by_id[hid] = chunk
-            ordered_chunks.append(chunk)
+            entry = dict(chunk)
+            entry.setdefault("rank", len(ordered_chunks) + 1)
+            chunks_by_id[hid] = entry
+            ordered_chunks.append(entry)
 
     def _run_fallback(exc: Exception) -> dict[str, Any]:
         if fallback_fn is None:

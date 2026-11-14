@@ -1,17 +1,36 @@
-"""Deterministic Arabic linguistic intent classifier for Musnad query routing.
+"""Arabic intent classifier for Musnad query routing (v2 regex + v3 embedding classifier).
 
 Classifies incoming Arabic questions into ``"chain"`` (narrator, isnad, chain
 count, companion/teacher attribution, or narrator membership) or ``"text"``
-(hadith content, jurisprudence, or meaning) using compiled regex rules derived
-from general Arabic hadith-sciences terminology — with zero model calls.
+(hadith content, jurisprudence, or meaning):
+
+- **v2**: Deterministic Arabic linguistic regexes derived from hadith-sciences
+  terminology (`0` API calls).
+- **v3** (selected by Step 1d pre-registered rule): `v2` chain fast path, plus
+  L2-regularized Logistic Regression over the 3072-d `gemini-embedding-001`
+  `RETRIEVAL_QUERY` vector (reusing `UpgradedRetriever.query_vec_cache` so text
+  queries incur `0` extra embedding API calls). Falls back transparently to
+  `v2` whenever no embedding or weights artifact is available.
 """
 
 from __future__ import annotations
 
+import json
+import math
+import os
 import re
-from typing import Literal
+import time
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Callable, Literal
+
+import numpy as np
 
 RouteIntent = Literal["chain", "text"]
+
+ROUTER_WEIGHTS_PATH = Path(__file__).resolve().parent / "router_weights.npz"
+DEFAULT_ROUTER_VERSION = "v3"
+ROUTER_VERSION_ENV_VAR = "MUSNAD_ROUTER_VERSION"
 
 _DIACRITICS_RE = re.compile(r"[\u064b-\u065f\u0670\u0640\u200c-\u200f]")
 _ALEF_RE = re.compile(r"[أإآٱ]")
@@ -21,7 +40,7 @@ _WHITESPACE_RE = re.compile(r"\s+")
 _END = r"(?![\u0621-\u064a])"
 _START = r"(?<![\u0621-\u064a])"
 
-# General Arabic linguistic rules for isnad/narrator intent.
+# General Arabic linguistic rules for isnad/narrator intent (v2).
 # Each tuple is (rule_name, compiled_pattern).
 _CHAIN_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
@@ -105,7 +124,7 @@ def normalize_for_routing(text: str) -> str:
 
 
 def matched_chain_rule(question: str) -> str | None:
-    """Return the first matching chain rule name for ``question``, else None."""
+    """Return the first matching v2 chain rule name for ``question``, else None."""
     norm = normalize_for_routing(question)
     if not norm:
         return None
@@ -115,6 +134,155 @@ def matched_chain_rule(question: str) -> str | None:
     return None
 
 
-def classify_intent(question: str) -> RouteIntent:
-    """Classify a question as ``'chain'`` or ``'text'`` deterministically."""
+def classify_intent_v2(question: str) -> RouteIntent:
+    """Pure rule-based classifier (v2) with 0 API calls."""
     return "chain" if matched_chain_rule(question) is not None else "text"
+
+
+@lru_cache(maxsize=1)
+def load_router_weights(weights_path: Path = ROUTER_WEIGHTS_PATH) -> dict[str, Any] | None:
+    """Load pre-trained L2 logistic regression parameters if present on disk."""
+    if not weights_path.exists():
+        return None
+    data = np.load(weights_path, allow_pickle=True)
+    meta_raw = data["metadata"][0] if "metadata" in data else "{}"
+    meta = json.loads(str(meta_raw)) if meta_raw else {}
+    return {
+        "weights": np.asarray(data["weights"], dtype=np.float32),
+        "intercept": float(data["intercept"][0]),
+        "threshold": float(data["threshold"][0]),
+        "metadata": meta,
+    }
+
+
+def predict_chain_probability(
+    embedding: Any,
+    *,
+    model: dict[str, Any] | None = None,
+) -> float:
+    """Compute sigmoid probability of ``chain`` intent from a 3072-d query vector."""
+    loaded = model if model is not None else load_router_weights()
+    if loaded is None:
+        raise RuntimeError("Router v3 weights artifact not found")
+    vec = np.asarray(embedding, dtype=np.float32).reshape(-1)
+    weights = loaded["weights"]
+    if vec.shape != weights.shape:
+        raise ValueError(f"Expected embedding shape {weights.shape}, got {vec.shape}")
+    norm = float(np.linalg.norm(vec))
+    if norm > 0.0:
+        vec = vec / norm
+    logit = float(np.dot(vec, weights) + loaded["intercept"])
+    clipped = max(-50.0, min(50.0, logit))
+    return 1.0 / (1.0 + math.exp(-clipped))
+
+
+def _resolve_embedding(
+    question: str,
+    *,
+    embedding: Any = None,
+    retriever: Any = None,
+    embedding_provider: Callable[[str], Any] | None = None,
+) -> Any:
+    if embedding is not None:
+        return embedding
+    if embedding_provider is not None:
+        try:
+            return embedding_provider(question)
+        except Exception:
+            return None
+    if retriever is not None and callable(getattr(retriever, "get_query_embedding", None)):
+        try:
+            return retriever.get_query_embedding(question)
+        except Exception:
+            return None
+    return None
+
+
+def classify_intent_with_trace(
+    question: str,
+    *,
+    embedding: Any = None,
+    retriever: Any = None,
+    embedding_provider: Callable[[str], Any] | None = None,
+    version: str | None = None,
+    weights_path: Path = ROUTER_WEIGHTS_PATH,
+) -> dict[str, Any]:
+    """Classify intent while returning decision path, probability, and latency_ms."""
+    t0 = time.perf_counter()
+    rule = matched_chain_rule(question)
+    if rule is not None:
+        return {
+            "intent": "chain",
+            "path": "v2_fast_path",
+            "matched_rule": rule,
+            "probability": 1.0,
+            "latency_ms": (time.perf_counter() - t0) * 1000.0,
+        }
+
+    eff_version = (version or os.environ.get(ROUTER_VERSION_ENV_VAR, DEFAULT_ROUTER_VERSION)).strip().lower()
+    if eff_version == "v2":
+        return {
+            "intent": "text",
+            "path": "v2_rule_miss",
+            "matched_rule": None,
+            "probability": None,
+            "latency_ms": (time.perf_counter() - t0) * 1000.0,
+        }
+
+    model = load_router_weights(weights_path)
+    vec = _resolve_embedding(
+        question,
+        embedding=embedding,
+        retriever=retriever,
+        embedding_provider=embedding_provider,
+    )
+    if model is None or vec is None:
+        return {
+            "intent": "text",
+            "path": "v2_fallback_no_embedding",
+            "matched_rule": None,
+            "probability": None,
+            "latency_ms": (time.perf_counter() - t0) * 1000.0,
+        }
+
+    try:
+        prob = predict_chain_probability(vec, model=model)
+    except Exception:
+        return {
+            "intent": "text",
+            "path": "v2_fallback_invalid_embedding",
+            "matched_rule": None,
+            "probability": None,
+            "latency_ms": (time.perf_counter() - t0) * 1000.0,
+        }
+
+    intent: RouteIntent = "chain" if prob >= model["threshold"] else "text"
+    return {
+        "intent": intent,
+        "path": "v3_logreg",
+        "matched_rule": None,
+        "probability": prob,
+        "threshold": model["threshold"],
+        "latency_ms": (time.perf_counter() - t0) * 1000.0,
+    }
+
+
+def classify_intent(
+    question: str,
+    *,
+    embedding: Any = None,
+    retriever: Any = None,
+    embedding_provider: Callable[[str], Any] | None = None,
+    version: str | None = None,
+    weights_path: Path = ROUTER_WEIGHTS_PATH,
+) -> RouteIntent:
+    """Classify a question as ``'chain'`` or ``'text'`` using Router v3 (or v2 fallback)."""
+    trace = classify_intent_with_trace(
+        question,
+        embedding=embedding,
+        retriever=retriever,
+        embedding_provider=embedding_provider,
+        version=version,
+        weights_path=weights_path,
+    )
+    return trace["intent"]

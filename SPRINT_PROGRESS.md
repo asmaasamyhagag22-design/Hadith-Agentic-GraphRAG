@@ -2,7 +2,7 @@
 
 - **Branch**: `retrieval-upgrade` (never push to `main`)
 - **Baseline commit**: `354c01a` (`docs: update README roadmap and document target architecture assets`)
-- **Budget used**: `434 / 500` Pro-class calls, `110 / 800` Flash-class calls (`218` Embed calls; tracked in `data/processed/c5_api_ledger.json`)
+- **Budget used**: `449 / 500` Pro-class calls, `146 / 800` Flash-class calls (`231` Embed calls; tracked in `data/processed/c5_api_ledger.json`)
 
 ## Completed Steps
 
@@ -70,5 +70,23 @@
   - Generated `30` new varied Arabic chain-intent questions (`6 × 5` types) disjoint from `golden`/`synthetic_eval`/`chain_eval` using `gemma-4-26b-a4b-it-maas` (not Gemini; `0` Pro / `0` Flash calls; sha256 `fc7ad5cbc169086f0dad70360c6a85df03a4b1a192cd21b4cbe7a540e20f80c4`), froze file, and routed ONCE with `v2` (`0` Pro calls): **`17/30` (`56.7%`)** chain recall (`13` misses).
 - **⛔ STOP TRIGGERED (`router_fresh < 85%`)**: Stopped without tuning on `router_fresh.jsonl`, without running the `3+3` smoke test, and keeping `DEFAULT_AGENT_MODE = "off"`.
 
-## Next Step (Blocked at ⛔ Router Fresh Gate)
-- Waiting for user decision on routing strategy given `56.7%` (`17/30`) fresh chain recall (e.g., `gemma-4-26b-a4b-it-maas` or `flash` zero-shot binary router vs redesigned general structural Arabic router tested on a fresh split vs keeping `off`).
+### Step 1 — Hybrid Embedding Router v3 & `MUSNAD_AGENT=auto` (EXPERIMENTS §34)
+- **1a (`src/build_router_fresh2.py` → `data/raw/router_fresh2.jsonl`)**: Generated `60` unseen test queries (`30` chain `6×5` + `30` `hard_negative_text` mentioning companions/narrators) via `gemma-4-26b-a4b-it-maas` (`8` Gemma calls on clean run, disjoint hadith IDs from `router_fresh.jsonl`, different prompt, sha256 `a40d0f7b3139489461694de8cc345c87b57a92c658cdcd04946fa61a9e70cfce`), frozen prior to evaluation.
+- **1b (`src/build_router_train.py` → `data/raw/router_train.jsonl`)**: Built `488`-query training set (`15` `chain_eval_dev` + `224` `synthetic_eval` + `150` Flash chain paraphrases + `99` Flash `hard_negative_text`; `15` Flash calls on clean run + `18` conservative calls logged from aborted run; sha256 `66926bb238cef1546d5da63072aeae1dfca2b3fec4684ce88bccddf2f527f324`), strictly disjoint from `router_fresh`, `router_fresh2`, `chain_eval_test`, `holdout_draft`.
+- **1c–1d (`src/train_router.py`, `src/router.py`, `src/router_weights.npz`, `src/retrieve.py`, `src/pipeline.py`, `src/answer.py`, `tests/test_router.py`)**:
+  - Trained L2 Logistic Regression (`C=5.0`, `class_weight=None`, `threshold=0.44`) over normalized 3072-d `gemini-embedding-001` query vectors behind the `v2` deterministic chain fast path (`0` extra embedding API calls at inference via shared `UpgradedRetriever.query_vec_cache`, falling back cleanly to `v2` if unavailable).
+  - 5-fold CV on `router_train` (`n=488`): `v3` achieved `99.07%` balanced accuracy (`100.0%` chain recall, `98.14%` text specificity) vs `v2`'s `77.56%`; on `router_fresh` (`seen during design`, `n=30`), `v3` reached `96.67%` (`29/30`) vs `v2`'s `56.67%` (`17/30`). Pre-registered Step 1d decision: **ship `v3`**.
+- **1e (`src/evaluate_router.py` → `data/processed/router_eval_results.json`)**: One-shot evaluation (no tuning afterward; `0` Pro / `0` Flash / `1` Embed batch):
+  - **Headline `router_fresh2.jsonl` (`n=60`)**: **`v3` = `96.67%` balanced (`93.3%` [`28/30`] chain recall, `100.0%` [`30/30`] hard-negative text specificity)** vs `v2` = `75.00%` (`50.0%` [`15/30`] chain recall, `100.0%` [`30/30`] text specificity).
+  - Other sets under `v3`: `golden` `100.0%` (`33/33`), `synthetic_eval` `99.1%` (`222/224`), `chain_eval_dev` `100.0%` (`15/15`), `chain_eval_test` `100.0%` (`25/25`), `router_fresh` (`seen during design`) `96.7%` (`29/30`), Pooled (`n=387`) `98.71%` (`98.19%` balanced); median router overhead `0.0645 ms` (`p95 = 0.1243 ms`).
+- **1f (`src/pipeline.py`, `src/agent.py`, `src/answer.py`, `src/smoke_auto_cli.py`, `EXPERIMENTS.md` §34)**:
+  - Flipped `DEFAULT_AGENT_MODE = "auto"` with pre-registered safe-degradation rationale documented in `EXPERIMENTS.md` §34.
+  - Fixed CLI `KeyError: 'rank'` bug in `src/answer.py:format_retrieved_chunk` & `src/agent.py:_record_chunk` surfaced on first direct `get_isnad` CLI call, with regression test in `tests/test_agent.py`.
+  - Clean `3+3` live CLI smoke test passed (`6/6` in `53.14 s`; `10` Pro `<= 15`, `2` Flash, `4` Embed; `data/processed/auto_smoke_cli.txt`).
+  - **Verification**: `check_docs` 5/5 green; CI pytest `292 passed, 26 deselected, 74 subtests passed`; full pytest `318 passed, 74 subtests passed`.
+
+## Next Step
+- **Step 2**: Fix cached-vs-uncached latency comparisons in `EXPERIMENTS.md` §32 (`17,326.3 ms` agent ON vs §29 `12,550.5 ms` uncached `+38.1%`, distinguish `4,906.0 ms` cached `golden` OFF, keep Pro calls `181` vs `98` and refusal drop `1.67/3` vs `3.0/3`), commit and push.
+- **Step 3**: Phase D2 README update (`README.md`, `src/check_docs.py` tables, `"SQLite sanad graph"`).
+- **Step 4**: Phase E1 `docs/holdout_review.md` via `src/build_holdout_review.py` without editing/evaluating `holdout_draft.jsonl`.
+- **Step 5**: Final consistency & verification pass and report.
