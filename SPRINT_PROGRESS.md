@@ -57,7 +57,18 @@
   - `chain_eval_dev.jsonl` (`n=15`): `15/15` (`100.0%`; `chain 15/15`)
   - `chain_eval_test.jsonl` (`n=25`, frozen): `22/25` (`88.0%`; `chain 22/25`; misrouted `chain_comp_04`, `chain_count_06`, `chain_topic_05`)
   - Pooled (`n=297`): `292/297` (`98.3%`; `TP=39, FN=4, TN=253, FP=1`).
-- **⛔ STOP TRIGGERED**: Stopped immediately without modifying `src/router.py` on the test split, without running the 3+3 live smoke test, and keeping `DEFAULT_AGENT_MODE = "off"`.
+- **⛔ STOP TRIGGERED (`v1` gate)**: Stopped immediately (`24554a2`) without modifying `src/router.py` on the test split and keeping `DEFAULT_AGENT_MODE = "off"`.
 
-## Next Step (Blocked at ⛔ Router Gate)
-- Waiting for user decision on how to handle the `chain_eval_test` / `golden` / `synthetic_eval` misroutes (e.g., fix general Arabic regex bugs in `src/router.py` without looking at further test items / evaluate vs switch to 1-shot Flash router / re-run Gate decision) before enabling `auto`, doing Phase D2, and preparing Phase E (`docs/holdout_review.md`).
+### Gate 1 Resolution (Router Gate Option 2 — Bugfix `v2` & Fresh Unseen Check)
+- **Bugfix `v2` (`src/router.py`, `tests/test_router.py`)**: Audited every regex in `src/router.py` strictly for the `ال?X` optional-prefix syntax bug (`?` applying only to `ل`) and replaced with `(?:ال)?X`. Added general Arabic definite-vs-bare regression pairs in `tests/test_router.py` (`5 passed, 39 subtests passed`). No new linguistic cues added (`chain_comp_04` remains a known miss).
+- **Re-evaluation on existing 4 sets (`v2`, `0` API calls, disclosed post-test bugfix in `EXPERIMENTS.md` §33)**:
+  - `golden.jsonl` (`n=33`): `33/33` (`100.0%`; `chain 3/3`, `text 30/30`)
+  - `synthetic_eval.jsonl` (`n=224`): `223/224` (`99.6%`; `synthetic_eval_134` remains `text→chain`)
+  - `chain_eval_dev.jsonl` (`n=15`): `15/15` (`100.0%`)
+  - `chain_eval_test.jsonl` (`n=25`): `24/25` (`96.0%`; only `chain_comp_04` remains `chain→text`)
+- **Fresh unseen check (`src/build_router_fresh.py` → `data/raw/router_fresh.jsonl`)**:
+  - Generated `30` new varied Arabic chain-intent questions (`6 × 5` types) disjoint from `golden`/`synthetic_eval`/`chain_eval` using `gemma-4-26b-a4b-it-maas` (not Gemini; `0` Pro / `0` Flash calls; sha256 `fc7ad5cbc169086f0dad70360c6a85df03a4b1a192cd21b4cbe7a540e20f80c4`), froze file, and routed ONCE with `v2` (`0` Pro calls): **`17/30` (`56.7%`)** chain recall (`13` misses).
+- **⛔ STOP TRIGGERED (`router_fresh < 85%`)**: Stopped without tuning on `router_fresh.jsonl`, without running the `3+3` smoke test, and keeping `DEFAULT_AGENT_MODE = "off"`.
+
+## Next Step (Blocked at ⛔ Router Fresh Gate)
+- Waiting for user decision on routing strategy given `56.7%` (`17/30`) fresh chain recall (e.g., `gemma-4-26b-a4b-it-maas` or `flash` zero-shot binary router vs redesigned general structural Arabic router tested on a fresh split vs keeping `off`).

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 import tempfile
 import unittest
@@ -11,6 +12,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import src.answer as ans
+import src.router as router_mod
 from src.pipeline import resolve_agent_enabled, resolve_agent_mode
 from src.router import classify_intent, matched_chain_rule
 
@@ -149,6 +151,46 @@ class RouterClassifierTests(unittest.TestCase):
         for q in text_prompts:
             with self.subTest(q=q):
                 self.assertEqual(classify_intent(q), "text", f"False trigger rule={matched_chain_rule(q)}: {q}")
+
+    def test_optional_definite_prefix_pairs_and_no_buggy_al_question_mark(self) -> None:
+        source_text = Path(router_mod.__file__).read_text(encoding="utf-8")
+        # Catch bare "ال?" where "?" makes only "ل" optional instead of "(?:ال)?".
+        self.assertIsNone(
+            re.search(r"ال\?", source_text),
+            "Found bare 'ال?' in src/router.py; must use '(?:ال)?'",
+        )
+
+        # General Arabic definite vs bare-noun pairs covering every fixed rule.
+        definite_bare_pairs = [
+            ("ما سند الحديث في باب الصبر؟", "ما سند حديث في باب الصبر؟"),
+            ("ما سلسلة الحديث الوارد؟", "ما سلسلة حديث الوارد؟"),
+            ("كم عدد الأسانيد؟", "كم عدد أسانيد هذه الرواية؟"),
+            ("كم عدد الطرق المذكورة؟", "كم عدد طرق هذه الرواية؟"),
+            ("كم عدد السلاسل الواردة؟", "كم عدد سلاسل هذه الرواية؟"),
+            ("كم عدد طرق الحديث في الرواية؟", "كم عدد طرق حديث في رواية؟"),
+            ("ما الطرق المسجلة لهذا الباب؟", "هل لهذا الباب طرق مسجلة؟"),
+            ("ما الطرق الواردة للحديث؟", "هل وردت طرق واردة لحديث الغسل؟"),
+            ("ما أسماء الرواة في هذا الباب؟", "ما أسماء رواة المتن؟"),
+            ("من الراوي المباشر لمسلم هنا؟", "من راوي المباشر لمسلم هنا؟"),
+            ("أخذ مسلم الحديث عنه أم لا؟", "أخذ مسلم حديث عنه أم لا؟"),
+            ("من روى الحديث عن أصحابه؟", "من روى حديث الزكاة عن أصحابه؟"),
+            ("من الصحابي راوي الحديث؟", "من صحابي راوي حديث الصدق؟"),
+            ("ما اسم الصحابي الذي روى حديث رقم 4100؟", "ما اسم صحابي روى حديث رقم 4100؟"),
+            ("هل ورد هذا الاسم في الحديث رقم 4120؟", "هل ورد هذا الاسم في حديث رقم 4120؟"),
+            ("هل هو من شيوخ الحديث في الصحيح؟", "هل هو من شيوخ حديث الإخلاص؟"),
+        ]
+        for with_al, without_al in definite_bare_pairs:
+            with self.subTest(with_al=with_al, without_al=without_al):
+                self.assertEqual(
+                    classify_intent(with_al),
+                    "chain",
+                    f"Definite form missed: {with_al}",
+                )
+                self.assertEqual(
+                    classify_intent(without_al),
+                    "chain",
+                    f"Bare form missed (optional-prefix bug): {without_al}",
+                )
 
 
 class AgentModeCompositionTests(unittest.TestCase):

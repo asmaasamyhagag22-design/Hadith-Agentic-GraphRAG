@@ -24,6 +24,7 @@ GOLDEN_PATH = PROJECT_ROOT / "data" / "raw" / "golden.jsonl"
 SYNTHETIC_PATH = PROJECT_ROOT / "data" / "raw" / "synthetic_eval.jsonl"
 CHAIN_DEV_PATH = PROJECT_ROOT / "data" / "raw" / "chain_eval_dev.jsonl"
 CHAIN_TEST_PATH = PROJECT_ROOT / "data" / "raw" / "chain_eval_test.jsonl"
+ROUTER_FRESH_PATH = PROJECT_ROOT / "data" / "raw" / "router_fresh.jsonl"
 OUT_PATH = PROJECT_ROOT / "data" / "processed" / "router_eval_results.json"
 
 
@@ -129,6 +130,8 @@ def evaluate_all() -> dict[str, Any]:
         EvalDatasetSpec("chain_eval_dev", CHAIN_DEV_PATH, "all_chain"),
         EvalDatasetSpec("chain_eval_test", CHAIN_TEST_PATH, "all_chain"),
     ]
+    if ROUTER_FRESH_PATH.exists():
+        specs.append(EvalDatasetSpec("router_fresh", ROUTER_FRESH_PATH, "all_chain"))
     results = [evaluate_dataset(spec) for spec in specs]
     by_name = {r["name"]: r for r in results}
 
@@ -141,17 +144,17 @@ def evaluate_all() -> dict[str, Any]:
     total_chain = sum(r["expected_chain"] for r in results)
     total_text = sum(r["expected_text"] for r in results)
 
+    fresh_acc = by_name["router_fresh"]["chain_accuracy"] if "router_fresh" in by_name else None
     gates = {
         "golden_100pct": by_name["golden"]["accuracy"] == 1.0,
         "chain_dev_100pct": by_name["chain_eval_dev"]["accuracy"] == 1.0,
         "chain_test_100pct": by_name["chain_eval_test"]["accuracy"] == 1.0,
         "synthetic_ge_99pct": (by_name["synthetic_eval"]["text_accuracy"] or 0.0) >= 0.99,
+        "fresh_chain_ge_85pct": (fresh_acc or 0.0) >= 0.85 if fresh_acc is not None else None,
         "zero_misroutes_all_sets": (total_fn + total_fp) == 0,
     }
-    gates["passed_step4_threshold"] = (
-        gates["golden_100pct"]
-        and gates["chain_test_100pct"]
-        and gates["synthetic_ge_99pct"]
+    gates["passed_fresh_gate"] = bool(
+        gates["synthetic_ge_99pct"] and gates["fresh_chain_ge_85pct"]
     )
 
     return {
