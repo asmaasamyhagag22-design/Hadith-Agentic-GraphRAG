@@ -67,16 +67,16 @@
 
 ```canonical-results
 # table | row_id | README row label | meta | metric=value[@denominator]
-retrieval_golden | upgraded | Upgraded (HyDE + Gemini-001 + RRF) | dataset=golden.jsonl n=27 section=29 | hit@1=85%@27 hit@3=100%@27 hit@5=100%@27 hit@10=100%@27 MRR=0.926
+retrieval_golden | upgraded | Upgraded (HyDE + Gemini-001) | dataset=golden.jsonl n=27 section=29 | hit@1=85%@27 hit@3=100%@27 hit@5=100%@27 hit@10=100%@27 MRR=0.926
 retrieval_golden | hybrid_rerank | Hybrid + rerank (baseline) | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
 retrieval_golden | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl n=27 section=5 | hit@1=44%@27 hit@3=67%@27 hit@5=74%@27 hit@10=85%@27 MRR=0.565
 retrieval_golden | dense_matn | Dense only | dataset=golden.jsonl n=27 section=5 | hit@1=41%@27 hit@3=56%@27 hit@5=59%@27 hit@10=63%@27 MRR=0.493
 retrieval_golden | bm25_matn | BM25 only | dataset=golden.jsonl n=27 section=5 | hit@1=33%@27 hit@3=59%@27 hit@5=63%@27 hit@10=67%@27 MRR=0.464
-retrieval_synthetic | upgraded | Upgraded (HyDE + Gemini-001 + RRF) | dataset=synthetic_eval.jsonl n=224 section=29 | hit@1=38%@224 hit@3=64%@224 hit@5=74%@224 hit@10=85%@224 MRR=0.528
+retrieval_synthetic | upgraded | Upgraded (HyDE + Gemini-001) | dataset=synthetic_eval.jsonl n=224 section=29 | hit@1=41%@224 hit@3=64%@224 hit@5=73%@224 hit@10=84%@224 MRR=0.545
 retrieval_synthetic | hybrid_rerank | Hybrid + rerank (baseline) | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
 retrieval_synthetic | hybrid_rrf | Hybrid (RRF) | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=18%@224 hit@3=30%@224 hit@5=37%@224 hit@10=44%@224 MRR=0.256
 retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
-answer_quality | upgraded | Upgraded (3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=100%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=1%@30 False_refusals=0%@27 Correct_refusals=8/9
+answer_quality | upgraded | Upgraded (3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=96%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=3.3%@30 False_refusals=4%@27 Correct_refusals=6/9
 answer_quality | hybrid_rerank | Hybrid + rerank (baseline, 3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=81%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=8%@30 False_refusals=0%@22 Correct_refusals=3/3
 answer_quality | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl section=29 | Correct_citation=63%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=23%@30 False_refusals=0%@20 Correct_refusals=3/3
 ```
@@ -3423,4 +3423,45 @@ artifact was touched.
 
 - يتضمن زمن `query_embed` (`2.62 s` بالوسيط مقابل `0.97 s` لـ `hyde_embed`) كلفة تهيئة عميل `genai.Client` في `_blended_query_vector`؛ ومع إعادة استخدام عميل جاهز ينخفض زمن التضمين الأول بنحو `~1.6 s`، كما يعود ارتفاع `p95` إلى استجابتين طويلتين من `gemini-4-argon` (`35.22 s` و`20.22 s`).
 - **مهلة API والرجوع الاحتياطي (`Fallback`):** مضبوط في `UpgradedRetriever` (`API_TIMEOUT_MS = 15,000 ms`) و`build_pipeline(mode="upgraded")`, مع تغطية اختبارية محاكاة دون نداءات شبكة في `tests/test_pipeline.py` (`test_default_pipeline_returns_legacy_results_on_api_failure`: مهلة التضمين، فشل HyDE، فشل HTTP، وحالات عدم توفر المفاتيح/الشبكة).
+
+### 7) تطبيق قاعدة البساطة على المسار الافتراضي (`1:0:0:0` دون BM25 أو توسيع وثائق)
+
+بناءً على نتيجة اختبار `McNemar` في §29.6 (`p >= 0.3916` على `dev` و`p = 1.0000` على `golden`)، حُوّلت أوزان المسار الافتراضي `Upgraded` إلى **`(1.0, 0.0, 0.0, 0.0)`** في `src/pipeline.py` و`src/retrieve.py` (`Dense_matn_HyDE` فقط عبر `gemini-embedding-001` `3072d` بمزج `0.7 * q + 0.3 * HyDE_q`، دون تحميل أو تشغيل BM25 أو حقول توسيع الوثائق في المسار الافتراضي، مع بقاء الرجوع الاحتياطي المحلي `legacy` كما هو). أُعيد قياس المسار عبر `src/evaluate.py` و`src/experiment_e5_simple_default.py` وحُفظت النتائج في `data/processed/e5_simple_default_results.json`:
+
+1. **الاسترجاع على `golden` (`n = 27`) و`dev` (`synthetic_eval.jsonl`, `n = 224`):**
+
+| المجموعة | `hit@1` | `hit@3` | `hit@5` | `hit@10` | `MRR` |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `golden (n = 27)` | **85.19%** (`23/27`، المقرَّب **`85%`**) | **100.00%** (`27/27`، **`100%`**) | **100.00%** (`27/27`، **`100%`**) | **100.00%** (`27/27`، **`100%`**) | **0.9259** (**`0.926`**) |
+| `dev (synthetic_eval, n = 224)` | **40.62%** (`91/224`، المقرَّب **`41%`**) | **63.84%** (`143/224`، **`64%`**) | **72.77%** (`163/224`، **`73%`**) | **83.93%** (`188/224`، **`84%`**) | **0.5445** (**`0.545`** في `evaluate.py`) |
+
+2. **تقييم الإجابات والاستشهادات (`answer_eval` × 3 تشغيلات، `gemini-4-argon`، `k = 5` على `golden.jsonl`، `30` سؤالًا لكل تشغيل):**
+
+| المقياس | المقام | التشغيلات `1 / 2 / 3` | المتوسط (`Mean`) والمدى | المجموع (`3` تشغيلات) |
+| --- | ---: | --- | --- | ---: |
+| `Gold in top-5 context` | `27` | `27/27 · 27/27 · 27/27` | **100.0%** (`100.0%–100.0%`) | `81/81` |
+| `Correct citation` | `27` | `26/27 · 26/27 · 26/27` | **96.3%** (`96.3%–96.3%`، المقرَّب **`96%`**) | `78/81` |
+| `Invalid citation attempts (raw)` | `30` | `0/30 · 0/30 · 0/30` | **0.0%** (**`0%`**) | `0/90` |
+| `Missing citation attempts (raw)` | `30` | `0/30 · 0/30 · 0/30` | **0.0%** (**`0%`**) | `0/90` |
+| `Non-gold citation from context` | `30` | `1/30 · 1/30 · 1/30` | **3.3%** (`3.3%–3.3%`) | `3/90` |
+| `False refusals` | `27` | `1/27 · 1/27 · 1/27` | **3.7%** (`3.7%–3.7%`، المقرَّب **`4%`**) | `3/81` |
+| `Correct refusals` | `3` | `2/3 · 2/3 · 2/3` | **66.7%** (`66.7%–66.7%`) | **`6/9`** |
+
+- ظهرت حالة `False refusals` (`1/27`) في التشغيلات الثلاثة على سؤال «هل يجوز صيام يوم الشك؟» (جاء الحديث المرجعي `9679` في المرتبة 2 داخل السياق)، وظهرت حالة `Non-gold citation from context` (`1/30` = `3.3%`) في التشغيلات الثلاثة على سؤال الرفض «كم عدد ركعات صلاة التراويح؟» (عبر الاستشهاد بحديث صلاة الليل من السياق)، مع `0` محاولات استشهاد خارج السياق و`0` حالات إعادة توليد.
+
+3. **زمن الاستجابة الحي دون كاش والتكلفة للمسار المبسَّط الافتراضي `1:0:0:0` (`n = 20` سؤالًا قابلًا للإجابة من `golden`، `k = 5`، بعد استعلام إحماء `15,124.6 ms`):**
+
+| المرحلة | الوسيط (`median`) | المئين 95 (`p95`) | المتوسط (`mean`) | المدى (`min–max`) |
+| --- | ---: | ---: | ---: | ---: |
+| تضمين الاستعلام (`gemini-embedding-001`) | `2,518.3 ms` | `2,785.1 ms` | `2,551.8 ms` | `2,346.3–2,812.8 ms` |
+| توليد `HyDE` (`gemini-3.8-flash`، `LOW`) | `4,000.9 ms` (`4.00 s`) | `5,362.9 ms` | `4,204.7 ms` | `3,049.3–8,246.8 ms` |
+| تضمين `HyDE` (`gemini-embedding-001`) | `976.5 ms` | `1,079.0 ms` | `905.8 ms` | `383.2–1,095.0 ms` |
+| البحث المحلي الكثيف فقط (`Dense matmul`، دون BM25/RRF) | `101.6 ms` | `120.5 ms` | `104.3 ms` | `87.2–127.2 ms` |
+| **إجمالي الاسترجاع (`1:0:0:0`)** | **`7,519.5 ms`** (`7.52 s`) | **`9,231.5 ms`** | **`7,766.6 ms`** | `6,649.6–12,133.2 ms` |
+| **التوليد (`gemini-4-argon`، `LOW`)** | **`4,992.2 ms`** | **`7,989.6 ms`** | **`5,277.5 ms`** | `2,160.9–11,446.1 ms` |
+| **الزمن الكلي (`End-to-End`)** | **`12,550.5 ms`** (**`12.55 s`**) | **`17,972.8 ms`** (**`17.97 s`**) | **`13,044.0 ms`** | `8,997.3–19,602.7 ms` |
+
+- **متوسط التوكنز والتكلفة لكل استعلام (`n = 20`):** استهلك الاسترجاع `66.25` توكن تضمين (`$0.000010`) + `82.15` إدخال / `123.15` إخراج لـ `HyDE` (`$0.000523`) = **`$0.000533`** (`$0.00053`)، واستهلك التوليد (`gemini-4-argon`) `1,045.4` إدخال / `158.5` إخراج = **`$0.003676`** (`$0.00368`) بالسعر التمهيدي (`$2/$10`) أو **`$0.007352`** بالسعر القياسي (`$4/$20`)؛ ليصبح الإجمالي الكلي **`$0.004209`** (**`$0.0042`**, الوسيط `$0.003818`) بالسعر التمهيدي حتى `2026-11-30`، و**`$0.007885`** (**`$0.0079`**, الوسيط `$0.007094`) بالسعر القياسي بدءًا من `2026-12-01`.
+- يهيمن توليد `HyDE` (`4.00 s` بالوسيط من أصل `7.52 s` للاسترجاع) واستدعاءات التضمين المتسلسلة على زمن الاسترجاع بينما لا يستغرق البحث الكثيف المحلي سوى `0.10 s`. *(سُجّلت حادثتا رجوع احتياطي عابرتان `504 DEADLINE_EXCEEDED` خلال الجلب الأولي/القياس وأُعيد القياس الحي بنجاح دون رجوع في جميع العينات الـ 20.)*
+
 

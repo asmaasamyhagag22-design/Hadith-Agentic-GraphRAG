@@ -14,10 +14,8 @@ import src.answer as answer
 import src.answer_eval as answer_eval
 import src.evaluate as evaluate
 from src.config import (
-    DOC_EXPANSIONS_G38_PATH,
     IDS_MATN,
     PROCESSED_CHUNKS_PATH,
-    VECTORS_EXPANSION_G38_GEMINI001,
     VECTORS_MATN,
     VECTORS_MATN_GEMINI001,
     VECTORS_PATH,
@@ -87,11 +85,6 @@ def test_default_pipeline_returns_legacy_results_on_api_failure(
 ):
     chunks_path, paths = _write_fixture_index(tmp_path)
     vectors_path, ids_path = paths["matn"]
-    expansions_path = tmp_path / "expansions.jsonl"
-    expansions_path.write_text(
-        json.dumps({"chunk_id": "102_0", "expansion_text": "صيام رمضان"}) + "\n",
-        encoding="utf-8",
-    )
     index_paths = {
         "vectors_path": vectors_path,
         "ids_path": ids_path,
@@ -101,12 +94,15 @@ def test_default_pipeline_returns_legacy_results_on_api_failure(
     upgraded = build_pipeline(
         **index_paths,
         matn_vectors_path=vectors_path,
-        exp_vectors_path=vectors_path,
-        expansions_jsonl_path=expansions_path,
+        exp_vectors_path=tmp_path / "missing-exp.npy",
+        expansions_jsonl_path=tmp_path / "missing-exp.jsonl",
         query_cache_path=tmp_path / "no-query-cache.npz",
         hyde_cache_path=tmp_path / "no-hyde-cache.npz",
         api_timeout_ms=1500,
     )
+    assert upgraded.exp_vectors is None
+    assert upgraded.bm25_matn is None
+    assert upgraded.bm25_exp is None
     monkeypatch.setenv("MUSNAD_RETRIEVAL_PIPELINE", "legacy")
     legacy = build_pipeline(**index_paths)
     question = "ما فضل صيام رمضان؟"
@@ -159,7 +155,7 @@ class PipelineConfigurationTests(unittest.TestCase):
         self.assertEqual(RRF_K, 60)
         self.assertEqual(DENSE_WEIGHT, 1.0)
         self.assertEqual(BM25_WEIGHT, 1.0)
-        self.assertEqual(UPGRADED_WEIGHTS, (8.0, 2.0, 1.0, 1.0))
+        self.assertEqual(UPGRADED_WEIGHTS, (1.0, 0.0, 0.0, 0.0))
         self.assertEqual(UPGRADED_HYDE_ALPHA, 0.7)
         self.assertEqual(RERANK_MODEL, MMARCO)
         self.assertEqual(RERANK_MODEL, "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1")
@@ -294,8 +290,6 @@ class PipelineConfigurationTests(unittest.TestCase):
     @pytest.mark.requires_data
     @unittest.skipUnless(
         VECTORS_MATN_GEMINI001.exists()
-        and VECTORS_EXPANSION_G38_GEMINI001.exists()
-        and DOC_EXPANSIONS_G38_PATH.exists()
         and IDS_MATN.exists()
         and PROCESSED_CHUNKS_PATH.exists(),
         "upgraded index files not present",
@@ -310,10 +304,17 @@ class PipelineConfigurationTests(unittest.TestCase):
         eval_pipeline = evaluated["Upgraded (E5)"]
 
         self.assertIsInstance(cli_pipeline, UpgradedRetriever)
+        self.assertIsNone(cli_pipeline.exp_vectors)
+        self.assertIsNone(cli_pipeline.bm25_matn)
+        self.assertIsNone(cli_pipeline.bm25_exp)
         config = pipeline_config(cli_pipeline, k=DEFAULT_K)
         self.assertEqual(config, pipeline_config(eval_pipeline, k=answer_eval.DEFAULT_K))
         self.assertEqual(config["mode"], "upgraded")
-        self.assertEqual(config["weights"], (8.0, 2.0, 1.0, 1.0))
+        self.assertEqual(config["weights"], (1.0, 0.0, 0.0, 0.0))
+        self.assertIsNone(config["exp_vectors_path"])
+        self.assertIsNone(config["expansions_jsonl_path"])
+        self.assertIsNone(config["bm25_matn_chunk_ids"])
+        self.assertIsNone(config["bm25_exp_chunk_ids"])
         self.assertEqual(config["hyde_alpha"], 0.7)
         self.assertIsNone(config["rerank_model"])
         self.assertEqual(config["k"], 5)
@@ -322,8 +323,6 @@ class PipelineConfigurationTests(unittest.TestCase):
     @pytest.mark.requires_api
     @unittest.skipUnless(
         VECTORS_MATN_GEMINI001.exists()
-        and VECTORS_EXPANSION_G38_GEMINI001.exists()
-        and DOC_EXPANSIONS_G38_PATH.exists()
         and IDS_MATN.exists()
         and PROCESSED_CHUNKS_PATH.exists(),
         "upgraded index files not present",

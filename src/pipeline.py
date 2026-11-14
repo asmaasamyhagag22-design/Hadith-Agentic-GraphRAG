@@ -43,7 +43,7 @@ RERANK_MODEL = DEFAULT_MODEL
 TOP_K_IN = DEFAULT_TOP_K_IN
 DEFAULT_K = 5
 
-UPGRADED_WEIGHTS = (8.0, 2.0, 1.0, 1.0)
+UPGRADED_WEIGHTS = (1.0, 0.0, 0.0, 0.0)
 UPGRADED_HYDE_ALPHA = 0.7
 
 
@@ -150,8 +150,8 @@ def build_pipeline(
 ):
     """
     نقطة بناء مسار الاسترجاع الموحّدة للنظام:
-    - `mode="upgraded"` (الافتراضي): gemini-embedding-001 (3072d) + توسعات g38flash + HyDE (0.7:0.3)
-      + 4-way RRF (8:2:1:1)، مع رجوع تلقائي للمسار المحلي `legacy` عند فشل أو انتهاء مهلة API.
+    - `mode="upgraded"` (الافتراضي): gemini-embedding-001 (3072d) للمتن + HyDE (0.7:0.3)
+      بأوزان (1:0:0:0) دون BM25 أو توسيع وثائق، مع رجوع تلقائي للمسار المحلي `legacy` عند فشل أو انتهاء مهلة API.
     - `mode="legacy"`: المسار المحلي `multilingual-e5-base + BM25 + mmarco top-10`.
     """
 
@@ -214,8 +214,16 @@ def pipeline_config(retriever, k=DEFAULT_K):
             "ids_path": retriever.ids_path,
             "ntotal": int(retriever.matn_vectors.shape[0]),
             "chunk_ids": list(retriever.chunk_ids),
-            "bm25_matn_chunk_ids": list(retriever.bm25_matn.chunk_ids),
-            "bm25_exp_chunk_ids": list(retriever.bm25_exp.chunk_ids),
+            "bm25_matn_chunk_ids": (
+                list(retriever.bm25_matn.chunk_ids)
+                if retriever.bm25_matn is not None
+                else None
+            ),
+            "bm25_exp_chunk_ids": (
+                list(retriever.bm25_exp.chunk_ids)
+                if retriever.bm25_exp is not None
+                else None
+            ),
             "candidates": retriever.candidates,
             "rrf_k": retriever.rrf_k,
             "weights": tuple(retriever.weights),

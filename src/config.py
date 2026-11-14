@@ -37,8 +37,8 @@ IDS_MATN = PROCESSED_DIR / "chunk_ids_matn.json"
 VECTORS_MATN_WITH_TITLE = PROCESSED_DIR / "vectors_title.npy"
 IDS_MATN_WITH_TITLE = PROCESSED_DIR / "chunk_ids_title.json"
 
-# مسار الاسترجاع المختار في التجربة النهائية (E5):
-# "upgraded" = gemini-embedding-001 (3072d) + E2 expansion (g38flash) + E4 HyDE (0.7:0.3) + 4-way RRF (8:2:1:1) [الافتراضي]
+# مسار الاسترجاع المختار وفق قاعدة البساطة (E5 + P4):
+# "upgraded" = gemini-embedding-001 (3072d) للمتن + E4 HyDE (0.7:0.3)، أوزان (1:0:0:0) دون BM25 أو توسيع وثائق [الافتراضي]
 # "legacy"   = multilingual-e5-base + BM25 (RRF 1:1) + mmarco top-10 reranker (محلي بلا API، ويُستخدم تلقائيًا كبديل احتياطي عند تعثّر API)
 RETRIEVAL_PIPELINE = os.environ.get("MUSNAD_RETRIEVAL_PIPELINE", "upgraded")
 API_TIMEOUT_MS = int(os.environ.get("MUSNAD_API_TIMEOUT_MS", "15000"))

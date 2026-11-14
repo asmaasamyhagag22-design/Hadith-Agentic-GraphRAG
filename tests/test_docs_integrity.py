@@ -282,7 +282,7 @@ class RefusalClaimTests(unittest.TestCase):
         end = readme.find("\n---\n", start)
         window = readme[start:end]
 
-        self.assertIn("1%", window)
+        self.assertIn("3.3%", window)
         self.assertIn("7%", window)
         self.assertIn("8%", window)
         self.assertIn("23%", window)

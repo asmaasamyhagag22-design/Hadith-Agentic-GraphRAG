@@ -255,25 +255,25 @@ def _l2_normalize_vec(vec):
 
 class UpgradedRetriever:
     """
-    خط الاسترجاع النهائي المختار في التجربة E5:
-    - التضمين: gemini-embedding-001 (3072d) للمتن (Dense_m) وتوسيع الوثائق (Dense_e)
-    - التوسيع المعجمي والدلالي (E2): gemini-3.8-flash (Dense_e + BM25_e)
+    خط الاسترجاع النهائي المختار (E5 + قاعدة البساطة P4):
+    - التضمين: gemini-embedding-001 (3072d) للمتن فقط (Dense_m)
     - الاستعلام الافتراضي (E4 HyDE): gemini-3.8-flash بمزج متجه الاستعلام
       (0.7 * q_vec + 0.3 * hyde_vec)
-    - الدمج: 4-way RRF بأوزان (8, 2, 1, 1) وعمق مرشحين 50 دون cross-encoder reranker (E3)
+    - الافتراضي (1:0:0:0): بحث كثيف مباشر على المتن دون BM25 أو توسيع وثائق أو cross-encoder
+      (مع دعم أوزان مخصّصة عند الحاجة في التجارب).
     """
 
     def __init__(
         self,
         matn_vectors,
-        exp_vectors,
-        bm25_matn,
-        bm25_exp,
-        chunk_ids,
-        chunk_lookup,
+        exp_vectors=None,
+        bm25_matn=None,
+        bm25_exp=None,
+        chunk_ids=None,
+        chunk_lookup=None,
         query_vec_cache=None,
         hyde_vec_cache=None,
-        weights=(8.0, 2.0, 1.0, 1.0),
+        weights=(1.0, 0.0, 0.0, 0.0),
         hyde_alpha=0.7,
         candidates=50,
         rrf_k=60,
@@ -285,15 +285,28 @@ class UpgradedRetriever:
         expansions_jsonl_path=None,
         ids_path=None,
     ):
+        self.weights = [float(w) for w in weights]
+        if len(self.weights) != 4 or not any(w > 0 for w in self.weights):
+            raise ValueError(f"Expected 4 weights with at least one > 0, got {weights!r}")
+        if self.weights[1] > 0 and exp_vectors is None:
+            raise ValueError("exp_vectors is required when weight[1] > 0")
+        if self.weights[2] > 0 and bm25_matn is None:
+            raise ValueError("bm25_matn is required when weight[2] > 0")
+        if self.weights[3] > 0 and bm25_exp is None:
+            raise ValueError("bm25_exp is required when weight[3] > 0")
+
         self.matn_vectors = np.ascontiguousarray(matn_vectors, dtype=np.float32)
-        self.exp_vectors = np.ascontiguousarray(exp_vectors, dtype=np.float32)
+        self.exp_vectors = (
+            np.ascontiguousarray(exp_vectors, dtype=np.float32)
+            if exp_vectors is not None
+            else None
+        )
         self.bm25_matn = bm25_matn
         self.bm25_exp = bm25_exp
-        self.chunk_ids = [str(cid) for cid in chunk_ids]
+        self.chunk_ids = [str(cid) for cid in (chunk_ids or [])]
         self.chunk_lookup = chunk_lookup
         self.query_vec_cache = dict(query_vec_cache or {})
         self.hyde_vec_cache = dict(hyde_vec_cache or {})
-        self.weights = list(weights)
         self.hyde_alpha = float(hyde_alpha)
         self.candidates = candidates
         self.rrf_k = rrf_k
@@ -326,7 +339,7 @@ class UpgradedRetriever:
         query_cache_path=QUERIES_GEMINI001_CACHE_PATH,
         hyde_cache_path=QUERIES_HYDE_G38_CACHE_PATH,
         chunk_lookup=None,
-        weights=(8.0, 2.0, 1.0, 1.0),
+        weights=(1.0, 0.0, 0.0, 0.0),
         hyde_alpha=0.7,
         candidates=50,
         rrf_k=60,
@@ -334,6 +347,7 @@ class UpgradedRetriever:
         fallback_retriever=None,
         fallback_factory=None,
     ):
+        w0, w1, w2, w3 = (float(w) for w in weights)
         if chunk_lookup is None:
             chunk_lookup = load_chunk_lookup(chunks_path)
 
@@ -341,22 +355,25 @@ class UpgradedRetriever:
             chunk_ids = [str(cid) for cid in json.load(f)]
 
         matn_vectors = np.load(matn_vectors_path)
-        exp_vectors = np.load(exp_vectors_path)
+        exp_vectors = np.load(exp_vectors_path) if w1 > 0 else None
 
-        exp_by_cid = {}
-        with open(expansions_jsonl_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip():
-                    row = json.loads(line)
-                    exp_by_cid[str(row["chunk_id"])] = row["expansion_text"]
+        bm25_matn = None
+        if w2 > 0:
+            matn_texts = [
+                split_isnad_matn(chunk_lookup[cid]["text"]) for cid in chunk_ids
+            ]
+            bm25_matn = BM25Index(chunk_ids, matn_texts)
 
-        matn_texts = [
-            split_isnad_matn(chunk_lookup[cid]["text"]) for cid in chunk_ids
-        ]
-        exp_texts = [exp_by_cid.get(cid, "") for cid in chunk_ids]
-
-        bm25_matn = BM25Index(chunk_ids, matn_texts)
-        bm25_exp = BM25Index(chunk_ids, exp_texts)
+        bm25_exp = None
+        if w3 > 0:
+            exp_by_cid = {}
+            with open(expansions_jsonl_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        row = json.loads(line)
+                        exp_by_cid[str(row["chunk_id"])] = row["expansion_text"]
+            exp_texts = [exp_by_cid.get(cid, "") for cid in chunk_ids]
+            bm25_exp = BM25Index(chunk_ids, exp_texts)
 
         query_vec_cache = {}
         if Path(query_cache_path).exists():
@@ -379,7 +396,7 @@ class UpgradedRetriever:
             chunk_lookup=chunk_lookup,
             query_vec_cache=query_vec_cache,
             hyde_vec_cache=hyde_vec_cache,
-            weights=weights,
+            weights=(w0, w1, w2, w3),
             hyde_alpha=hyde_alpha,
             candidates=candidates,
             rrf_k=rrf_k,
@@ -387,8 +404,8 @@ class UpgradedRetriever:
             fallback_retriever=fallback_retriever,
             fallback_factory=fallback_factory,
             matn_vectors_path=matn_vectors_path,
-            exp_vectors_path=exp_vectors_path,
-            expansions_jsonl_path=expansions_jsonl_path,
+            exp_vectors_path=exp_vectors_path if w1 > 0 else None,
+            expansions_jsonl_path=expansions_jsonl_path if w3 > 0 else None,
             ids_path=ids_path,
         )
 
@@ -490,14 +507,29 @@ class UpgradedRetriever:
                     file=sys.stderr,
                 )
                 return fallback.search(question, k=k)
-            dm_ids = self._top_dense_ids(self.matn_vectors, q_vec, cand_k)
-            de_ids = self._top_dense_ids(self.exp_vectors, q_vec, cand_k)
-            bm_ids = self.bm25_matn.ranked_ids(question, k=cand_k)
-            be_ids = self.bm25_exp.ranked_ids(question, k=cand_k)
-            self._dense_rank_cache[cache_key] = reciprocal_rank_fusion(
-                [dm_ids, de_ids, bm_ids, be_ids],
-                k=self.rrf_k,
-                weights=self.weights,
+            w0, w1, w2, w3 = self.weights
+            active_lists = []
+            active_weights = []
+            if w0 > 0:
+                active_lists.append(self._top_dense_ids(self.matn_vectors, q_vec, cand_k))
+                active_weights.append(w0)
+            if w1 > 0:
+                active_lists.append(self._top_dense_ids(self.exp_vectors, q_vec, cand_k))
+                active_weights.append(w1)
+            if w2 > 0:
+                active_lists.append(self.bm25_matn.ranked_ids(question, k=cand_k))
+                active_weights.append(w2)
+            if w3 > 0:
+                active_lists.append(self.bm25_exp.ranked_ids(question, k=cand_k))
+                active_weights.append(w3)
+            self._dense_rank_cache[cache_key] = (
+                active_lists[0]
+                if len(active_lists) == 1
+                else reciprocal_rank_fusion(
+                    active_lists,
+                    k=self.rrf_k,
+                    weights=active_weights,
+                )
             )
 
         self.last_used_fallback = False
