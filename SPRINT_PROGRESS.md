@@ -6,24 +6,29 @@
 
 ## Completed Steps
 
-### Phase A — Sanad-attached answers (`99d6d63`)
-- **A1/A3 (`src/answer.py`)**:
-  - After `validate_answer` returns `VALID_ANSWER`, `answer_with_details` calls `attach_sanad(ordered_cited_ids(answer), db_path=sanad_db_path)` using a single `open_graph()` connection per request (closed in `try/finally`).
-  - Adds `"sanad": [{hadith_id, status, isnad_count, isnads: [[{chain_position, name_ar_mapped}]]}]` and `"sanad_error": None | str`. Refusals and invalid answers get `[]` and `None`. Preserves exact `sanad_context` statuses (`LINKED_WITH_RECORDED_ISNAD`, `LINKED_BUT_NO_RECORDED_ISNAD`, `VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK`, `INVALID_LOCAL_HADITH_ID`). Returns answers cleanly with `"sanad_error"` set if graph missing or query fails.
-  - CLI (`src/answer.py:main`) prints `"السند (من قاعدة بيانات السند):"` via `format_sanad_section` / `format_sanad_chain`, first chain per cited hadith + `"(+N طرق أخرى)"` when `isnad_count > 1`, or plain Arabic status when no recorded chain exists. `_last_answer_details` (`threading.local()`) preserves `answer_question()`'s 2-tuple signature for backwards compatibility.
-- **A2 (Chain direction verified)**:
-  - `sanad_graph.py:get_ordered_chain` orders `chain_position` `1..N` (`from_narrator_id -> to_narrator_id` = Companion → Muslim's teacher). `"sanad"` stores recorded `1..N` order; CLI reverses descending (`chain_position` `N..1`) joined with `" ← "`.
-- **A4 (`tests/test_sanad_attachment.py`)**:
-  - 8 offline unit tests covering single/multiple citations (single DB connection + deduplication), unlinked hadith, linked hadith with no recorded isnad, refusals & retries, graph unavailable/failure, and chain order + CLI formatting.
-- **A5 (`src/measure_sanad_attachment.py`, `EXPERIMENTS.md` Section 30 + `canonical-results`)**:
-  - Measured on saved 3-run `data/processed/e5_simple_default_results.json` (`0` new LLM calls):
-    - Citation-level attachment coverage: `211/220` (`95.9%`, exact `95.91%`; runs: `69/72`, `72/75`, `70/73`)
-    - Unique cited hadith coverage: `74/76` (`97.4%`, exact `97.37%`; unlinked: `7358`, `7360`)
-    - Median attachment latency: `2.226 ms` (`p95 = 3.444 ms`, range `0.983–4.125 ms`)
-- **Verification**: Full pytest `291 passed`, CI marker pytest `265 passed, 26 deselected`, `check_docs` green.
+### Phase A — Sanad-attached answers (`99d6d63`, progress commit `da9bd23`)
+- **A1/A3 (`src/answer.py`)**: Single-connection `attach_sanad()` attaches `sanad` & `sanad_error` on `VALID_ANSWER`; `format_sanad_section()` prints Muslim's teacher down to Companion (`" ← "`) and `"(+N طرق أخرى)"` or plain Arabic status in CLI (`main()`).
+- **A2**: Verified `get_ordered_chain()` returns `1..N` (Companion → teacher); CLI reverses to teacher → Companion.
+- **A4 (`tests/test_sanad_attachment.py`)**: 8 offline unit tests covering all cases.
+- **A5 (`src/measure_sanad_attachment.py`, `EXPERIMENTS.md` §30)**: Citation coverage `211/220` (`95.9%`), unique hadith coverage `74/76` (`97.4%`), median latency `2.226 ms`, p95 `3.444 ms` (`0` LLM calls).
+
+### Phase B — Chain-question evaluation set & deterministic scorer (`807db8a`)
+- **B1/B2 (`src/build_chain_eval.py`, `EXPERIMENTS.md` §31)**:
+  - Built `data/raw/chain_eval.jsonl` (`40` items, all gold answers computed directly from `sanad_graph.sqlite`, `0` LLM calls; all `40` hadith IDs unique; includes the 3 `narrator` items from `data/raw/golden.jsonl`).
+  - Stratified split (`5` types × `8` each → `3 dev / 5 test` per type; zero hadith-ID overlap between splits):
+    - `data/raw/chain_eval_dev.jsonl` (`15` items, sha256 `ee90b7fa0eed67aee18927254e4dc894ae4fa37d531e2d16bd0c539ec3f92057`)
+    - `data/raw/chain_eval_test.jsonl` (`25` items, **FROZEN**, sha256 `7cb399587827dddee45ed5af083407f21d04056fd4dcee7f9cb8931777c39025`)
+    - `data/raw/chain_eval.jsonl` (`40` items, sha256 `4458c4c58547e39694e2662b649f90b00c5a862b26b205f5d526e5c97e175c43`)
+- **B3 (`src/sanad_names.py`, `src/chain_eval.py`, `tests/test_chain_eval.py`)**:
+  - Longest-span normalized `mis_narrator` lexicon (`NarratorLexicon`) with Arabic proclitic handling (`و/ف/ب/ل/ك`) and kunya inflections (`أبو/أبا/أبي`).
+  - Deterministic scorer checking routing (`get_isnad` / `search_hadith`), zero out-of-chain narrator names, expected narrators/counts/booleans, full abstention (`isnad_count=0` & grading-blocked `7380`), and partial grading abstention (`12068`).
+- **Verification**: Full pytest `300 passed`, CI marker pytest `274 passed, 26 deselected`, `check_docs` green.
 
 ## Next Step
-- **Phase B — Chain-question evaluation set & deterministic evaluator**:
-  - **B1/B2**: Query `sanad_graph.sqlite` and `data/raw/muslim.json` to select ~40 hadiths and build `data/raw/chain_eval.jsonl` (`who_narrated_companion`, `who_narrated_teacher`, `isnad_count`, `narrator_in_chain`, `topic_who_narrated`, including the 3 `narrator` items from `data/raw/golden.jsonl`, plus abstention cases), split stratified into `data/raw/chain_eval_dev.jsonl` (`15`) and `data/raw/chain_eval_test.jsonl` (`25`), freeze test split, record SHA-256 hashes in `EXPERIMENTS.md`.
-  - **B3**: Implement `src/chain_eval.py` (deterministic scoring for routing, answer correctness, zero hallucinated narrator names, abstention) + offline tests (`tests/test_chain_eval.py`).
-- **Then**: Phase C (`src/agent.py`, C2 validators, `MUSNAD_AGENT`, mocked tests, C5 dev/golden/test eval & Gate 1 check), Phase D (if default ON, Gate 2), Phase E (`docs/holdout_review.md`, Gate 3).
+- **Phase C — Agent with tool calling (`C1`–`C5`)**:
+  - **C1 (`src/agent.py`)**: `gemini-4-argon` with `search_hadith(query)` (default pipeline top-5: ids + matn + chapter) and `get_isnad(hadith_id)` (`sanad_context`), max 3 tool calls per question, deterministic execution, timeouts, fallback to non-agent path on failure.
+  - **C2**: Extend `validate_answer` (cited hadith ids ⊆ tool-returned ids) + deterministic narrator-name check (`find_disallowed_narrators` against `get_isnad` results); invalid → regenerate once → refuse; then run Phase A sanad attachment.
+  - **C3**: `MUSNAD_AGENT=on|off` (default `off` initially) wired through one unified entry point for CLI (`src/answer.py:main`), `src/answer_eval.py`, and `src/smoke_test.py`.
+  - **C4**: Mocked tests in `tests/test_agent.py`.
+  - **C5**: Evaluate on `chain_eval_dev.jsonl` (`15`), then 3× golden text (agent ON vs OFF) + 1 final frozen `chain_eval_test.jsonl` (`25`, agent ON vs non-agent pipeline), record in `EXPERIMENTS.md`, check Gate 1 thresholds.
+- **Then**: Gate 1 check → Phase D (if default ON) + Gate 2 → Phase E (`docs/holdout_review.md`) + Gate 3.
