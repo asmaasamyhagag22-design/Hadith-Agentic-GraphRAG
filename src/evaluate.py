@@ -14,7 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import (
     GOLDEN_PATH,
+    RETRIEVAL_PIPELINE,
     SYNTHETIC_EVAL_PATH,
+    VECTORS_MATN_GEMINI001,
     VECTORS_PATH,
     IDS_PATH,
     VECTORS_MATN,
@@ -26,6 +28,7 @@ from retrieve import (
     Retriever,
     LexicalRetriever,
     HybridRetriever,
+    UpgradedRetriever,
     load_chunk_lookup,
 )
 from lexical import BM25Index
@@ -56,7 +59,7 @@ def build_bm25(chunk_ids, variant, chunk_lookup):
     return BM25Index(chunk_ids, texts)
 
 
-def build_retrievers(rerankers=()):
+def build_retrievers(rerankers=(), include_upgraded=None):
     """
     بترجع [(اسم, retriever)] — كل السطور اللي بتتقارن في
     الجدول. الـ BM25 والهجين مبنيين على صيغة الـ matn لأنها
@@ -102,6 +105,18 @@ def build_retrievers(rerankers=()):
         retrievers.append((
             f"Hybrid + {label}",
             RerankingRetriever(hybrid, model_name=model_name),
+        ))
+
+    if include_upgraded is None:
+        include_upgraded = (
+            RETRIEVAL_PIPELINE == "upgraded"
+            and VECTORS_MATN_GEMINI001.exists()
+        )
+
+    if include_upgraded:
+        retrievers.append((
+            "Upgraded (E5)",
+            UpgradedRetriever.from_files(chunk_lookup=chunk_lookup),
         ))
 
     return retrievers

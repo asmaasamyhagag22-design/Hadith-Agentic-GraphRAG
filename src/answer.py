@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import QUESTIONS_PATH
-from retrieve import Retriever
+from retrieve import Retriever, build_default_retriever
 from experiment_variants import variant_text
 
 from google import genai
@@ -37,11 +37,33 @@ MAX_ATTEMPTS = 5
 INITIAL_BACKOFF_SECONDS = 4
 
 _client = None
+_global_client = None
+_regional_clients = {}
+_RR_LOCATIONS = (
+    "global",
+    "us-central1",
+    "us-east4",
+    "us-west1",
+    "europe-west4",
+    "us-east1",
+    "europe-west1",
+)
+_rr_counter = 0
 
 
-def get_client():
+def get_client(location=None):
 
-    global _client
+    global _client, _global_client
+
+    if location == "global":
+        if _global_client is None:
+            _global_client = genai.Client(location="global")
+        return _global_client
+
+    if location is not None:
+        if location not in _regional_clients:
+            _regional_clients[location] = genai.Client(location=location)
+        return _regional_clients[location]
 
     if _client is None:
         _client = genai.Client()
@@ -56,6 +78,7 @@ def generate(prompt, system_instruction=None, history=(), model=MODEL):
     history: أدوار سابقة كـ (role, text) — بتستخدم في
     إعادة التوليد بعد استشهاد غلط.
     """
+    global _rr_counter
 
     contents = [
         types.Content(role=role, parts=[types.Part(text=text)])
@@ -66,17 +89,35 @@ def generate(prompt, system_instruction=None, history=(), model=MODEL):
         types.Content(role="user", parts=[types.Part(text=prompt)])
     )
 
-    config = types.GenerateContentConfig(
-        temperature=TEMPERATURE,
-        system_instruction=system_instruction,
-    )
+    is_global_model = model.startswith("gemini-3") or model.startswith("gemini-4")
+
+    if is_global_model:
+        config = types.GenerateContentConfig(
+            temperature=TEMPERATURE,
+            system_instruction=system_instruction,
+            thinking_config=types.ThinkingConfig(thinking_level="LOW"),
+        )
+    else:
+        config = types.GenerateContentConfig(
+            temperature=TEMPERATURE,
+            system_instruction=system_instruction,
+        )
 
     delay = INITIAL_BACKOFF_SECONDS
 
     for attempt in range(MAX_ATTEMPTS):
 
         try:
-            response = get_client().models.generate_content(
+            if is_global_model:
+                client = get_client(location="global")
+            elif _client is not None:
+                client = _client
+            else:
+                loc = _RR_LOCATIONS[_rr_counter % len(_RR_LOCATIONS)]
+                _rr_counter += 1
+                client = get_client(location=loc)
+
+            response = client.models.generate_content(
                 model=model,
                 contents=contents,
                 config=config,
@@ -317,6 +358,7 @@ def answer_with_details(
     k=5,
     enforce_citations=True,
     self_correct=False,
+    model=MODEL,
 ):
     """
     بترجع dict فيه الإجابة النهائية **والمحاولة الخام**.
@@ -353,7 +395,7 @@ def answer_with_details(
 
     system_instruction = build_system_prompt(format_context(chunks))
 
-    raw = generate(question, system_instruction=system_instruction)
+    raw = generate(question, system_instruction=system_instruction, model=model)
 
     status = validate_answer(raw, context_ids)
     invalid = bool(cited_ids(raw) - context_ids)
@@ -376,6 +418,7 @@ def answer_with_details(
             CORRECTIONS[status],
             system_instruction=system_instruction,
             history=[("user", question), ("model", raw)],
+            model=model,
         )
 
         if validate_answer(answer, context_ids) not in (
@@ -425,7 +468,7 @@ def load_questions(path=QUESTIONS_PATH):
 
 def main():
 
-    retriever = Retriever.from_files()
+    retriever = build_default_retriever()
 
     for question in load_questions():
 

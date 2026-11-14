@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,3 +36,18 @@ IDS_MATN = PROCESSED_DIR / "chunk_ids_matn.json"
 
 VECTORS_MATN_WITH_TITLE = PROCESSED_DIR / "vectors_title.npy"
 IDS_MATN_WITH_TITLE = PROCESSED_DIR / "chunk_ids_title.json"
+
+# مسار الاسترجاع المختار في التجربة النهائية (E5):
+# "legacy"   = multilingual-e5-base + BM25 (RRF 1:1) + mmarco top-10 reranker (الافتراضي الحالي في README حتى التحقق من holdout)
+# "upgraded" = gemini-embedding-001 (3072d) + E2 expansion (g38flash) + E4 HyDE (0.7:0.3) + 4-way RRF (8:2:1:1)
+RETRIEVAL_PIPELINE = os.environ.get("MUSNAD_RETRIEVAL_PIPELINE", "legacy")
+
+VECTORS_MATN_GEMINI001 = PROCESSED_DIR / "vectors_matn_gemini001_3072.npy"
+VECTORS_EXPANSION_G38_GEMINI001 = (
+    PROCESSED_DIR / "vectors_expansion_g38flash_gemini001_3072.npy"
+)
+DOC_EXPANSIONS_G38_PATH = PROCESSED_DIR / "doc_expansions_g38flash.jsonl"
+QUERIES_GEMINI001_CACHE_PATH = PROCESSED_DIR / "queries_gemini001.npz"
+QUERIES_HYDE_G38_CACHE_PATH = (
+    PROCESSED_DIR / "queries_hyde_g38flash_gemini001.npz"
+)

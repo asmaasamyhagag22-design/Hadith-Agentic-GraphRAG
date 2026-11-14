@@ -28,6 +28,7 @@ from config import GOLDEN_PATH
 from evaluate import load_golden, build_retrievers
 from rerank import DEFAULT_MODEL
 from answer import (
+    MODEL,
     answer_with_details,
     cited_ids,
     validate_answer,
@@ -70,6 +71,7 @@ def evaluate_answers(
     k=DEFAULT_K,
     enforce_citations=True,
     self_correct=False,
+    model=MODEL,
 ):
 
     counter = Counter()
@@ -82,6 +84,7 @@ def evaluate_answers(
             k=k,
             enforce_citations=enforce_citations,
             self_correct=self_correct,
+            model=model,
         )
 
         answer = details["answer"]
@@ -186,6 +189,9 @@ def main(k=DEFAULT_K, rerankers=DEFAULT_RERANKERS, include_crag=False):
     ]
 
     retrievers = dict(build_retrievers(rerankers))
+
+    if "Upgraded (E5)" in retrievers:
+        wanted.append("Upgraded (E5)")
 
     configurations = [(label, retrievers[label], False) for label in wanted]
 
