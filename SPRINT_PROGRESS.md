@@ -70,7 +70,7 @@
   - Generated `30` new varied Arabic chain-intent questions (`6 × 5` types) disjoint from `golden`/`synthetic_eval`/`chain_eval` using `gemma-4-26b-a4b-it-maas` (not Gemini; `0` Pro / `0` Flash calls; sha256 `fc7ad5cbc169086f0dad70360c6a85df03a4b1a192cd21b4cbe7a540e20f80c4`), froze file, and routed ONCE with `v2` (`0` Pro calls): **`17/30` (`56.7%`)** chain recall (`13` misses).
 - **⛔ STOP TRIGGERED (`router_fresh < 85%`)**: Stopped without tuning on `router_fresh.jsonl`, without running the `3+3` smoke test, and keeping `DEFAULT_AGENT_MODE = "off"`.
 
-### Step 1 — Hybrid Embedding Router v3 & `MUSNAD_AGENT=auto` (EXPERIMENTS §34)
+### Step 1 — Hybrid Embedding Router v3 & `MUSNAD_AGENT=auto` (`1629b2b`, EXPERIMENTS §34)
 - **1a (`src/build_router_fresh2.py` → `data/raw/router_fresh2.jsonl`)**: Generated `60` unseen test queries (`30` chain `6×5` + `30` `hard_negative_text` mentioning companions/narrators) via `gemma-4-26b-a4b-it-maas` (`8` Gemma calls on clean run, disjoint hadith IDs from `router_fresh.jsonl`, different prompt, sha256 `a40d0f7b3139489461694de8cc345c87b57a92c658cdcd04946fa61a9e70cfce`), frozen prior to evaluation.
 - **1b (`src/build_router_train.py` → `data/raw/router_train.jsonl`)**: Built `488`-query training set (`15` `chain_eval_dev` + `224` `synthetic_eval` + `150` Flash chain paraphrases + `99` Flash `hard_negative_text`; `15` Flash calls on clean run + `18` conservative calls logged from aborted run; sha256 `66926bb238cef1546d5da63072aeae1dfca2b3fec4684ce88bccddf2f527f324`), strictly disjoint from `router_fresh`, `router_fresh2`, `chain_eval_test`, `holdout_draft`.
 - **1c–1d (`src/train_router.py`, `src/router.py`, `src/router_weights.npz`, `src/retrieve.py`, `src/pipeline.py`, `src/answer.py`, `tests/test_router.py`)**:
