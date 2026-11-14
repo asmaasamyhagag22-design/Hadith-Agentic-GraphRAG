@@ -79,6 +79,7 @@ retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=2
 answer_quality | upgraded | Upgraded (3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=96%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=3.3%@30 False_refusals=4%@27 Correct_refusals=6/9
 answer_quality | hybrid_rerank | Hybrid + rerank (baseline, 3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=81%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=8%@30 False_refusals=0%@22 Correct_refusals=3/3
 answer_quality | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl section=29 | Correct_citation=63%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=23%@30 False_refusals=0%@20 Correct_refusals=3/3
+sanad_attachment | default_3runs | Sanad-attached answers (3 runs) | dataset=golden.jsonl section=30 | Attachment_coverage=95.9%@220 Unique_hadith_coverage=97.4%@76 Median_latency_ms=2.226 p95_latency_ms=3.444
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3463,5 +3464,33 @@ artifact was touched.
 
 - **متوسط التوكنز والتكلفة لكل استعلام (`n = 20`):** استهلك الاسترجاع `66.25` توكن تضمين (`$0.000010`) + `82.15` إدخال / `123.15` إخراج لـ `HyDE` (`$0.000523`) = **`$0.000533`** (`$0.00053`)، واستهلك التوليد (`gemini-4-argon`) `1,045.4` إدخال / `158.5` إخراج = **`$0.003676`** (`$0.00368`) بالسعر التمهيدي (`$2/$10`) أو **`$0.007352`** بالسعر القياسي (`$4/$20`)؛ ليصبح الإجمالي الكلي **`$0.004209`** (**`$0.0042`**, الوسيط `$0.003818`) بالسعر التمهيدي حتى `2026-11-30`، و**`$0.007885`** (**`$0.0079`**, الوسيط `$0.007094`) بالسعر القياسي بدءًا من `2026-12-01`.
 - يهيمن توليد `HyDE` (`4.00 s` بالوسيط من أصل `7.52 s` للاسترجاع) واستدعاءات التضمين المتسلسلة على زمن الاسترجاع بينما لا يستغرق البحث الكثيف المحلي سوى `0.10 s`. *(سُجّلت حادثتا رجوع احتياطي عابرتان `504 DEADLINE_EXCEEDED` خلال الجلب الأولي/القياس وأُعيد القياس الحي بنجاح دون رجوع في جميع العينات الـ 20.)*
+
+---
+
+## 30. المرحلة A — إلحاق السند بالإجابات (`src/answer.py`) واتجاه السلسلة وزمن الإلحاق
+
+**تاريخ القياس:** 2026-11-14 · **الكود:** `src/answer.py`, `src/measure_sanad_attachment.py`, `tests/test_sanad_attachment.py` · **المصدر الخام:** `data/processed/e5_simple_default_results.json` · **المخرج الخام:** `data/processed/sanad_attachment_eval.json`
+
+### 1) دليل اتجاه السند في الجراف وصيغة العرض (`A2`)
+
+ثبت اتجاه السلسلة في الجراف عبر أربعة مصادر متطابقة دون افتراض:
+1. **`src/sanad_graph.py` (`get_ordered_chain`):** يقرأ خطوات النقل مرتّبة تصاعديًا بعمود `position` ويبني السلسلة `[steps[0]["from_narrator_id"]] + [row["to_narrator_id"] for row in steps]`, مع نصّ صريح أن `from_narrator_id -> to_narrator_id` يعني من الراوي الأقدم (الشيخ) إلى من سمع منه (التلميذ).
+2. **`SANAD_GRAPH_READINESS.md` (§2):** يثبت قياسًا أن الاتجاه هو `source → target = earlier → later = teacher → student` (`Companion → Follower`: `13,898` حافة، `Follower → Successor`: `14,059` حافة، `Successor → 3rd Century AH`: `13,689` حافة؛ مع حفظ `43` حالة رواية كبير عن صغير كما هي)، وأن السلسلة تبدأ في `i1` بالصحابي وتنتهي في آخر موضع بشيخ الإمام مسلم المباشر.
+3. **الاختبارات (`tests/test_build_sanad_graph.py` و`tests/test_sanad_context.py`):** يؤكد `test_ordered_chain_returns_narrators_in_recorded_order` و`test_narrators_are_returned_in_recorded_chain_order` أن الموضع `1` هو الصحابي (`Comp.(RA)`) والموضع الأعلى هو التابع المتأخر (`Succ. (Taba' Tabi')`)، وأن `get_predecessors_in_chain` يعيد الشيوخ (`from`) بينما `get_successors_in_chain` يعيد التلاميذ (`to`).
+4. **التحقق مقابل نص `data/raw/muslim.json`:** في حديث `8950` مثلًا يعيد الجراف المواضع `1..6` من «أبو هريرة» (`Comp.(RA)`) حتى «زهير بن حرب بن شداد أبو خثيمة» (`3rd Century AH`)، بينما يبدأ متن الإسناد في صحيح مسلم بشيخ مسلم: «وحدثني زهير بن حرب، حدثنا معاذ بن هشام، حدثني أبي، عن يحيى بن أبي كثير، قال حدثنا أبو سلمة بن عبد الرحمن، أن أبا هريرة...».
+
+بناءً على ذلك، يحتفظ حقل `"sanad"` في `answer_with_details` بالترتيب المسجّل `chain_position = 1..k` داخل `isnads`، وعند الطباعة في الـ CLI (`format_sanad_chain`) تُعكس السلسلة لتُطبع من **شيخ مسلم نزولًا إلى الصحابي** مفصولةً بـ `" ← "`، مع إضافة `"(+N طرق أخرى)"` عند وجود أكثر من طريق. أما الأحاديث غير المرتبطة أو التي بلا إسناد مسجّل فتحفظ حالة `sanad_context` كما هي وتُعرض في الـ CLI بعبارة عربية واضحة دون اختلاق أي راوٍ أو سلسلة.
+
+### 2) تغطية الإلحاق وزمن الاستجابة على مخرجات `answer_eval` المحفوظة (`A5` — `0` نداءات LLM جديدة)
+
+قيس الإلحاق فوق المخرجات الخام المحفوظة للتشغيلات الثلاثة الأخيرة للمسار الافتراضي `1:0:0:0` + `gemini-4-argon` على `golden.jsonl` (`data/processed/e5_simple_default_results.json`، `3` تشغيلات × `30` سؤالًا = `90` طلبًا: `81` طلبًا يتضمن استشهادًا صارمًا و`9` حالات رفض، دون أي نداءات LLM جديدة):
+
+| المقياس | النتيجة | المقام / النطاق | ملاحظات |
+| --- | ---: | --- | --- |
+| **تغطية إلحاق السند (`Attachment coverage`)** | **`95.9%`** (`95.91%`) | **`211 / 220`** استشهادًا | التشغيلات: `69/72` (`95.8%`) · `72/75` (`96.0%`) · `70/73` (`95.9%`) |
+| **تغطية المعرّفات الفريدة (`Unique hadith coverage`)** | **`97.4%`** (`97.37%`) | **`74 / 76`** حديثًا فريدًا | الحديثان غير المرتبطين هما `7358` و`7360` (`VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK`) |
+| **الوسيط الزمني للإلحاق (`Median latency`)** | **`2.226 ms`** | `n = 81` طلبًا مستشهِدًا (اتصال SQLite واحد/طلب) | التشغيلات: `2.467 ms` · `2.200 ms` · `2.148 ms` |
+| **المئين 95 لزمن الإلحاق (`p95 latency`)** | **`3.444 ms`** | المدى `0.983–4.125 ms` | زمن مهمل مقارنةً بـ `12.55 s` للاسترجاع والتوليد |
+
 
 

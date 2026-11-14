@@ -12,6 +12,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import QUESTIONS_PATH
 from experiment_variants import variant_text
+from sanad_context import (
+    INVALID_LOCAL_HADITH_ID,
+    LINKED_BUT_NO_RECORDED_ISNAD,
+    NO_ACCEPTED_MIS_LINK,
+    context_for_local_hadith,
+    open_graph,
+)
 
 from google import genai
 from google.genai import types
@@ -361,6 +368,111 @@ def retrieve_with_self_correction(question, retriever, k):
     return [], rewritten, True
 
 
+SANAD_HEADER = "السند (من قاعدة بيانات السند):"
+
+SANAD_STATUS_ARABIC = {
+    NO_ACCEPTED_MIS_LINK: "لا يوجد ربط مقبول لهذا الحديث في قاعدة بيانات السند.",
+    LINKED_BUT_NO_RECORDED_ISNAD: "الحديث مرتبط في قاعدة البيانات ولكن لا يوجد له إسناد مسجّل.",
+    INVALID_LOCAL_HADITH_ID: "رقم الحديث غير موجود في قاعدة بيانات السند.",
+}
+
+_last_answer_details = threading.local()
+
+
+def ordered_cited_ids(answer):
+    """Return strictly cited hadith IDs in order of first appearance, deduplicated."""
+
+    seen = set()
+    ordered = []
+    for match in CITATION.findall(answer or ""):
+        hid = int(match)
+        if hid not in seen:
+            seen.add(hid)
+            ordered.append(hid)
+    return ordered
+
+
+def attach_sanad(hadith_ids, db_path=None):
+    """Fetch recorded sanad chains from SQLite for each cited hadith ID.
+
+    Opens one DB connection per request. Keeps exact sanad_context status for
+    unlinked hadiths or hadiths without a recorded isnad, and returns
+    ([], error_text) if the graph is missing or a query fails.
+    """
+
+    if not hadith_ids:
+        return [], None
+
+    conn = None
+    try:
+        conn = open_graph() if db_path is None else open_graph(db_path)
+        entries = []
+        for hid in hadith_ids:
+            ctx = context_for_local_hadith(conn, hid)
+            isnads = [
+                [
+                    {
+                        "chain_position": narrator["chain_position"],
+                        "name_ar_mapped": narrator["name_ar_mapped"],
+                    }
+                    for narrator in isnad["narrators"]
+                ]
+                for isnad in ctx.get("isnads", [])
+            ]
+            entries.append(
+                {
+                    "hadith_id": hid,
+                    "status": ctx["status"],
+                    "isnad_count": ctx["isnad_count"],
+                    "isnads": isnads,
+                }
+            )
+        return entries, None
+    except Exception as exc:
+        return [], f"{type(exc).__name__}: {exc}"
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+def format_sanad_chain(chain):
+    """Format one chain from Muslim's teacher down to the Companion, joined with ' ← '."""
+
+    ordered = sorted(chain, key=lambda n: n["chain_position"], reverse=True)
+    return " ← ".join(
+        n.get("name_ar_mapped") or n.get("name_ar") or ""
+        for n in ordered
+    )
+
+
+def format_sanad_section(sanad, sanad_error=None):
+    """Format the CLI sanad display block under the answer."""
+
+    if not sanad and not sanad_error:
+        return ""
+
+    lines = [SANAD_HEADER]
+    if sanad_error:
+        lines.append(f"- تعذّر قراءة قاعدة بيانات السند ({sanad_error})")
+        return "\n".join(lines)
+
+    for entry in sanad:
+        hid = entry["hadith_id"]
+        isnads = entry.get("isnads") or []
+        if isnads:
+            chain_text = format_sanad_chain(isnads[0])
+            extra = max(0, entry.get("isnad_count", len(isnads)) - 1)
+            extra_text = f" (+{extra} طرق أخرى)" if extra > 0 else ""
+            lines.append(f"- حديث رقم {hid}: {chain_text}{extra_text}")
+        else:
+            status = entry.get("status", "")
+            status_ar = SANAD_STATUS_ARABIC.get(
+                status, f"لا يوجد إسناد مسجّل ({status})."
+            )
+            lines.append(f"- حديث رقم {hid}: {status_ar}")
+    return "\n".join(lines)
+
+
 def answer_with_details(
     question,
     retriever,
@@ -368,6 +480,7 @@ def answer_with_details(
     enforce_citations=True,
     self_correct=False,
     model=MODEL,
+    sanad_db_path=None,
 ):
     """
     بترجع dict فيه الإجابة النهائية **والمحاولة الخام**.
@@ -391,6 +504,8 @@ def answer_with_details(
             "answer": REFUSAL,
             "raw": REFUSAL,
             "chunks": [],
+            "sanad": [],
+            "sanad_error": None,
             "invalid_citation_attempt": False,
             "missing_citation_attempt": False,
             "loose_out_of_context_attempt": False,
@@ -416,6 +531,7 @@ def answer_with_details(
 
     answer = raw
     regenerated = False
+    final_status = status
 
     if status not in (VALID_ANSWER, VALID_REFUSAL) and enforce_citations:
 
@@ -430,16 +546,27 @@ def answer_with_details(
             model=model,
         )
 
-        if validate_answer(answer, context_ids) not in (
+        final_status = validate_answer(answer, context_ids)
+        if final_status not in (
             VALID_ANSWER,
             VALID_REFUSAL,
         ):
             answer = REFUSAL
+            final_status = VALID_REFUSAL
+
+    sanad = []
+    sanad_error = None
+    if final_status == VALID_ANSWER:
+        sanad, sanad_error = attach_sanad(
+            ordered_cited_ids(answer), db_path=sanad_db_path
+        )
 
     return {
         "answer": answer,
         "raw": raw,
         "chunks": chunks,
+        "sanad": sanad,
+        "sanad_error": sanad_error,
         "invalid_citation_attempt": invalid,
         "missing_citation_attempt": missing_citation,
         "loose_out_of_context_attempt": loose_out_of_context,
@@ -465,6 +592,7 @@ def answer_question(
         enforce_citations=enforce_citations,
         self_correct=self_correct,
     )
+    _last_answer_details.details = details
 
     return details["answer"], details["chunks"]
 
@@ -510,10 +638,27 @@ def main():
         print("=" * 80)
         print(question)
 
+        _last_answer_details.details = None
         answer, chunks = answer_question(question, retriever, k=DEFAULT_K)
+        details = getattr(_last_answer_details, "details", None)
+        _last_answer_details.details = None
 
         print("\nAnswer:")
         print(answer)
+
+        if details is not None:
+            sanad = details.get("sanad", [])
+            sanad_error = details.get("sanad_error")
+        else:
+            context_ids = {chunk["hadith_id"] for chunk in chunks}
+            if validate_answer(answer, context_ids) == VALID_ANSWER:
+                sanad, sanad_error = attach_sanad(ordered_cited_ids(answer))
+            else:
+                sanad, sanad_error = [], None
+
+        sanad_block = format_sanad_section(sanad, sanad_error=sanad_error)
+        if sanad_block:
+            print(f"\n{sanad_block}")
 
         print("\nRetrieved Hadiths:")
 
