@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 
 import src.answer as answer
 import src.answer_eval as answer_eval
@@ -148,6 +149,7 @@ class PipelineConfigurationTests(unittest.TestCase):
         self.assertIn("Chapter: كتاب الصيام", output)
         self.assertIn("rerank score: 0.7367", output)
 
+    @pytest.mark.requires_data
     @unittest.skipUnless(
         VECTORS_MATN.exists() and IDS_MATN.exists() and PROCESSED_CHUNKS_PATH.exists(),
         "processed index files not present",

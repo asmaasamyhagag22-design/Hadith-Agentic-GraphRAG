@@ -3,6 +3,8 @@ import re
 import unittest
 from pathlib import Path
 
+import pytest
+
 from src.build_sanad_graph import (
     FROZEN_LINKAGE_PATH,
     GRAPH_DB_PATH,
@@ -300,12 +302,14 @@ class FrozenIdentityTests(unittest.TestCase):
             self.assertEqual(canonical_hash(path), expected, path.name)
             self.assertEqual(recorded_hash(experiments, path.name), expected, path.name)
 
+    @pytest.mark.requires_data
     @unittest.skipUnless(FROZEN_LINKAGE_PATH.exists(), "linkage artifact not present")
     def test_frozen_linkage_is_unchanged(self):
         digest = hashlib.sha256(FROZEN_LINKAGE_PATH.read_bytes()).hexdigest()
 
         self.assertEqual(digest, FROZEN_LINKAGE_SHA256)
 
+    @pytest.mark.requires_data
     @unittest.skipUnless(GRAPH_DB_PATH.exists(), "sanad graph not built")
     def test_graph_hashes_are_unchanged(self):
         connection = connect(GRAPH_DB_PATH)

@@ -4,6 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 from src.build_sanad_graph import (
     FORBIDDEN_TABLES,
     GRAPH_DB_PATH,
@@ -538,6 +540,7 @@ class QueryApiTests(unittest.TestCase):
                 open_graph(Path(directory) / "absent.sqlite")
 
 
+@pytest.mark.requires_data
 class BuiltGraphTests(unittest.TestCase):
     """على قاعدة البيانات المبنية فعلاً. بتتخطى لو مش موجودة."""
 
@@ -616,6 +619,7 @@ class BuiltGraphTests(unittest.TestCase):
         self.assertEqual(manifest["scope"]["gradings_stored"], 0)
 
 
+@pytest.mark.requires_data
 class FrozenArtifactTests(unittest.TestCase):
     """بناء الجراف ما مسّش أي حاجة مجمّدة."""
 
