@@ -89,7 +89,12 @@
 - Replaced the misleading cached-vs-uncached headline comparison (`+253.2%`, `3.53×` vs cached `golden OFF` `4906.0 ms`) in `EXPERIMENTS.md` §32 with the fair uncached comparison against §29 (`17,326.3 ms` agent ON vs `12,550.5 ms` live single-turn RAG = **`+38.1%`**, **`1.38×`**), while keeping all measured numbers intact, distinguishing cached `4906.0 ms` (`4` live Flash calls vs `57`), and retaining Pro-call doubling (`181` vs `98`) and refusal drop (`1.67/3` vs `3.0/3`).
 - **Verification**: Confirmed zero `+253.2%`/`3.53×` occurrences in `EXPERIMENTS.md` and `README.md`; `check_docs` 5/5 green; CI pytest `292 passed, 26 deselected, 74 subtests passed`; full pytest `318 passed, 74 subtests passed`.
 
+### Step 3 — README Update (`Phase D2`, `README.md`, `src/check_docs.py`)
+- Updated `README.md` title (`# Musnad — Agentic GraphRAG over Sahih Muslim`, shipped in `auto` mode; package/repo unchanged), live `uv run python -m src.answer` `auto` CLI demo (`#8950` text with SQLite sanad chain + `#14561` 2-step chain agent query), Request lifecycle & `## Agent & tools` section, `## Results` (`chain_eval_test` `n=25` + `router_fresh2` `n=60`, `211/220` `95.9%` sanad attachment, `7,015/7,459` `94.05%` linkage, `"SQLite sanad graph"` throughout and never `"graph database"`), updated `## Engineering decisions`, `## Quickstart`, `## Project structure`, `## Roadmap` (removed completed items), and `## Scope and limitations`.
+- Skipped Phase D1 (`docs/assets/` completely untouched).
+- Extended `src/check_docs.py` `README_TABLES` to validate `chain_eval_test` and `router_fresh2` tables directly against `EXPERIMENTS.md` `canonical-results`.
+- **Verification**: `! grep -in "graph database" README.md`, empty `git diff --stat docs/assets/`, `check_docs` (`74` cells, `128` canonical values, `106` denominators, `81` prose figures, `3` dataset hashes all green), CI pytest `292 passed, 26 deselected, 74 subtests passed`, full pytest `318 passed, 74 subtests passed`.
+
 ## Next Step
-- **Step 3**: Phase D2 README update (`README.md`, `src/check_docs.py` tables, `"SQLite sanad graph"`).
 - **Step 4**: Phase E1 `docs/holdout_review.md` via `src/build_holdout_review.py` without editing/evaluating `holdout_draft.jsonl`.
 - **Step 5**: Final consistency & verification pass and report.

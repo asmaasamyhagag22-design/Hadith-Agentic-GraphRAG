@@ -64,6 +64,14 @@ README_TABLES = {
     ),
     "answer_quality": (
         "**Answer quality",
+        "**Chain questions, frozen test set",
+    ),
+    "chain_eval_test": (
+        "**Chain questions, frozen test set",
+        "**Intent routing, unseen phrasing and hard negatives",
+    ),
+    "router_fresh2": (
+        "**Intent routing, unseen phrasing and hard negatives",
         "## Engineering decisions",
     ),
 }

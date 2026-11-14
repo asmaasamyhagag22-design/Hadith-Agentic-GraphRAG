@@ -1,10 +1,10 @@
-# مُسنَد · Musnad
+# Musnad — Agentic GraphRAG over Sahih Muslim
 
-**The upgraded default reached 100% hit@5 on 27 hand-verified questions and averaged 96% correct citations across three runs with `gemini-4-argon`.**
+**The upgraded default reaches 100% hit@5 on 27 hand-verified questions, averages 96.3% correct citations on text questions with SQLite sanad chains attached on 95.9% of citations (`211/220`), and answers 100.0% (`25/25`) on frozen chain evaluation with `0` hallucinated narrators.**
 
-Grounded Arabic question answering over Sahih Muslim, backed by a deterministic transmission-chain (sanad) graph.
+Grounded Arabic question answering over Sahih Muslim, combining dense semantic matn retrieval (`gemini-embedding-001` + HyDE), a hybrid Arabic intent router (`v3`), a tool-calling chain agent (`gemini-4-argon`), and a deterministic transmission-chain (sanad) graph in SQLite (`sanad_graph.sqlite`).
 
-> «مُسنَد» بيجاوب على أسئلة من صحيح مسلم برقم الحديث ونص المتن، وبيرفض لما الإجابة مش موجودة في المصدر، وبيقدر يعرض سلسلة رواة الحديث اللي رجع.
+> «مُسنَد» يوجّه أسئلة صحيح مسلم تلقائيًا (`MUSNAD_AGENT=auto`): يمرّ سؤال المتن والفقه عبر مسار الاسترجاع الأحادي السريع ويُرفق تحت كل حديث مستشهد به سنده من قاعدة البيانات، بينما يتولّى الوكيل أسئلة الرواة والأسانيد عبر أدوات البحث وفحص السند دون اختلاق أي اسم راوٍ.
 
 [![Tests](https://github.com/asmaasamyhagag22-design/Hadith-Agentic-GraphRAG/actions/workflows/tests.yml/badge.svg)](https://github.com/asmaasamyhagag22-design/Hadith-Agentic-GraphRAG/actions/workflows/tests.yml)
 ![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)
@@ -13,16 +13,19 @@ Grounded Arabic question answering over Sahih Muslim, backed by a deterministic 
 
 ## Demo
 
-Output captured from `python -m src.answer` with the default `upgraded` pipeline on two golden questions from `data/raw/questions.txt`.
+Output captured live from `uv run python -m src.answer` in default `auto` mode (`data/processed/auto_smoke_cli.txt`): one **text** question routed to single-turn RAG with its attached SQLite sanad chain, and one **chain** question routed to the tool-calling agent.
 
 ```text
 ================================================================================
 ما جزاء من صام رمضان إيماناً واحتساباً؟
 
 Answer:
-جزاء من صام رمضان إيماناً واحتساباً أن يُغفر له ما تقدم من ذنبه، كما قال رسول الله صلى الله عليه وسلم: "مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ".
+جزاء من صام رمضان إيماناً واحتساباً أن يُغفر له ما تقدم من ذنبه، كما قال رسول الله صلى الله عليه وسلم: «مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ».
 
 (المصدر: صحيح مسلم، حديث رقم 8950)
+
+السند (من قاعدة بيانات السند):
+- حديث رقم 8950: زهير بن حرب بن شداد أبو خثيمة ← معاذ بن هشام بن أبي عبد الله ← هشام بن أبي عبد الله الدستوائي ← يحيى بن أبي كثير الطائي ← أبو سلمة بن عبد الرحمن بن عوف ← أبو هريرة - عبد الرحمن بن صخر الدوسي
 
 Retrieved Hadiths:
 Rank: 1 | Hadith ID: 8950 | Chapter: كتاب صلاة المسافرين وقصرها
@@ -31,17 +34,20 @@ Rank: 3 | Hadith ID: 9867 | Chapter: كتاب الصيام
 Rank: 4 | Hadith ID: 9868 | Chapter: كتاب الصيام
 Rank: 5 | Hadith ID: 8949 | Chapter: كتاب صلاة المسافرين وقصرها
 ================================================================================
-ما هو فضل قراءة سورة الكهف يوم الجمعة؟
+من هو الصحابي الذي روى حديث «كافل اليتيم أنا وهو كهاتين في الجنة»؟
 
 Answer:
-المصادر المتاحة لا تجيب عن هذا السؤال
+الصحابي الجليل الذي روى حديث «كَافِلُ الْيَتِيمِ لَهُ أَوْ لِغَيْرِهِ أَنَا وَهُوَ كَهَاتَيْنِ فِي الْجَنَّةِ» هو **أبو هريرة - عبد الرحمن بن صخر الدوسي** رضي الله عنه. (المصدر: صحيح مسلم، حديث رقم 14561)
+
+السند (من قاعدة بيانات السند):
+- حديث رقم 14561: زهير بن حرب بن شداد أبو خثيمة ← إسحاق بن عيسى بن نجيح ← مالك بن أنس بن مالك بن أبي عامر ← ثور بن زيد ← سالم أبو الغيث المدني مولى ← أبو هريرة - عبد الرحمن بن صخر الدوسي
 
 Retrieved Hadiths:
-Rank: 1 | Hadith ID: 9195 | Chapter: كتاب الجمعة
-Rank: 2 | Hadith ID: 9052 | Chapter: كتاب صلاة المسافرين وقصرها
-Rank: 3 | Hadith ID: 9181 | Chapter: كتاب الجمعة
-Rank: 4 | Hadith ID: 9203 | Chapter: كتاب الجمعة
-Rank: 5 | Hadith ID: 9200 | Chapter: كتاب الجمعة
+Rank: 1 | Hadith ID: 14561 | Chapter: كتاب الزهد والرقائق
+Rank: 2 | Hadith ID: 13809 | Chapter: كتاب البر والصلة والآداب
+Rank: 3 | Hadith ID: 13575 | Chapter: كتاب فضائل الصحابة رضى الله تعالى عنهم
+Rank: 4 | Hadith ID: 9534 | Chapter: كتاب الزكاة
+Rank: 5 | Hadith ID: 13815 | Chapter: كتاب البر والصلة والآداب
 ```
 
 ---
@@ -53,16 +59,31 @@ Rank: 5 | Hadith ID: 9200 | Chapter: كتاب الجمعة
   <img alt="Musnad system architecture" src="docs/assets/musnad-architecture-light.png">
 </picture>
 
-The steps below describe the current request path.
+The steps below describe the current `auto` request path: **Intent Router (`v3`) → (Single-Turn Text RAG + Sanad Attachment | Tool-Calling Chain Agent)**.
 
 ### Request lifecycle
 
-1. **Query normalisation and HyDE blending (default `upgraded` mode)** — Strip Arabic diacritics (`strip_diacritics`), generate a short hypothetical Sahih Muslim *matn* with `gemini-3.8-flash` (`location="global"`, `thinking_level="LOW"`, `temperature=0`), embed both query and HyDE text with `gemini-embedding-001` (`3072d`, `RETRIEVAL_QUERY`), and blend `0.7 * q + 0.3 * HyDE_q` (`src/retrieve.py`).
-2. **Dense matn retrieval (`1:0:0:0`)** — Search the `gemini-embedding-001` (`3072d`, `RETRIEVAL_DOCUMENT`) dot-product index over 7,110 diacritic-stripped matn chunks (`460` reference-only follow-ups excluded from `7,570` total chunks) directly by inner product (`src/retrieve.py`, `src/pipeline.py`). The default path uses no BM25, no document expansion fields, and no cross-encoder reranking.
-3. **Automatic retrieval fallback** — A failed or timed-out HyDE or embedding request switches that query to `legacy` retrieval. The same path can be selected with `MUSNAD_RETRIEVAL_PIPELINE=legacy` and uses local dense search (`intfloat/multilingual-e5-base`), BM25, RRF fusion (`rrf_k = 60`), and a cross-encoder (`src/pipeline.py`, `src/rerank.py`).
-4. **Context assembly and generation** — Format the top `k = 5` chunks with vocalised matn, `hadith_id`, and `chapter_arabic` (`format_context`), then call `gemini-4-argon` via Vertex AI (`location="global"`, `thinking_level="LOW"`, `temperature = 0`) (`src/answer.py`).
-5. **Citation validation and single retry** — `validate_answer` checks that the reply is either a valid refusal (`REFUSAL` with at most one trailing `.`, `؟`, or `!`) or contains at least one strict citation (`حديث رقم XXXX`) with every strict and loose hadith number inside the retrieved `context_ids`. On `MISSING_CITATION`, `OUT_OF_CONTEXT_CITATION`, or `MIXED_REFUSAL`, regenerate once with `CORRECTIONS[status]`; if the retry is still invalid, return `REFUSAL`.
-6. **Sanad graph lookup (read-only API)** — Any retrieved chunk or `hadith_id` can be passed to `context_for_retrieval_result` / `context_for_local_hadith` (`src/sanad_context.py`) to resolve its recorded isnads in `sanad_graph.sqlite` through the frozen 1:1 linkage.
+1. **Intent classification (`src/router.py`, `v3`)** — When `MUSNAD_AGENT=auto` (default), deterministic Arabic regexes (`v2` fast path) check for explicit isnad/narrator cues (`0` API calls). On a fast-path miss, `v3` evaluates an L2-regularised logistic regression classifier (`threshold = 0.44`, `src/router_weights.npz`) over the normalised 3072-d `gemini-embedding-001` query vector (`UpgradedRetriever.get_query_embedding` caches it in `query_vec_cache`, incurring **`0` extra embedding API calls** and **`0.0645 ms`** median classifier overhead). If no embedding is available, `v3` falls back to `v2`.
+2. **Query normalisation, HyDE blending, and dense matn retrieval (`1:0:0:0`)** — On the text path (or inside `search_hadith`), `UpgradedRetriever` strips diacritics, generates a short hypothetical Sahih Muslim *matn* with `gemini-3.8-flash` (`location="global"`, `thinking_level="LOW"`, `temperature=0`), embeds the query (reusing `query_vec_cache`) and HyDE text with `gemini-embedding-001` (`3072d`, `RETRIEVAL_QUERY`), blends `0.7 * q + 0.3 * HyDE_q`, and searches 7,110 diacritic-stripped matn chunks (`460` reference-only follow-ups excluded from `7,570` total chunks) by inner product (`src/retrieve.py`, `src/pipeline.py`). A failed or timed-out API request falls back automatically to `legacy` retrieval (`intfloat/multilingual-e5-base` + BM25 + RRF + `mmarco` reranker).
+3. **Branch dispatch (`auto` composition)** —
+   - **`text` path (`src/answer.py`)**: formats the top `k = 5` retrieved hadiths and calls `gemini-4-argon` (`location="global"`, `thinking_level="LOW"`, `temperature=0`), validates strict citations and refusals (`validate_answer` with single retry before refusing), and appends deterministic SQLite sanad chains (`attach_sanad`).
+   - **`chain` path (`src/agent.py`)**: runs the `gemini-4-argon` tool-calling agent with `search_hadith` and `get_isnad` (up to `MAX_TOOL_CALLS = 3`), enforces tool-ID subset validation (`validate_answer(..., tool_ids=...)`) and zero-hallucinated-narrator validation (`validate_narrator_names`), and attaches verified chains via `attach_sanad`.
+4. **Deterministic sanad attachment (`src/answer.py`, `src/sanad_context.py`)** — After `validate_answer` returns `VALID_ANSWER`, `attach_sanad` opens one read-only SQLite connection per request, fetches recorded isnads for every cited hadith (`context_for_local_hadith`), and prints each primary chain from Muslim's teacher down to the Companion (` ← `) plus `(+N طرق أخرى)` when multiple routes exist, or the exact unlinked status if unlinked/missing. Model-generated narrator names are blocked; chains come exclusively from `sanad_graph.sqlite`.
+
+---
+
+## Agent & tools
+
+Under `MUSNAD_AGENT=auto` (modes: `auto` default | `on` | `off`), `src/router.py` separates hadith-content questions from transmission-chain questions before generation:
+
+- **Tools (`src/agent.py`)**:
+  - `search_hadith(query)` — invokes the default `UpgradedRetriever` pipeline (`k = 5`), returning `hadith_id`, `chapter`, and vocalised `matn` without isnad text so topical chain queries (e.g., *«من روى حديث كافل اليتيم؟»*) can first resolve the hadith ID.
+  - `get_isnad(hadith_id)` — queries `sanad_graph.sqlite` via `context_for_local_hadith`, returning the linkage status, declared/recorded `isnad_count`, Companion and Muslim-teacher anchor names, and ordered narrator lists (`chain_position = 1..N`).
+- **Execution guardrails**: bounded to **`MAX_TOOL_CALLS = 3`** and a **`15.0 s`** per-tool timeout (`ThreadPoolExecutor`), with automatic fallback to the single-turn RAG path (`agent_fallback=True`) if Gemini or a tool errors or times out.
+- **Zero-hallucination validators (`src/answer.py`, `src/sanad_names.py`)**:
+  1. *ID-subset validation*: `validate_answer(..., tool_ids=...)` requires every cited number to appear in hadith IDs returned by `search_hadith` or `get_isnad`.
+  2. *Narrator-name validation*: `validate_narrator_names` matches longest normalized spans against the 2,092-entry `mis_narrator` lexicon (`NarratorLexicon`) and rejects any narrator mentioned by the model outside the chains returned by `get_isnad`. Failures regenerate once with explicit correction instructions before safely refusing.
+- **Safe degradation by design**: if a chain question is misrouted by `v3` (`2/30` implicit topic cases on unseen `router_fresh2.jsonl`), it runs through the verified single-turn text RAG path (`validate_answer`) and receives a valid citation plus its SQLite chain attached by `attach_sanad` — degrading gracefully to a partial evidence-backed answer instead of hallucinating narrators. Text specificity remains `100.0%` (`30/30`) on unseen hard-negative text questions that mention companion or narrator names, preserving single-turn refusal accuracy (`100.0%` in `C5` `OFF`) and uncached latency (`12.55 s` vs `17.33 s` for `agent ON`).
 
 ---
 
@@ -105,12 +126,34 @@ Configuration tuned on the dev set; held-out evaluation in progress.
 
 With `gemini-4-argon` over `1:0:0:0`, wrong in-context citations were **3.3%** (`3/90`, vs **7%** with `gemini-2.5-pro`, **8%** on the legacy `Hybrid + rerank` baseline, and **23%** on `Hybrid (RRF)`). In all three runs, the generator cited a retrieved night-prayer hadith on the Taraweeh refusal test (`2/3` per run = `6/9`) and abstained on one answerable fasting question (`26/27` per run) even with the gold hadith at rank 2 in context. Citation validation blocks citations outside the retrieved evidence. A wrong hadith chosen from within it can pass validation.
 
+Across those three text runs, deterministic **sanad attachment** covered **`95.9%`** of all strict citations (`211/220`) and **`97.4%`** of unique cited hadiths (`74/76`) from the `7,015 / 7,459` (`94.05%`) local corpus hadiths linked to MIS (`444` unlinked hadiths explicitly reported without fabrication), at **`2.226 ms`** median latency (`3.444 ms` p95).
+
+**Chain questions, frozen test set (n = 25)**
+
+| Setup | Routing accuracy | Answer accuracy | Hallucinated narrators | Abstention accuracy | Median latency ms |
+|---|---|---|---|---|---|
+| Non-agent baseline (frozen test) | 0.0% | 12.0% | 0.0% | 100.0% | 11033.5 |
+| **Tool-calling agent ON (frozen test)** | **100.0%** | **100.0%** | **0.0%** | **100.0%** | **8560.4** |
+
+The 40 chain questions (`15` dev + `25` frozen test in `chain_eval_dev.jsonl` / `chain_eval_test.jsonl`) were **generated from templates with gold answers computed directly from the SQLite sanad graph** (rather than written organically by end users), covering 5 tasks (`who_narrated_companion`, `who_narrated_teacher`, `isnad_count`, `narrator_in_chain`, and `topic_who_narrated`, including unlinked/abstention items and grading-gated abstention).
+
+**Intent routing, unseen phrasing and hard negatives (n = 60)**
+
+| Router | Balanced accuracy | Chain recall | Hard negative specificity | Chain test | Synthetic text |
+|---|---|---|---|---|---|
+| Router v2 (regex only) | 75.0% | 50.0% | 100.0% | 96.0% | 99.6% |
+| **Router v3 (v2 fast path + logreg)** | **96.7%** | **93.3%** | **100.0%** | **100.0%** | **99.1%** |
+
+The headline routing benchmark (`data/raw/router_fresh2.jsonl`, `n = 60`) pairs `30` varied free-phrasing chain questions with `30` hard-negative text questions mentioning companion or narrator names, generated via `gemma-4-26b-a4b-it-maas`, disjoint from `router_fresh.jsonl` (`seen during design`: `v2` `56.7%` vs `v3` `96.7%` chain recall) and training data, and evaluated once with zero post-eval tuning. On all six routing sets (`n = 387`), `v3` averages **`98.7%`** overall (**`98.2%`** balanced) while adding **`0.0645 ms`** median latency (`0.1243 ms` p95) and **`0`** extra embedding API calls (`auto` composes text queries on the `OFF` single-turn path and chain queries on the `ON` agent path).
+
 ---
 
 ## Engineering decisions
 
 | Decision | Alternative considered | Evidence |
 |---|---|---|
+| Hybrid intent router `v3` (`v2` regex fast path + L2 logreg on cached `gemini-embedding-001` query vector) in `auto` mode | Shipping `v2` deterministic regexes alone | `v2` reached `96.0%` (`24/25`) on templated `chain_eval_test`, but dropped to `56.7%` (`17/30`) on free phrasing (`router_fresh`, seen during design) and `50.0%` (`15/30`) on unseen `router_fresh2` chain questions. `v3` lifted `router_fresh2` balanced accuracy from `75.0%` to `96.7%` (`93.3%` chain recall `28/30`, `100.0%` hard-negative text specificity `30/30`), raised `chain_eval_test` to `100.0%` (`25/25`), and kept `synthetic_eval` text specificity at `99.1%` (`222/224`), adding `0.0645 ms` median overhead with `0` extra embedding API calls ([EXPERIMENTS §34](EXPERIMENTS.md#34-الموجّه-الهجين-v3-v2-المسار-السريع--مصنّف-الانحدار-اللوجستي-على-تضمينات-الاستعلام-والانتقال-إلى-musnad_agentauto)) |
+| Route `text` to single-turn RAG + sanad attachment and `chain` to the tool-calling agent (`auto`) | Running `agent ON` unconditionally for every query | On `golden.jsonl`, unconditional `agent ON` reached `100.0%` citation accuracy vs `96.3%` for `OFF`, but dropped unanswerable refusal accuracy from `100.0%` (`3.0/3`) to `55.6%` (`1.67/3`), nearly doubled Pro calls (`181` vs `98` across 3 runs), and ran `+38.1%` (`1.38×`) slower uncached (`17326.3 ms` vs `12,550.5 ms` live single-turn baseline in §29; cached `golden` `OFF` was `4906.0 ms` only due to verbatim cache hits). Composition preserves `OFF` speed/refusal fidelity on text queries and `ON` `100.0%` accuracy on chain queries ([EXPERIMENTS §32](EXPERIMENTS.md#32-المرحلة-c--تقييم-الوكيل-مع-استدعاء-الأدوات-وبوابة-القرار-الأولى-phase-c), [§34](EXPERIMENTS.md#34-الموجّه-الهجين-v3-v2-المسار-السريع--مصنّف-الانحدار-اللوجستي-على-تضمينات-الاستعلام-والانتقال-إلى-musnad_agentauto)) |
 | `gemini-embedding-001` (`3072d`) + HyDE query blending (`0.7*q + 0.3*HyDE_q`) | Keeping `intfloat/multilingual-e5-base` (`768d`), `BAAI/bge-m3`, or `Qwen3-Embedding-0.6B` | The embedding model was the primary bottleneck: switching dense `matn` to `gemini-embedding-001` alone raised dev `hit@10` from `31.7%` to `80.8%` (`recall@50` `43.8%` → `93.8%`, `MRR` `0.189` → `0.556`) and golden `hit@10` from `63.0%` to `92.6%` (`MRR` `0.493` → `0.790`); adding `gemini-3.8-flash` HyDE (`1:0:0:0`) reached `83.9%` dev `hit@10` (`40.6%` `hit@1`, `0.545` `MRR`) and `100.0%` golden `hit@5`/`hit@10` (`0.926` `MRR`) ([EXPERIMENTS §23](EXPERIMENTS.md#23-التجربة-e1--مقارنة-نماذج-التضمين-الكثيف-والهجين-dense--densesparse), [§28](EXPERIMENTS.md#28-التجربة-step-4--إعادة-تشغيل-e2-وe4-بأحدث-نموذج-flash-متاح-gemini-38-flash-وفحص-النماذج-غير-gemini), [§29](EXPERIMENTS.md#29-التجربة-الخامسة-e5--خط-أنابيب-الاسترجاع-النهائي-تعريف-المقاييس-جدول-الاستئصال-ablation-شبكة-ضبط-أوزان-rrf-وتقييم-الإجابات-answer_eval)) |
 | Dense `matn` + HyDE alone (`1:0:0:0`), dropping BM25 and expansion fields | 4-way RRF (`8:2:1:1`) with BM25 and `gemini-3.8-flash` doc expansions, or `8:0:1:0` | 4-way fusion (8:2:1:1) was not significantly better than dense + HyDE (McNemar p >= 0.39), so the simpler pipeline ships. Across 224 dev queries, `1:0:0:0` reached `83.9%` `hit@10` (`85.3%` for `8:2:1:1`, `p = 0.6072`) with higher `hit@1` (`40.6%` vs `37.5%`) and `MRR` (`0.545` vs `0.528`), matching `8:2:1:1` on `golden` (`100.0%` `hit@5`/`hit@10`, `0.926` `MRR`) without BM25 or expansion artifacts ([EXPERIMENTS §29](EXPERIMENTS.md#29-التجربة-الخامسة-e5--خط-أنابيب-الاسترجاع-النهائي-تعريف-المقاييس-جدول-الاستئصال-ablation-شبكة-ضبط-أوزان-rrf-وتقييم-الإجابات-answer_eval)) |
 | Cross-encoder removed in upgraded mode | Keeping `mmarco-mMiniLMv2`, `bge-reranker-v2-m3`, or `Qwen3-Reranker-0.6B` at depths 10/30/50 | Against stronger dense candidates, all three cross-encoders hurt dev `hit@10` at depths `30`/`50` (`79.9%` → `67.9%`–`75.4%`) and lowered golden `MRR` (`0.790` → `0.652`–`0.778` at depth 10); removing the reranker reaches `83.9%` dev `hit@10` (`85.3%` with 4-way RRF) and `100.0%` golden `hit@5`/`hit@10` with zero CPU reranking latency ([EXPERIMENTS §25](EXPERIMENTS.md#25-التجربة-e3--مقارنة-معيدات-الترتيب-cross-encoder-rerankers-وعمق-المرشحين-10--30--50), [§29](EXPERIMENTS.md#29-التجربة-الخامسة-e5--خط-أنابيب-الاسترجاع-النهائي-تعريف-المقاييس-جدول-الاستئصال-ablation-شبكة-ضبط-أوزان-rrf-وتقييم-الإجابات-answer_eval)) |
@@ -162,6 +205,9 @@ Every evaluation dataset and graph build is pinned by a canonical SHA-256 digest
 |---|---:|---:|---|
 | `data/raw/golden.jsonl` | 33 (27 matn · 3 refusal · 3 narrator) | 27 retrieval / 30 answer | `a7ec05f48ec0491a` |
 | `data/raw/synthetic_eval.jsonl` | 224 | 224 | `4bec52d5a56a8fc8` |
+| `data/raw/chain_eval_dev.jsonl` | 15 (templated dev) | 15 | `ee90b7fa0eed67ae` |
+| `data/raw/chain_eval_test.jsonl` | 25 (templated frozen test) | 25 | `7cb399587827ddde` |
+| `data/raw/router_fresh2.jsonl` | 60 (30 chain · 30 hard-neg text) | 60 | `a40d0f7b31394894` |
 | `data/raw/muslim.json` | 7,459 hadiths | — | `63a99e46155dc6e9` |
 | `data/processed/mis_linkage_accepted_v1.jsonl` | 7,015 accepted 1:1 links | — | `9c3a48e7a0af4f0d` |
 | `sanad_graph.sqlite` (MIS chain layer) | 2,092 narrators · 14,155 isnads · 63,642 edges | — | `496ccf1da21d2e84` |
@@ -184,8 +230,12 @@ uv run python -m src.validate_golden
 uv run python -m src.evaluate golden cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 uv run python -m src.evaluate synthetic cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 
-# 5. End-to-end answer evaluation (calls Gemini 4 Argon via Vertex AI; consumes quota)
+# 5. Router v2/v3 evaluation (router_fresh2, golden, synthetic_eval, chain_eval splits; 0 Pro/Flash calls)
+uv run python -m src.evaluate_router
+
+# 6. End-to-end answer & agent evaluations (calls Gemini via Vertex AI; consumes quota)
 uv run python -m src.answer_eval
+uv run python -m src.smoke_auto_cli
 ```
 
 ---
@@ -196,13 +246,14 @@ uv run python -m src.answer_eval
 uv sync
 ```
 
-Configure Vertex AI Application Default Credentials and set these values in `.env`. Set `MUSNAD_RETRIEVAL_PIPELINE=legacy` for local retrieval. The answer generator still uses Vertex AI.
+Configure Vertex AI Application Default Credentials and set these values in `.env`. Set `MUSNAD_RETRIEVAL_PIPELINE=legacy` for local retrieval, or override routing with `MUSNAD_AGENT=auto|on|off` (`auto` by default). The answer generator and agent still use Vertex AI.
 
 ```ini
 GOOGLE_GENAI_USE_VERTEXAI=True
 GOOGLE_CLOUD_PROJECT=your-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
 # MUSNAD_RETRIEVAL_PIPELINE=upgraded  # default
+# MUSNAD_AGENT=auto                   # default: auto | on | off
 ```
 
 Build the chunk store, local dense indexes and SQLite sanad graph if they are missing.
@@ -220,7 +271,7 @@ Run the verification gates, retrieval evaluation, smoke test and CLI question an
 uv run python -m src.validate_golden
 uv run python -m src.evaluate golden cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 uv run python -m src.smoke_test
-uv run python -m src.answer
+uv run python -m src.answer -q "ما جزاء من صام رمضان إيماناً واحتساباً؟"
 uv run python -m src.check_docs
 uv run pytest
 ```
@@ -239,14 +290,16 @@ src/
 ├── config.py                  # project-root-relative paths for raw and processed artifacts
 ├── ingest.py, utils.py        # corpus chunking, Arabic normalisation, isnad/matn split
 ├── embed.py, lexical.py       # e5 dense embeddings, Arabic BM25, Reciprocal Rank Fusion
-├── retrieve.py, rerank.py     # Retriever, HybridRetriever, UpgradedRetriever (with legacy fallback), CrossEncoder RerankingRetriever
-├── pipeline.py                # pipeline factory with upgraded retrieval as the default
-├── answer.py                  # Gemini 4 Argon generation, citation validator, single retry, CLI
-├── evaluate.py, answer_eval.py, validate_golden.py, smoke_test.py
+├── retrieve.py, rerank.py     # Retriever, HybridRetriever, UpgradedRetriever (with query_vec_cache & legacy fallback)
+├── router.py, router_weights.npz  # v2 regex fast path + v3 logistic-regression intent classifier
+├── pipeline.py                # unified factory resolving upgraded|legacy & MUSNAD_AGENT=auto|on|off
+├── agent.py, sanad_names.py   # gemini-4-argon tool agent (search_hadith + get_isnad) & narrator validator
+├── answer.py                  # single-turn generation, citation validator, SQLite attach_sanad, CLI
+├── evaluate.py, answer_eval.py, evaluate_router.py, chain_eval.py, validate_golden.py, smoke_test.py, smoke_auto_cli.py
 ├── build_sanad_graph.py, sanad_graph.py, sanad_context.py
 ├── check_docs.py              # verifies README tables, prose figures, and dataset hashes against EXPERIMENTS.md
-└── experiment_*.py, audit_*.py, build_*.py, calibrate_*.py
-tests/                         # unit, graph-fidelity, linkage, pipeline, and docs-integrity tests
+└── experiment_*.py, audit_*.py, build_*.py, calibrate_*.py, train_router.py
+tests/                         # unit, graph-fidelity, linkage, router, agent, sanad-attachment, and docs-integrity tests
 EXPERIMENTS.md                 # canonical metrics registry, experiment logs, and dataset hashes
 SANAD_GRAPH_READINESS.md       # linkage and narrator-identity readiness audit
 ```
@@ -255,11 +308,9 @@ SANAD_GRAPH_READINESS.md       # linkage and narrator-identity readiness audit
 
 ## Roadmap
 
-- **Sanad-attached answers** — Every cited hadith is returned with its transmission chain, pulled deterministically from the graph (never generated by the model).
-- **Agent with tool calling** — `gemini-4-argon` chooses between `search_hadith` (text) and `get_isnad` (chain) tools, max 3 calls; the citation validator checks every cited id against ids returned by tools.
-- **Chain-question evaluation** — A set of narrator/chain questions whose answers are verified directly against the graph database, reporting routing accuracy and answer accuracy.
-- **Held-out evaluation** — 120 questions written by a non-Gemini model, hand-reviewed, frozen before the final run.
-- **Latency** — Parallelise HyDE with the raw-query embedding and test a lighter HyDE model (current end-to-end median `12.55 s` in [`EXPERIMENTS.md`](EXPERIMENTS.md#7-تطبيق-قاعدة-البساطة-على-المسار-الافتراضي-1000-دون-bm25-أو-توسيع-وثائق)).
+- **Held-out evaluation** — 120 questions written by a non-Gemini model, prepared for human specialist review in [`docs/holdout_review.md`](docs/holdout_review.md) and frozen prior to final measurement.
+- **Latency** — Parallelise HyDE with the raw-query embedding and test a lighter HyDE model (current single-turn end-to-end median `12.55 s` in [`EXPERIMENTS.md`](EXPERIMENTS.md#7-تطبيق-قاعدة-البساطة-على-المسار-الافتراضي-1000-دون-bm25-أو-توسيع-وثائق)).
+- **Narrator gradings & identity resolution** — Link biographical records and critic gradings once historical narrator identity disambiguation passes specialist validation ([`SANAD_GRAPH_READINESS.md`](SANAD_GRAPH_READINESS.md)).
 
 ---
 
@@ -268,4 +319,5 @@ SANAD_GRAPH_READINESS.md       # linkage and narrator-identity readiness audit
 - **Sahih Muslim only** — The corpus covers the 7,459 hadiths of Sahih Muslim (`muslim.json`); hadiths recorded only in other collections (e.g., Sahih al-Bukhari) are out of scope and refused.
 - **Research aid, not a fatwa authority** — Musnad surfaces recorded texts with their hadith numbers and transmission chains for verification; it does not issue religious rulings.
 - **In-context citation errors** — `validate_answer` checks that cited hadith numbers belong to the retrieved context. In the upgraded `1:0:0:0` evaluation with `gemini-4-argon`, `3/90` responses across three runs cited a non-gold hadith from that context (`3.3%`).
+- **Router graceful degradation** — Rare chain-intent misses (`2/30` on `router_fresh2`, e.g., implicit companion questions without hadith/isnad keywords) route to the text path, receive a verified matn citation, and still attach the SQLite chain rather than hallucinating narrators (`100.0%` text specificity on unseen hard-negative text queries).
 - **Narrator gradings are not linked yet** — `sanad_graph.sqlite` records MIS narrator identities and transmission chains for `7,015` linked hadiths (`444` local hadiths remain unlinked); classical critic gradings (*al-jarḥ wa-l-taʿdīl*) remain gated until historical narrator entity resolution is validated.
