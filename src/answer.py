@@ -433,6 +433,22 @@ def load_questions(path=QUESTIONS_PATH):
         return [line.strip() for line in f if line.strip()]
 
 
+def format_retrieved_chunk(chunk):
+
+    chapter = (chunk.get("metadata") or {}).get("chapter_arabic", "")
+    score = chunk.get("score")
+    score_text = (
+        f" | rerank score: {score:.4f}" if score is not None else ""
+    )
+
+    return (
+        f"Rank: {chunk['rank']} | "
+        f"Hadith ID: {chunk['hadith_id']} | "
+        f"Chapter: {chapter}"
+        f"{score_text}"
+    )
+
+
 def main():
 
     retriever = build_pipeline()
@@ -447,16 +463,10 @@ def main():
         print("\nAnswer:")
         print(answer)
 
-        print("\nRetrieved Chunks:")
+        print("\nRetrieved Hadiths:")
 
         for chunk in chunks:
-
-            print(
-                f"Rank: {chunk['rank']} | "
-                f"Chunk ID: {chunk['chunk_id']} | "
-                f"Hadith ID: {chunk['hadith_id']} | "
-                f"Score: {chunk['score']:.4f}"
-            )
+            print(format_retrieved_chunk(chunk))
 
 
 if __name__ == "__main__":

@@ -122,16 +122,31 @@ class PipelineConfigurationTests(unittest.TestCase):
 
     def test_answer_main_uses_build_pipeline_not_dense_full(self):
         fake_pipeline = object()
+        chunks = [
+            {
+                "rank": 1,
+                "chunk_id": "8950_0",
+                "hadith_id": 8950,
+                "score": 0.7367,
+                "metadata": {"chapter_arabic": "كتاب الصيام"},
+            }
+        ]
+        printed = []
         with (
             patch("src.answer.build_pipeline", return_value=fake_pipeline) as mock_build,
             patch("src.answer.load_questions", return_value=["سؤال تجريبي؟"]),
-            patch("src.answer.answer_question", return_value=("إجابة", [])) as mock_ans,
-            patch("builtins.print"),
+            patch("src.answer.answer_question", return_value=("إجابة", chunks)) as mock_ans,
+            patch("builtins.print", side_effect=lambda *args: printed.append(" ".join(str(a) for a in args))),
         ):
             answer.main()
 
         mock_build.assert_called_once_with()
         mock_ans.assert_called_once_with("سؤال تجريبي؟", fake_pipeline, k=5)
+        output = "\n".join(printed)
+        self.assertIn("Rank: 1", output)
+        self.assertIn("Hadith ID: 8950", output)
+        self.assertIn("Chapter: كتاب الصيام", output)
+        self.assertIn("rerank score: 0.7367", output)
 
     @unittest.skipUnless(
         VECTORS_MATN.exists() and IDS_MATN.exists() and PROCESSED_CHUNKS_PATH.exists(),
