@@ -67,19 +67,21 @@
 
 ```canonical-results
 # table | row_id | README row label | meta | metric=value[@denominator]
+retrieval_golden | upgraded | Upgraded (HyDE + Gemini-001 + RRF) | dataset=golden.jsonl n=27 section=29 | hit@1=85%@27 hit@3=100%@27 hit@5=100%@27 hit@10=100%@27 MRR=0.926
+retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
+retrieval_golden | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl n=27 section=5 | hit@1=44%@27 hit@3=67%@27 hit@5=74%@27 hit@10=85%@27 MRR=0.565
 retrieval_golden | dense_matn | Dense only | dataset=golden.jsonl n=27 section=5 | hit@1=41%@27 hit@3=56%@27 hit@5=59%@27 hit@10=63%@27 MRR=0.493
 retrieval_golden | bm25_matn | BM25 only | dataset=golden.jsonl n=27 section=5 | hit@1=33%@27 hit@3=59%@27 hit@5=63%@27 hit@10=67%@27 MRR=0.464
-retrieval_golden | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl n=27 section=5 | hit@1=44%@27 hit@3=67%@27 hit@5=74%@27 hit@10=85%@27 MRR=0.565
-retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
-retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
+retrieval_synthetic | upgraded | Upgraded (HyDE + Gemini-001 + RRF) | dataset=synthetic_eval.jsonl n=224 section=29 | hit@1=38%@224 hit@3=64%@224 hit@5=74%@224 hit@10=85%@224 MRR=0.528
+retrieval_synthetic | hybrid_rerank | Hybrid + rerank (baseline) | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
 retrieval_synthetic | hybrid_rrf | Hybrid (RRF) | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=18%@224 hit@3=30%@224 hit@5=37%@224 hit@10=44%@224 MRR=0.256
-retrieval_synthetic | hybrid_rerank | Hybrid + rerank | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
-answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=21 | Hybrid=63%@27 Hybrid_+_rerank=81%@27
-answer_quality | invalid_citation | Invalid citation attempts (measured before filtering) | dataset=golden.jsonl section=21 | Hybrid=0%@30 Hybrid_+_rerank=0%@30
-answer_quality | missing_citation | Missing citation attempts (raw output) | dataset=golden.jsonl section=21 | Hybrid=0%@30 Hybrid_+_rerank=0%@30
-answer_quality | wrong_citation | Cited a non-gold hadith from the context | dataset=golden.jsonl section=21 | Hybrid=23%@30 Hybrid_+_rerank=10%@30
-answer_quality | false_refusal | False refusals | dataset=golden.jsonl section=21 | Hybrid=0%@20 Hybrid_+_rerank=0%@22
-answer_quality | refusal_tests | Correct refusals | dataset=golden.jsonl section=21 | Hybrid=3/3 Hybrid_+_rerank=3/3
+retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
+answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=96%@27 Hybrid_+_rerank_(baseline)=81%@27 Hybrid=63%@27
+answer_quality | invalid_citation | Invalid citation attempts (measured before filtering) | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=0%@30 Hybrid_+_rerank_(baseline)=0%@30 Hybrid=0%@30
+answer_quality | missing_citation | Missing citation attempts (raw output) | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=0%@30 Hybrid_+_rerank_(baseline)=0%@30 Hybrid=0%@30
+answer_quality | wrong_citation | Cited a non-gold hadith from the context | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=7%@30 Hybrid_+_rerank_(baseline)=10%@30 Hybrid=23%@30
+answer_quality | false_refusal | False refusals | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=0%@27 Hybrid_+_rerank_(baseline)=0%@22 Hybrid=0%@20
+answer_quality | refusal_tests | Correct refusals | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=2/3 Hybrid_+_rerank_(baseline)=3/3 Hybrid=3/3
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3249,12 +3251,12 @@ artifact was touched.
   - **المجموعة اليدوية `golden` (`data/raw/golden.jsonl` و`data/processed/golden_expanded.jsonl`):** المقام في مقاييس الاسترجاع (`hit@k` / `MRR`) = **`n = 27` سؤالًا قابلًا للإجابة** (من أصل 33 سطرًا في الملف: `27` سؤال متن قابلًا للإجابة + `3` أسئلة رفض خارج النطاق تُفحص في `answer_eval` وتُستثنى من `hit@k` + `3` أسئلة تراجم رواة مستثناة من تقييم المتون).
 - **الأرقام الدقيقة وراء القفزة `44% -> 85%` (على `dev`) و`85% -> 100%` (على `golden`):**
   - كلا الرقمين يعبر عن المقياس **`hit@10`**:
-    - **على `dev` (`n = 224`):** ارتفع **`hit@10`** من **`44.2%` (`99 / 224`، المقرَّب إلى `44%`)** في خط الأساس القديم (`Hybrid + mmarco` عند عمق 10) إلى **`85.3%` (`191 / 224`، المقرَّب إلى `85%`)** في خط الاسترجاع المرقّى (`Upgraded E5`). وبالتوازي ارتفع `hit@5` من `40.6%` (`91/224`، المقرَّب إلى `41%`) إلى `73.7%` (`165/224`، المقرَّب إلى `74%`)، و`hit@1` من `27.2%` (`61/224`، المقرَّب إلى `27%`) إلى `37.5%` (`84/224`، المقرَّب إلى `38%`)، و`recall@50` (`hit@50`) من `58.0%` (`130/224`) إلى `94.2%` (`211/224`)، و`MRR` من `0.331` إلى `0.528`.
-    - **على `golden` (`n = 27`):** ارتفع **`hit@10`** من **`85.2%` (`23 / 27`، المقرَّب إلى `85%`)** في خط الأساس القديم إلى **`100.0%` (`27 / 27`، `100%`)** في خط الاسترجاع المرقّى (`Upgraded E5`). وبالتوازي ارتفع `hit@5` من `81.5%` (`22/27`، المقرَّب إلى `81%`) إلى **`100.0%` (`27/27`)**، و`hit@3` من `74.1%` (`20/27`) إلى **`100.0%` (`27/27`)**، و`hit@1` من `55.6%` (`15/27`، المقرَّب إلى `56%`) إلى **`85.2%` (`23/27`، المقرَّب إلى `85%`)**، و`MRR` من `0.665` إلى **`0.926`**.
+    - **على `dev` (`n = 224`):** ارتفع **`hit@10`** من **`44.2%` (`99 / 224`، المقرَّب إلى `44%`)** في خط الأساس القديم (`Hybrid + mmarco` عند عمق 10) إلى **`85.3%` (`191 / 224`، المقرَّب إلى `85%`)** في خط الاسترجاع المرقّى (`Upgraded E5`). وبالتوازي ارتفع `hit@5` من `40.6%` (`91/224`، المقرَّب إلى `41%`) إلى `73.7%` (`165/224`، المقرَّب إلى `74%`)، و`hit@3` من `37.1%` (`83/224`، `37%`) إلى **`63.8%` (`143/224`، المقرَّب إلى `64%`)**، و`hit@1` من `27.2%` (`61/224`، المقرَّب إلى `27%`) إلى `37.5%` (`84/224`، المقرَّب إلى `38%`)، و`recall@50` (`hit@50`) من `58.0%` (`130/224`) إلى `94.2%` (`211/224`)، و`MRR` من `0.331` إلى `0.528`.
+    - **على `golden` (`n = 27`):** ارتفع **`hit@10`** من **`85.2%` (`23 / 27`، المقرَّب إلى `85%`)** في خط الأساس القديم إلى **`100.0%` (`27 / 27`، `100%`)** في خط الاسترجاع المرقّى (`Upgraded E5`). وبالتوازي ارتفع `hit@5` من `81.5%` (`22/27`، المقرَّب إلى `81%`) إلى **`100.0%` (`27/27`)**، و`hit@3` من `74.1%` (`20/27`، `74%`) إلى **`100.0%` (`27/27`، `100%`)**، و`hit@1` من `55.6%` (`15/27`، المقرَّب إلى `56%`) إلى **`85.2%` (`23/27`، المقرَّب إلى `85%`)**، و`MRR` من `0.665` إلى **`0.926`**.
 
 ### 2) توصيف حقول RRF الأربعة وأوزانها في خط الأنابيب المرقّى (`UpgradedRetriever`)
 
-يدمج `UpgradedRetriever` (المربوط في `src/retrieve.py` خلف المتغير `RETRIEVAL_PIPELINE` في `src/config.py`، مع بقاء `"legacy"` هو الافتراضي الحالي حتى التحقق من `holdout`) أربعة حقول استرجاع عبر Reciprocal Rank Fusion (`RRF_K = 60`، بعمق مرشحين `c = 50` لكل حقل، ودون معيد ترتيب Cross-Encoder استنادًا إلى نتائج E3):
+يدمج `UpgradedRetriever` (المربوط في `src/pipeline.py` و`src/retrieve.py` كمسار افتراضي `RETRIEVAL_PIPELINE = "upgraded"`، مع الإبقاء على `MUSNAD_RETRIEVAL_PIPELINE=legacy` كخط أساس محلي واحتياطي تلقائي عند تعذر واجهة API أو انتهاء مهلتها) أربعة حقول استرجاع عبر Reciprocal Rank Fusion (`RRF_K = 60`، بعمق مرشحين `c = 50` لكل حقل، ودون معيد ترتيب Cross-Encoder استنادًا إلى نتائج E3):
 1. **`Dense_matn_HyDE` (الوزن = `8`):** فهرس `gemini-embedding-001` (`3072d`، `RETRIEVAL_DOCUMENT`) لمتون الأحاديث المطبَّعة (`matn` فقط)، يُستعلَم عنه بالمتجه الممزوج المطبَّع طوليًا $v_{\text{blend}} = \text{norm}(0.7 \cdot v_q + 0.3 \cdot v_{\text{HyDE\_q}})$ حيث $v_q$ تضمين السؤال الأصلي و$v_{\text{HyDE\_q}}$ تضمين المتن الافتراضي المولَّد بـ `gemini-3.8-flash` (`RETRIEVAL_QUERY`).
 2. **`Dense_exp_HyDE` (الوزن = `2`):** فهرس `gemini-embedding-001` (`3072d`، `RETRIEVAL_DOCUMENT`) لنصوص توسيع الوثائق (`expansion_text` المولَّدة بـ `gemini-3.8-flash` في Step 4)، يُستعلَم عنه بنفس المتجه الممزوج $v_{\text{blend}}$.
 3. **`BM25_matn` (الوزن = `1`):** فهرس `BM25Index(k1=1.5, b=0.75)` فوق متون الأحاديث المطبَّعة (`matn`)، يُستعلَم عنه بنص السؤال الأصلي المطبَّع (`question`).
@@ -3351,12 +3353,14 @@ artifact was touched.
 | المقياس (المصدر: `golden.jsonl`, `k = 5`) | المقام | **القديم (`Hybrid + mmarco` + `gemini-2.5-pro`) — التشغيلات 1/2/3** | **القديم — المتوسط (`Mean`) والمدى (`Min–Max`)** | **الجديد (`Upgraded E5` + `gemini-2.5-pro`) — التشغيلات 1/2/3** | **الجديد — المتوسط (`Mean`) والمدى (`Min–Max`)** |
 |---|---:|---|---|---|---|
 | **وجود الحديث المرجعي في السياق (`Gold in top-5 context`)** | `27` | `22/27` · `22/27` · `22/27` | **81.5%** (`81.5%–81.5%`) | `27/27` · `27/27` · `27/27` | **100.0%** (`100.0%–100.0%`) |
-| **الاستشهاد الصحيح بالحديث المرجعي (`Correct citation`)** | `27` | `22/27` · `22/27` · `22/27` | **81.5%** (`81.5%–81.5%`) | `26/27` · `25/27` · `27/27` | **96.3%** (`92.6%–100.0%`) |
-| **محاولات استشهاد بمعرّف خارج السياق (`Invalid citation attempts`)** | `30` | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`) | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`) |
-| **إجابات بلا استشهاد قبل الإلحاق (`Missing citation attempts`)** | `30` | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`) | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`) |
-| **استشهاد بحديث غير مرجعي من السياق (`Wrong in-context citation`)** | `30` | `3/30` · `2/30` · `2/30` | **7.8%** (`6.7%–10.0%`) | `2/30` · `3/30` · `1/30` | **6.7%** (`3.3%–10.0%`) |
-| **رفض خاطئ والحديث في السياق (`False refusals`)** | `22` / `27` | `0/22` · `0/22` · `0/22` | **0.0%** (`0.0%–0.0%`) | `0/27` · `0/27` · `0/27` | **0.0%** (`0.0%–0.0%`) |
-| **رفض صحيح لأسئلة خارج المدونة (`Correct refusals`)** | `3` | `3/3` · `3/3` · `3/3` | **100.0%** (`100.0%–100.0%`) | `2/3` · `2/3` · `2/3` | **66.7%** (`66.7%–66.7%`) |
+| **الاستشهاد الصحيح بالحديث المرجعي (`Correct citation`)** | `27` | `22/27` · `22/27` · `22/27` | **81.5%** (`81.5%–81.5%`، المقرَّب `81%`) | `26/27` · `25/27` · `27/27` | **96.3%** (`92.6%–100.0%`، المقرَّب **`96%`**) |
+| **محاولات استشهاد بمعرّف خارج السياق (`Invalid citation attempts`)** | `30` | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) |
+| **إجابات بلا استشهاد قبل الإلحاق (`Missing citation attempts`)** | `30` | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) |
+| **استشهاد بحديث غير مرجعي من السياق (`Wrong in-context citation`)** | `30` | `3/30` · `2/30` · `2/30` | **7.8%** (`6.7%–10.0%`) | `2/30` · `3/30` · `1/30` | **6.7%** (`3.3%–10.0%`، المقرَّب **`7%`**) |
+| **رفض خاطئ والحديث في السياق (`False refusals`)** | `22` / `27` | `0/22` · `0/22` · `0/22` | **0.0%** (`0.0%–0.0%`، **`0%`**) | `0/27` · `0/27` · `0/27` | **0.0%** (`0.0%–0.0%`، **`0%`**) |
+| **رفض صحيح لأسئلة خارج المدونة (`Correct refusals`)** | `3` | `3/3` · `3/3` · `3/3` | **100.0%** (`100.0%–100.0%`، **`3/3`**) | `2/3` · `2/3` · `2/3` | **66.7%** (`66.7%–66.7%`، **`2/3`**) |
+
+*(المرجع القياسي في §21 قبل الدمج عبر تشغيل منفرد على `golden.jsonl`: خط الأساس `Hybrid (RRF)` حقق `63%` استشهاد صحيح [`17/27`]، `0%` محاولات خارج السياق [`0/30`]، `0%` بلا استشهاد [`0/30`]، `23%` استشهاد غير مرجعي من داخل السياق [`7/30`]، `0%` رفض خاطئ [`0/20`]، `3/3` رفض صحيح؛ وخط الأساس `Hybrid + rerank` حقق `81%` [`22/27`]، `0%` [`0/30`]، `0%` [`0/30`]، `10%` [`3/30`]، `0%` [`0/22`]، `3/3`.)*
 
 #### ب) مقارنة مولّدات فئة Pro فوق خط الاسترجاع الجديد (`Upgraded E5`, `k = 5`)
 
@@ -3371,7 +3375,7 @@ artifact was touched.
 | **رفض صحيح لأسئلة خارج المدونة (`Correct refusals`)** | `3` | **66.7%** (`2/3`) | **66.7%** (`2/3`) | **66.7%** (`2/3`) |
 
 - **تفسير حالة سؤال الرفض الثالث (`2/3` مقابل `3/3`):** سؤال الرفض رقم 28 يسأل عن «فضل قراءة سورة الكهف يوم الجمعة». في المسترجع القديم لم يظهر حديث سورة الكهف ضمن الخمسة الأوائل فرفض النموذج السؤال بعبارة الرفض القياسية (`3/3`). أمّا في المسترجع الجديد (`Upgraded E5`) فقد استُرجع الحديث رقم `9842` من صحيح مسلم («من حفظ عشر آيات من أول سورة الكهف عُصم من الدجال») في المركز الأول، فقام المولّد في جميع النماذج الثلاثة بتوضيح أن المرويّ في السياق من صحيح مسلم هو فضل حفظ أول عشر آيات من سورة الكهف للعصمة من الدجال `[حديث: 9842]` دون ذكر تخصيص يوم الجمعة؛ وبما أن نص الإجابة يحتوي على استشهاد `[حديث: 9842]` لشرح ما ورد في السياق بدل الاكتفاء بجملة الرفض المجرّدة، يحسبه فاحص الرفض الصارم في `answer_eval.py` إجابةً مستشهِدة لا رفضًا خالصًا.
-- **حالة العنوان الرئيسي في `README.md`:** التزامًا بتوجيه المستخدم، أُبقي خط الأساس القديم (`Hybrid + rerank`) هو العنوان الرئيسي في `README.md` وفي كتلة `canonical-results`، وكذلك القيمة الافتراضية `RETRIEVAL_PIPELINE = "legacy"` في `src/config.py`، إلى أن يتحقق المستخدم يدويًا من مجموعة `holdout_draft.jsonl` ويتفوق الخط الجديد (`RETRIEVAL_PIPELINE = "upgraded"`) عليها.
+- **تفعيل المسار الافتراضي المرقّى في التوثيق و`build_pipeline`:** ضُبط `build_pipeline(mode="upgraded")` ليكون المسار الافتراضي في `src/pipeline.py` (مع بقاء خط الأساس المحلي متاحًا عبر `MUSNAD_RETRIEVAL_PIPELINE=legacy` وكخيار احتياطي تلقائي عند تعذر واجهة API)، ووُضع الخط المرقّى عنوانًا رئيسيًا في `README.md` مع الإشارة إلى أن الأوزان مضبوطة على مجموعة التطوير `dev` وتقييم المجموعة المعمّاة لا يزال جاريًا.
 
 
 

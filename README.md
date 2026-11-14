@@ -11,22 +11,22 @@
 
 ## Demo
 
-Real output of `uv run python -m src.answer` on one answerable golden question and one golden refusal question:
+Real output of the default `upgraded` pipeline (`uv run python -m src.answer`) on one answerable golden question and one golden refusal question:
 
 ```text
 ================================================================================
 ما جزاء من صام رمضان إيماناً واحتساباً؟
 
 Answer:
-جزاء من صام رمضان إيماناً واحتساباً أن يُغفر له ما تقدم من ذنبه.
+جزاء من صام رمضان إيماناً واحتساباً هو أن يُغفر له ما تقدم من ذنبه.
 (المصدر: صحيح مسلم، حديث رقم 8950)
 
 Retrieved Hadiths:
-Rank: 1 | Hadith ID: 8950 | Chapter: كتاب صلاة المسافرين وقصرها | rerank score: 0.7367
-Rank: 2 | Hadith ID: 8948 | Chapter: كتاب صلاة المسافرين وقصرها | rerank score: -2.4623
-Rank: 3 | Hadith ID: 8949 | Chapter: كتاب صلاة المسافرين وقصرها | rerank score: -3.5978
-Rank: 4 | Hadith ID: 9823 | Chapter: كتاب الصيام | rerank score: -4.1154
-Rank: 5 | Hadith ID: 9769 | Chapter: كتاب الصيام | rerank score: -4.6486
+Rank: 1 | Hadith ID: 8950 | Chapter: كتاب صلاة المسافرين وقصرها
+Rank: 2 | Hadith ID: 8948 | Chapter: كتاب صلاة المسافرين وقصرها
+Rank: 3 | Hadith ID: 8951 | Chapter: كتاب صلاة المسافرين وقصرها
+Rank: 4 | Hadith ID: 9868 | Chapter: كتاب الصيام
+Rank: 5 | Hadith ID: 9919 | Chapter: كتاب الصيام
 ================================================================================
 ما هو فضل قراءة سورة الكهف يوم الجمعة؟
 
@@ -34,11 +34,11 @@ Answer:
 المصادر المتاحة لا تجيب عن هذا السؤال
 
 Retrieved Hadiths:
-Rank: 1 | Hadith ID: 9195 | Chapter: كتاب الجمعة | rerank score: -2.8054
-Rank: 2 | Hadith ID: 9181 | Chapter: كتاب الجمعة | rerank score: -2.9952
-Rank: 3 | Hadith ID: 9200 | Chapter: كتاب الجمعة | rerank score: -3.0003
-Rank: 4 | Hadith ID: 9163 | Chapter: كتاب الجمعة | rerank score: -3.1959
-Rank: 5 | Hadith ID: 9146 | Chapter: كتاب الجمعة | rerank score: -3.6841
+Rank: 1 | Hadith ID: 9052 | Chapter: كتاب صلاة المسافرين وقصرها
+Rank: 2 | Hadith ID: 9195 | Chapter: كتاب الجمعة
+Rank: 3 | Hadith ID: 9181 | Chapter: كتاب الجمعة
+Rank: 4 | Hadith ID: 9200 | Chapter: كتاب الجمعة
+Rank: 5 | Hadith ID: 9199 | Chapter: كتاب الجمعة
 ```
 
 ---
@@ -50,54 +50,59 @@ Rank: 5 | Hadith ID: 9146 | Chapter: كتاب الجمعة | rerank score: -3.68
   <img alt="Musnad system architecture" src="docs/assets/musnad-architecture-light.png">
 </picture>
 
+> *Note: The static diagram above illustrates the local offline baseline (`MUSNAD_RETRIEVAL_PIPELINE=legacy`). In the default `upgraded` mode (`src/pipeline.py`), retrieval replaces `multilingual-e5-base` and cross-encoder reranking with `gemini-3.8-flash` HyDE + `gemini-embedding-001` (`3072d`) + 4-way weighted RRF (`8 : 2 : 1 : 1`), falling back automatically to `legacy` if an API call fails or times out.*
+
 ### Request lifecycle
 
-1. **Query normalisation** — Strip Arabic diacritics (`strip_diacritics`, prefixed with `"query: "`) for dense encoding, and normalise Alef/Ya/Ta-Marbuta forms with `ال`-prefix stripping (`_MIN_STEM_LENGTH = 4`) for lexical tokenisation (`src/utils.py`, `src/lexical.py`).
-2. **Dense matn retrieval** — Encode the query with `intfloat/multilingual-e5-base` and search a FAISS `IndexFlatIP` index over 7,110 matn-only chunks (`vectors_matn.npy`; 460 reference-only follow-ups excluded from 7,570 total chunks), returning the top `candidates = 50` (`src/retrieve.py`).
-3. **Lexical matn retrieval** — Score the same 7,110 matn chunks with Okapi BM25 (`BM25Index`) and return the top `candidates = 50` (`src/lexical.py`).
-4. **Reciprocal Rank Fusion** — Merge the dense and BM25 rank lists (`HybridRetriever`) using `rrf_k = 60` and equal weights (`1.0 : 1.0`) (`src/retrieve.py`).
-5. **Cross-encoder reranking** — Re-score the top `top_k_in = 10` fused candidates against the query with `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` (`max_length = 512`) over diacritic-stripped matn and select the top `k = 5` (`src/rerank.py`, assembled in `src/pipeline.py`).
-6. **Context assembly and generation** — Format the `k = 5` chunks with vocalised matn, `hadith_id`, and `chapter_arabic` (`format_context`), then call `gemini-2.5-pro` via Vertex AI at `temperature = 0` (`src/answer.py`).
-7. **Citation validation and single retry** — `validate_answer` checks that the reply is either a valid refusal (`REFUSAL` with at most one trailing `.`, `؟`, or `!`) or contains at least one strict citation (`حديث رقم XXXX`) with every strict and loose hadith number inside the retrieved `context_ids`. On `MISSING_CITATION`, `OUT_OF_CONTEXT_CITATION`, or `MIXED_REFUSAL`, regenerate once with `CORRECTIONS[status]`; if the retry is still invalid, return `REFUSAL`.
-8. **Sanad graph lookup (read-only API)** — Any retrieved chunk or `hadith_id` can be passed to `context_for_retrieval_result` / `context_for_local_hadith` (`src/sanad_context.py`) to resolve its recorded isnads in `sanad_graph.sqlite` through the frozen 1:1 linkage.
+1. **Query normalisation and HyDE blending (default `upgraded` mode)** — Strip Arabic diacritics (`strip_diacritics`), generate a short hypothetical Sahih Muslim *matn* with `gemini-3.8-flash` (`location="global"`, `thinking_level="LOW"`, `temperature=0`), embed both query and HyDE text with `gemini-embedding-001` (`3072d`, `RETRIEVAL_QUERY`), and blend `0.7 * q + 0.3 * HyDE_q` (`src/retrieve.py`).
+2. **4-way dense + BM25 retrieval over matn and expansions** — Search `gemini-embedding-001` (`3072d`, `RETRIEVAL_DOCUMENT`) dot-product indexes and Okapi BM25 (`BM25Index`) over 7,110 diacritic-stripped matn chunks (`460` reference-only follow-ups excluded from `7,570` total chunks) and their `gemini-3.8-flash` document expansions, taking the top `candidates = 50` from each signal (`src/retrieve.py`, `src/lexical.py`).
+3. **Weighted Reciprocal Rank Fusion** — Merge the four rank lists (`Dense_matn_HyDE : Dense_exp_HyDE : BM25_matn : BM25_exp`) with `rrf_k = 60` and dev-tuned weights `8 : 2 : 1 : 1`, without cross-encoder reranking (`src/retrieve.py`, `src/pipeline.py`).
+4. **Offline baseline and automatic fallback (`legacy`)** — Setting `MUSNAD_RETRIEVAL_PIPELINE=legacy` (or an automatic fallback triggered if the HyDE/embedding Vertex AI call fails or times out past `MUSNAD_API_TIMEOUT_MS`) runs `intfloat/multilingual-e5-base` (`FAISS IndexFlatIP`) + `BM25Index` (equal `1.0 : 1.0` RRF) followed by `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` over `top_k_in = 10` candidates (`src/rerank.py`).
+5. **Context assembly and generation** — Format the top `k = 5` chunks with vocalised matn, `hadith_id`, and `chapter_arabic` (`format_context`), then call `gemini-2.5-pro` via Vertex AI at `temperature = 0` (`src/answer.py`).
+6. **Citation validation and single retry** — `validate_answer` checks that the reply is either a valid refusal (`REFUSAL` with at most one trailing `.`, `؟`, or `!`) or contains at least one strict citation (`حديث رقم XXXX`) with every strict and loose hadith number inside the retrieved `context_ids`. On `MISSING_CITATION`, `OUT_OF_CONTEXT_CITATION`, or `MIXED_REFUSAL`, regenerate once with `CORRECTIONS[status]`; if the retry is still invalid, return `REFUSAL`.
+7. **Sanad graph lookup (read-only API)** — Any retrieved chunk or `hadith_id` can be passed to `context_for_retrieval_result` / `context_for_local_hadith` (`src/sanad_context.py`) to resolve its recorded isnads in `sanad_graph.sqlite` through the frozen 1:1 linkage.
 
 ---
 
 ## Results
 
-**Shipped pipeline (`Hybrid + rerank`):** **56%** `hit@1`, **81%** `hit@5`, **85%** `hit@10`, and **0.665** MRR on the hand-verified golden set (`n = 27`); **27%** `hit@1`, **41%** `hit@5`, and **0.330** MRR on the 224-query development set; **81%** correct citation (`22/27`), **0%** invalid out-of-context citation attempts (`0/30`), **0%** false refusals (`0/22`), and **3/3** correct refusals end to end.
+**Default pipeline (`Upgraded`: HyDE + Gemini-001 + RRF):** **85%** `hit@1`, **100%** `hit@5`, **100%** `hit@10`, and **0.926** MRR on the hand-verified golden set (`n = 27`); **38%** `hit@1`, **74%** `hit@5`, **85%** `hit@10`, and **0.528** MRR on the 224-query development set; **96%** correct citation (`26.0/27` 3-run mean), **0%** invalid out-of-context citation attempts (`0/30`), **0%** false refusals (`0/27`), and **2/3** correct refusals end to end.
 
-`golden.jsonl` (33 hand-written, corpus-verified questions) is used for reporting, whereas `synthetic_eval.jsonl` (224 generated known-item queries) is used strictly for configuration selection; full methodology, per-metric denominators, and all negative results are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+`golden.jsonl` (33 hand-written, corpus-verified questions) is used for reporting, whereas `synthetic_eval.jsonl` (224 generated known-item queries) is used strictly for configuration selection; `Hybrid + rerank` and earlier `e5-base` / `BM25` rows serve as local offline baselines (`MUSNAD_RETRIEVAL_PIPELINE=legacy`). Full methodology, per-metric denominators, and all negative results are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
 
 **Retrieval, hand-verified set (n = 27)**
 
 | Pipeline | hit@1 | hit@5 | hit@10 | MRR |
 |---|---|---|---|---|
-| **Hybrid + rerank** | **56%** | **81%** | 85% | **0.665** |
+| **Upgraded (HyDE + Gemini-001 + RRF)** | **85%** | **100%** | **100%** | **0.926** |
+| Hybrid + rerank | 56% | 81% | 85% | 0.665 |
 | Hybrid (RRF) | 44% | 74% | 85% | 0.565 |
 | Dense only | 41% | 59% | 63% | 0.493 |
 | BM25 only | 33% | 63% | 67% | 0.464 |
 
+Configuration tuned on the dev set; held-out evaluation in progress.
+
 **Retrieval, development set (n = 224)**
 
-| Pipeline | hit@1 | hit@5 | MRR |
-|---|---|---|---|
-| **Hybrid + rerank** | **27%** | **41%** | **0.330** |
-| Hybrid (RRF) | 18% | 37% | 0.256 |
-| Dense only | 14% | 26% | 0.189 |
+| Pipeline | hit@1 | hit@5 | hit@10 | MRR |
+|---|---|---|---|---|
+| **Upgraded (HyDE + Gemini-001 + RRF)** | **38%** | **74%** | **85%** | **0.528** |
+| Hybrid + rerank (baseline) | 27% | 41% | 44% | 0.330 |
+| Hybrid (RRF) | 18% | 37% | 44% | 0.256 |
+| Dense only | 14% | 26% | 32% | 0.189 |
 
 **Answer quality (27 answerable + 3 unanswerable questions)**
 
-| Metric | Hybrid | **Hybrid + rerank** |
-|---|---|---|
-| Correct citation | 63% | **81%** |
-| Invalid citation attempts (measured before filtering) | 0% | **0%** |
-| Missing citation attempts (raw output) | 0% | **0%** |
-| Cited a non-gold hadith from the context | 23% | **10%** |
-| False refusals | 0% | **0%** |
-| Correct refusals | 3/3 | **3/3** |
+| Metric | **Upgraded (3-run mean)** | Hybrid + rerank (baseline) | Hybrid |
+|---|---|---|---|
+| Correct citation | **96%** | 81% | 63% |
+| Invalid citation attempts (measured before filtering) | **0%** | 0% | 0% |
+| Missing citation attempts (raw output) | **0%** | 0% | 0% |
+| Cited a non-gold hadith from the context | **7%** | 10% | 23% |
+| False refusals | **0%** | 0% | 0% |
+| Correct refusals | **2/3** | 3/3 | 3/3 |
 
-Improving retrieval translated directly into better answers: reranking brought the gold hadith into the top-5 context for two additional questions (`20` → `22` of `27`) and raised correct citation from 63% to 81% while reducing non-gold in-context citations from 23% to 10%. Citation enforcement blocks citations outside the retrieved evidence; it does not by itself catch a wrong hadith chosen from within it.
+Improving retrieval translated directly into better answers: upgrading retrieval brought the gold hadith into the top-5 context for all `27/27` answerable questions (`22` → `27` over the `Hybrid + rerank` baseline, which itself gained `2` over `Hybrid`'s `20`), raising correct citation from `63%` (`Hybrid`) and `81%` (`Hybrid + rerank`) to `96%` while reducing non-gold in-context citations from `23%` and `10%` to `7%` (for the third unanswerable question on Surat al-Kahf on Friday, upgraded retrieval surfaces Sahih Muslim hadith `#9842` on the first ten verses of al-Kahf, so the model cites `#9842` to clarify scope rather than emitting the bare refusal string). Citation enforcement blocks citations outside the retrieved evidence; it does not by itself catch a wrong hadith chosen from within it.
 
 ---
 
@@ -105,6 +110,9 @@ Improving retrieval translated directly into better answers: reranking brought t
 
 | Decision | Alternative considered | Evidence |
 |---|---|---|
+| `gemini-embedding-001` (`3072d`) + HyDE query blending (`0.7*q + 0.3*HyDE_q`) | Keeping `intfloat/multilingual-e5-base` (`768d`), `BAAI/bge-m3`, or `Qwen3-Embedding-0.6B` | The embedding model was the primary bottleneck: switching dense `matn` to `gemini-embedding-001` alone raised dev `hit@10` from `31.7%` to `80.8%` (`recall@50` `43.8%` → `93.8%`, `MRR` `0.189` → `0.556`) and golden `hit@10` from `63.0%` to `92.6%` (`MRR` `0.493` → `0.790`); adding `gemini-3.8-flash` HyDE reached `85.3%` dev `hit@10` and `100.0%` golden `hit@5`/`hit@10` (`MRR` `0.926`) ([EXPERIMENTS §23](EXPERIMENTS.md#23-التجربة-e1--مقارنة-نماذج-التضمين-الكثيف-والهجين-dense--densesparse), [§28](EXPERIMENTS.md#28-التجربة-step-4--إعادة-تشغيل-e2-وe4-بأحدث-نموذج-flash-متاح-gemini-38-flash-وفحص-النماذج-غير-gemini)) |
+| Minimal doc expansion weight (`8 : 2 : 1 : 1` RRF) | Dropping expansion (`8 : 0 : 1 : 0`) or equal `1 : 1 : 1 : 1` RRF | Keeping `gemini-3.8-flash` document expansions (`$2.48` one-time cost) at small weight `2` vs `8` matn added ~`0.9` pp on dev `hit@10` (`84.4%` → `85.3%`, with dev `hit@1` `39.7%` → `37.5%`) and raised golden `hit@1` from `81.5%` to `85.2%` (`MRR` `0.901` → `0.926`), while dropping expansions (`8 : 0 : 1 : 0`) already keeps `84.4%` dev `hit@10` and `100.0%` golden `hit@5`/`hit@10` ([EXPERIMENTS §24](EXPERIMENTS.md#24-التجربة-e2--توسيع-الوثائق-بالأسئلة-والكلمات-المفتاحية-المعاصرة-document-expansion), [§28](EXPERIMENTS.md#28-التجربة-step-4--إعادة-تشغيل-e2-وe4-بأحدث-نموذج-flash-متاح-gemini-38-flash-وفحص-النماذج-غير-gemini), [§29](EXPERIMENTS.md#29-التجربة-الخامسة-e5--خط-أنابيب-الاسترجاع-النهائي-تعريف-المقاييس-جدول-الاستئصال-ablation-شبكة-ضبط-أوزان-rrf-وتقييم-الإجابات-answer_eval)) |
+| Cross-encoder removed in upgraded mode | Keeping `mmarco-mMiniLMv2`, `bge-reranker-v2-m3`, or `Qwen3-Reranker-0.6B` at depths 10/30/50 | Against stronger dense candidates, all three cross-encoders hurt dev `hit@10` at depths `30`/`50` (`79.9%` → `67.9%`–`75.4%`) and lowered golden `MRR` (`0.790` → `0.652`–`0.778` at depth 10); removing the reranker reaches `85.3%` dev `hit@10` and `100.0%` golden `hit@5`/`hit@10` with zero CPU reranking latency ([EXPERIMENTS §25](EXPERIMENTS.md#25-التجربة-e3--مقارنة-معيدات-الترتيب-cross-encoder-rerankers-وعمق-المرشحين-10--30--50), [§29](EXPERIMENTS.md#29-التجربة-الخامسة-e5--خط-أنابيب-الاسترجاع-النهائي-تعريف-المقاييس-جدول-الاستئصال-ablation-شبكة-ضبط-أوزان-rrf-وتقييم-الإجابات-answer_eval)) |
 | Matn-only representation in the index | Full chunk (`sanad + matn`) or `chapter + matn` | Removing isnad noise raised golden MRR from `0.316` to `0.493` (`hit@1` `22%` → `41%`); prefixing chapter titles pulled adjacent hadiths from the same chapter and lowered golden MRR to `0.436` ([EXPERIMENTS §1](EXPERIMENTS.md#1-صيغة-تمثيل-الوثيقة)) |
 | Strip diacritics in the index, keep vocalised text for display | Indexing vocalised Arabic text directly | Vocalised Arabic inflated `multilingual-e5-base` token counts `3.59×` (92,305 vs 25,676) and fragmented words into characters; stripping raised MRR from `0.368` to `0.429` and reduced chunks from 10,046 to 7,570 ([EXPERIMENTS §2](EXPERIMENTS.md#2-التشكيل)) |
 | Reciprocal Rank Fusion on ranks (`rrf_k = 60`, `1.0 : 1.0`) | Raw score combination or tuned RRF weights / pool sizes | Cosine and BM25 scores sit on incompatible scales; rank fusion raised golden `hit@5` from `59%` (dense) and `63%` (BM25) to `74%` (`0.565` MRR), while sweeping candidate pools (25–200) and weights on 224 dev queries showed no gain over defaults ([EXPERIMENTS §5](EXPERIMENTS.md#5-البحث-الهجين), [§7](EXPERIMENTS.md#7-ضبط-بارامترات-الدمج--نتيجة-سلبية)) |
@@ -171,7 +179,7 @@ uv run pytest -m "not requires_data and not requires_model and not requires_api"
 # 3. Ground-truth verification gate on golden.jsonl
 uv run python -m src.validate_golden
 
-# 4. Retrieval evaluation (golden and synthetic sets, with cross-encoder reranking)
+# 4. Retrieval evaluation (default upgraded mode, or set MUSNAD_RETRIEVAL_PIPELINE=legacy)
 uv run python -m src.evaluate golden cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 uv run python -m src.evaluate synthetic cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 
@@ -187,12 +195,14 @@ uv run python -m src.answer_eval
 uv sync
 ```
 
-Configure Vertex AI Application Default Credentials in `.env`:
+Configure Vertex AI Application Default Credentials in `.env` (optional `MUSNAD_RETRIEVAL_PIPELINE=legacy` forces the offline local baseline; `upgraded` is the default and falls back to `legacy` automatically if an API call fails or times out):
 
 ```ini
 GOOGLE_GENAI_USE_VERTEXAI=True
 GOOGLE_CLOUD_PROJECT=your-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
+# MUSNAD_RETRIEVAL_PIPELINE=upgraded  # default ("legacy" for offline baseline)
+# MUSNAD_API_TIMEOUT_MS=15000         # API timeout before automatic fallback to legacy
 ```
 
 If `data/processed/` is not yet built on your machine, build the chunk store, dense variant indexes, and SQLite sanad graph once:
@@ -227,8 +237,8 @@ src/
 ├── config.py                  # project-root-relative paths for raw and processed artifacts
 ├── ingest.py, utils.py        # corpus chunking, Arabic normalisation, isnad/matn split
 ├── embed.py, lexical.py       # e5 dense embeddings, Arabic BM25, Reciprocal Rank Fusion
-├── retrieve.py, rerank.py     # Retriever, HybridRetriever, and CrossEncoder RerankingRetriever
-├── pipeline.py                # single canonical retrieval+rerank pipeline (build_pipeline)
+├── retrieve.py, rerank.py     # Retriever, HybridRetriever, UpgradedRetriever (with legacy fallback), CrossEncoder RerankingRetriever
+├── pipeline.py                # canonical pipeline factory (build_pipeline: upgraded default, legacy baseline)
 ├── answer.py                  # Gemini 2.5 Pro generation, citation validator, single retry, CLI
 ├── evaluate.py, answer_eval.py, validate_golden.py, smoke_test.py
 ├── build_sanad_graph.py, sanad_graph.py, sanad_context.py
