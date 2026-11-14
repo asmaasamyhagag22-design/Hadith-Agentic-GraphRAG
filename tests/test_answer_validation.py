@@ -70,9 +70,12 @@ class ValidateAnswerTests(unittest.TestCase):
             "كما ورد في حديث 999 عن النبي ﷺ.",
             "الدليل في حديث رقم: 999.",
             "رواه الإمام في (مسلم 999).",
+            "مسلم، 999",
+            "رواه في (صحيح مسلم، 999).",
             "رواه في (صحيح مسلم، رقم 999).",
         ):
             with self.subTest(snippet=snippet):
+                self.assertIn(999, loose_cited_ids(snippet))
                 self.assertEqual(
                     validate_answer(snippet, {7354, 7355}),
                     OUT_OF_CONTEXT_CITATION,

@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import QUESTIONS_PATH
-from pipeline import DEFAULT_K, build_pipeline
-from retrieve import Retriever
 from experiment_variants import variant_text
 
 from google import genai
@@ -152,9 +150,9 @@ def format_context(relevant_chunks):
 # الصيغة مفروضة في build_system_prompt
 CITATION = re.compile(r"حديث\s*رقم\s*[:\s]*(\d+)")
 
-# إشارات غير منضبطة لرقم حديث (مثل: "حديث 999"، "حديث رقم: 999"، "مسلم 999"، "مسلم، رقم 999")
+# إشارات غير منضبطة لرقم حديث (مثل: "حديث 999"، "حديث رقم: 999"، "مسلم 999"، "مسلم، 999"، "مسلم، رقم 999")
 LOOSE_CITATION = re.compile(
-    r"(?:حديث(?:\s*رقم)?|مسلم(?:\s*[،,]?\s*رقم)?)\s*[:\s]*(\d+)"
+    r"(?:حديث(?:\s*رقم)?|مسلم(?:\s*[،,])?(?:\s*رقم)?)\s*[:\s]*(\d+)"
 )
 
 _DIGIT = re.compile(r"\d")
@@ -417,6 +415,16 @@ def answer_question(
     )
 
     return details["answer"], details["chunks"]
+
+
+DEFAULT_K = 5
+
+
+def build_pipeline():
+
+    from pipeline import build_pipeline as _build_pipeline
+
+    return _build_pipeline()
 
 
 def load_questions(path=QUESTIONS_PATH):
