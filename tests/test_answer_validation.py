@@ -70,9 +70,12 @@ class ValidateAnswerTests(unittest.TestCase):
             "كما ورد في حديث 999 عن النبي ﷺ.",
             "الدليل في حديث رقم: 999.",
             "رواه الإمام في (مسلم 999).",
+            "مسلم، 999",
+            "رواه في (صحيح مسلم، 999).",
             "رواه في (صحيح مسلم، رقم 999).",
         ):
             with self.subTest(snippet=snippet):
+                self.assertIn(999, loose_cited_ids(snippet))
                 self.assertEqual(
                     validate_answer(snippet, {7354, 7355}),
                     OUT_OF_CONTEXT_CITATION,
@@ -106,6 +109,25 @@ class ValidateAnswerTests(unittest.TestCase):
             validate_answer(f"  \n{REFUSAL}\n  ", {7354}),
             VALID_REFUSAL,
         )
+
+    def test_refusal_with_at_most_one_trailing_punctuation_returns_valid_refusal(self):
+        for punct in (".", "؟", "!"):
+            with self.subTest(punct=punct):
+                self.assertEqual(
+                    validate_answer(f"{REFUSAL}{punct}", {7354}),
+                    VALID_REFUSAL,
+                )
+                self.assertEqual(
+                    validate_answer(f"  {REFUSAL}{punct}\n ", {7354}),
+                    VALID_REFUSAL,
+                )
+
+        for multi_punct in ("..", "؟؟", "!!", ".!", "؟."):
+            with self.subTest(multi_punct=multi_punct):
+                self.assertEqual(
+                    validate_answer(f"{REFUSAL}{multi_punct}", {7354}),
+                    MIXED_REFUSAL,
+                )
 
     def test_refusal_followed_by_answer_returns_mixed_refusal(self):
         mixed = (

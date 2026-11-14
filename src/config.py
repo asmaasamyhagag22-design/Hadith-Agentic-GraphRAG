@@ -38,9 +38,10 @@ VECTORS_MATN_WITH_TITLE = PROCESSED_DIR / "vectors_title.npy"
 IDS_MATN_WITH_TITLE = PROCESSED_DIR / "chunk_ids_title.json"
 
 # مسار الاسترجاع المختار في التجربة النهائية (E5):
-# "legacy"   = multilingual-e5-base + BM25 (RRF 1:1) + mmarco top-10 reranker (الافتراضي الحالي في README حتى التحقق من holdout)
-# "upgraded" = gemini-embedding-001 (3072d) + E2 expansion (g38flash) + E4 HyDE (0.7:0.3) + 4-way RRF (8:2:1:1)
-RETRIEVAL_PIPELINE = os.environ.get("MUSNAD_RETRIEVAL_PIPELINE", "legacy")
+# "upgraded" = gemini-embedding-001 (3072d) + E2 expansion (g38flash) + E4 HyDE (0.7:0.3) + 4-way RRF (8:2:1:1) [الافتراضي]
+# "legacy"   = multilingual-e5-base + BM25 (RRF 1:1) + mmarco top-10 reranker (محلي بلا API، ويُستخدم تلقائيًا كبديل احتياطي عند تعثّر API)
+RETRIEVAL_PIPELINE = os.environ.get("MUSNAD_RETRIEVAL_PIPELINE", "upgraded")
+API_TIMEOUT_MS = int(os.environ.get("MUSNAD_API_TIMEOUT_MS", "15000"))
 
 VECTORS_MATN_GEMINI001 = PROCESSED_DIR / "vectors_matn_gemini001_3072.npy"
 VECTORS_EXPANSION_G38_GEMINI001 = (

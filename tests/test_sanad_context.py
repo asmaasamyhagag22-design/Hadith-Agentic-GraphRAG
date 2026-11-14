@@ -4,6 +4,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 from src.build_sanad_graph import (
     FROZEN_LINKAGE_PATH,
     GRAPH_DB_PATH,
@@ -223,6 +225,7 @@ class NoModelDependencyTests(unittest.TestCase):
             )
 
 
+@pytest.mark.requires_data
 class FrozenIdentityTests(unittest.TestCase):
     """السطح الجديد ما غيّرش أي بصمة مجمّدة."""
 

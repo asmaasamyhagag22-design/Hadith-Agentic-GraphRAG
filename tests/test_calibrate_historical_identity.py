@@ -6,6 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
 from src.calibrate_historical_identity import (
     BLINDED_PACKET_SEED,
     BLINDED_VISIBLE_COLUMNS,
@@ -486,6 +488,7 @@ class BlindedPacketTests(unittest.TestCase):
         self.assertNotEqual(source_order, sorted(source_order))
 
 
+@pytest.mark.requires_data
 class FrozenStateTests(unittest.TestCase):
     """الحالة المجمّدة ما اتغيّرتش. بتتخطى لو البيانات مش موجودة."""
 

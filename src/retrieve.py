@@ -8,13 +8,13 @@ import faiss
 import numpy as np
 
 from config import (
+    API_TIMEOUT_MS,
     DOC_EXPANSIONS_G38_PATH,
     IDS_MATN,
     IDS_PATH,
     PROCESSED_CHUNKS_PATH,
     QUERIES_GEMINI001_CACHE_PATH,
     QUERIES_HYDE_G38_CACHE_PATH,
-    RETRIEVAL_PIPELINE,
     VECTORS_EXPANSION_G38_GEMINI001,
     VECTORS_MATN,
     VECTORS_MATN_GEMINI001,
@@ -44,7 +44,14 @@ class Retriever:
     يبقوا في نفس الكائن، مستحيل تستخدمي فهرس مع قايمة غيره.
     """
 
-    def __init__(self, index, chunk_ids, chunk_lookup):
+    def __init__(
+        self,
+        index,
+        chunk_ids,
+        chunk_lookup,
+        vectors_path=None,
+        ids_path=None,
+    ):
 
         if index.ntotal != len(chunk_ids):
             raise ValueError(
@@ -57,6 +64,8 @@ class Retriever:
         self.index = index
         self.chunk_ids = chunk_ids
         self.chunk_lookup = chunk_lookup
+        self.vectors_path = Path(vectors_path) if vectors_path else None
+        self.ids_path = Path(ids_path) if ids_path else None
 
     @classmethod
     def from_files(
@@ -82,7 +91,13 @@ class Retriever:
         if chunk_lookup is None:
             chunk_lookup = load_chunk_lookup(chunks_path)
 
-        return cls(index, chunk_ids, chunk_lookup)
+        return cls(
+            index,
+            chunk_ids,
+            chunk_lookup,
+            vectors_path=vectors_path,
+            ids_path=ids_path,
+        )
 
     def search(self, question, k=5):
 
@@ -262,6 +277,13 @@ class UpgradedRetriever:
         hyde_alpha=0.7,
         candidates=50,
         rrf_k=60,
+        api_timeout_ms=API_TIMEOUT_MS,
+        fallback_retriever=None,
+        fallback_factory=None,
+        matn_vectors_path=None,
+        exp_vectors_path=None,
+        expansions_jsonl_path=None,
+        ids_path=None,
     ):
         self.matn_vectors = np.ascontiguousarray(matn_vectors, dtype=np.float32)
         self.exp_vectors = np.ascontiguousarray(exp_vectors, dtype=np.float32)
@@ -275,6 +297,22 @@ class UpgradedRetriever:
         self.hyde_alpha = float(hyde_alpha)
         self.candidates = candidates
         self.rrf_k = rrf_k
+        self.api_timeout_ms = int(api_timeout_ms) if api_timeout_ms else None
+        self.fallback_retriever = fallback_retriever
+        self.fallback_factory = fallback_factory
+        self.matn_vectors_path = (
+            Path(matn_vectors_path) if matn_vectors_path else None
+        )
+        self.exp_vectors_path = (
+            Path(exp_vectors_path) if exp_vectors_path else None
+        )
+        self.expansions_jsonl_path = (
+            Path(expansions_jsonl_path) if expansions_jsonl_path else None
+        )
+        self.ids_path = Path(ids_path) if ids_path else None
+        self.mode = "upgraded"
+        self.default_k = 5
+        self.last_used_fallback = False
         self._dense_rank_cache = {}
 
     @classmethod
@@ -292,6 +330,9 @@ class UpgradedRetriever:
         hyde_alpha=0.7,
         candidates=50,
         rrf_k=60,
+        api_timeout_ms=API_TIMEOUT_MS,
+        fallback_retriever=None,
+        fallback_factory=None,
     ):
         if chunk_lookup is None:
             chunk_lookup = load_chunk_lookup(chunks_path)
@@ -342,6 +383,13 @@ class UpgradedRetriever:
             hyde_alpha=hyde_alpha,
             candidates=candidates,
             rrf_k=rrf_k,
+            api_timeout_ms=api_timeout_ms,
+            fallback_retriever=fallback_retriever,
+            fallback_factory=fallback_factory,
+            matn_vectors_path=matn_vectors_path,
+            exp_vectors_path=exp_vectors_path,
+            expansions_jsonl_path=expansions_jsonl_path,
+            ids_path=ids_path,
         )
 
     def _blended_query_vector(self, question):
@@ -353,7 +401,12 @@ class UpgradedRetriever:
             from google.genai import types
 
             load_dotenv()
-            embed_client = genai.Client()
+            http_opts = (
+                types.HttpOptions(timeout=self.api_timeout_ms)
+                if self.api_timeout_ms
+                else None
+            )
+            embed_client = genai.Client(http_options=http_opts)
             if question not in self.query_vec_cache:
                 resp_q = embed_client.models.embed_content(
                     model="gemini-embedding-001",
@@ -367,7 +420,9 @@ class UpgradedRetriever:
                 )
 
             if self.hyde_alpha < 1.0 and question not in self.hyde_vec_cache:
-                gen_client = genai.Client(location="global")
+                gen_client = genai.Client(
+                    location="global", http_options=http_opts
+                )
                 hyde_prompt = (
                     "أنت عالم بالحديث النبوي الشريف وبألفاظ صحيح مسلم.\n"
                     "اكتب متن حديث نبوي افتراضي موجز (سطرين إلى ثلاثة أسطر، بدون إسناد وبدون أرقام) "
@@ -404,6 +459,11 @@ class UpgradedRetriever:
             self.hyde_alpha * q_vec + (1.0 - self.hyde_alpha) * h_vec
         )
 
+    def _get_fallback_retriever(self):
+        if self.fallback_retriever is None and self.fallback_factory is not None:
+            self.fallback_retriever = self.fallback_factory()
+        return self.fallback_retriever
+
     def _top_dense_ids(self, matrix, q_vec, top_k):
         scores = matrix @ q_vec
         if top_k < len(scores):
@@ -417,7 +477,19 @@ class UpgradedRetriever:
         cand_k = max(self.candidates, k)
         cache_key = (question, cand_k)
         if cache_key not in self._dense_rank_cache:
-            q_vec = self._blended_query_vector(question)
+            try:
+                q_vec = self._blended_query_vector(question)
+            except Exception as error:
+                fallback = self._get_fallback_retriever()
+                if fallback is None:
+                    raise
+                self.last_used_fallback = True
+                print(
+                    f"[warn] upgraded retrieval API failed ({type(error).__name__}: {error}); "
+                    f"falling back to legacy local pipeline.",
+                    file=sys.stderr,
+                )
+                return fallback.search(question, k=k)
             dm_ids = self._top_dense_ids(self.matn_vectors, q_vec, cand_k)
             de_ids = self._top_dense_ids(self.exp_vectors, q_vec, cand_k)
             bm_ids = self.bm25_matn.ranked_ids(question, k=cand_k)
@@ -428,6 +500,7 @@ class UpgradedRetriever:
                 weights=self.weights,
             )
 
+        self.last_used_fallback = False
         fused = self._dense_rank_cache[cache_key]
         results = []
         for rank, chunk_id in enumerate(fused[:k], start=1):
@@ -446,28 +519,7 @@ class UpgradedRetriever:
 
 
 def build_default_retriever(pipeline=None, chunk_lookup=None):
-    """
-    يبني باحث الاسترجاع الافتراضي بناءً على علم الإعداد `RETRIEVAL_PIPELINE`
-    ("upgraded" للمسار الجديد E5، أو "legacy" للمسار القديم).
-    """
-    mode = pipeline or RETRIEVAL_PIPELINE
-    if chunk_lookup is None:
-        chunk_lookup = load_chunk_lookup()
+    """يحوّل النداءات القديمة إلى `pipeline.build_pipeline` كمصدر وحيد للمسار."""
+    from pipeline import build_pipeline
 
-    if mode == "upgraded" and VECTORS_MATN_GEMINI001.exists():
-        return UpgradedRetriever.from_files(chunk_lookup=chunk_lookup)
-
-    matn_dense = Retriever.from_files(
-        VECTORS_MATN, IDS_MATN, chunk_lookup=chunk_lookup
-    )
-    bm25 = BM25Index(
-        matn_dense.chunk_ids,
-        [
-            split_isnad_matn(chunk_lookup[cid]["text"])
-            for cid in matn_dense.chunk_ids
-        ],
-    )
-    hybrid = HybridRetriever(matn_dense, bm25)
-    from rerank import RerankingRetriever
-
-    return RerankingRetriever(hybrid)
+    return build_pipeline(mode=pipeline, chunk_lookup=chunk_lookup)

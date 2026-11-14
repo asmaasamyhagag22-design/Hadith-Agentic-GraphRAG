@@ -27,3 +27,8 @@ dev = [
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
+markers = [
+    "requires_data: test requires git-ignored artifacts in data/processed or data/raw/external",
+    "requires_model: test requires downloading or loading embedding or reranker models",
+    "requires_api: test requires Vertex AI / Gemini API credentials",
+]

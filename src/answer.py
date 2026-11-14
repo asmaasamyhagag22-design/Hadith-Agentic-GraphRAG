@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import QUESTIONS_PATH
-from retrieve import Retriever, build_default_retriever
 from experiment_variants import variant_text
 
 from google import genai
@@ -192,12 +191,13 @@ def format_context(relevant_chunks):
 # الصيغة مفروضة في build_system_prompt
 CITATION = re.compile(r"حديث\s*رقم\s*[:\s]*(\d+)")
 
-# إشارات غير منضبطة لرقم حديث (مثل: "حديث 999"، "حديث رقم: 999"، "مسلم 999"، "مسلم، رقم 999")
+# إشارات غير منضبطة لرقم حديث (مثل: "حديث 999"، "حديث رقم: 999"، "مسلم 999"، "مسلم، 999"، "مسلم، رقم 999")
 LOOSE_CITATION = re.compile(
-    r"(?:حديث(?:\s*رقم)?|مسلم(?:\s*[،,]?\s*رقم)?)\s*[:\s]*(\d+)"
+    r"(?:حديث(?:\s*رقم)?|مسلم(?:\s*[،,])?(?:\s*رقم)?)\s*[:\s]*(\d+)"
 )
 
 _DIGIT = re.compile(r"\d")
+_VALID_REFUSAL = re.compile(rf"^{re.escape(REFUSAL)}[.؟!]?$")
 
 
 class ValidationResult(Enum):
@@ -264,7 +264,7 @@ def validate_answer(answer, context_ids):
     stripped = (answer or "").strip()
     allowed_ids = set(context_ids)
 
-    if stripped == REFUSAL and not _DIGIT.search(stripped):
+    if _VALID_REFUSAL.fullmatch(stripped) and not _DIGIT.search(stripped):
         return VALID_REFUSAL
 
     if REFUSAL in stripped:
@@ -460,36 +460,56 @@ def answer_question(
     return details["answer"], details["chunks"]
 
 
+DEFAULT_K = 5
+
+
+def build_pipeline():
+
+    from pipeline import build_pipeline as _build_pipeline
+
+    return _build_pipeline()
+
+
 def load_questions(path=QUESTIONS_PATH):
 
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip() for line in f if line.strip()]
 
 
+def format_retrieved_chunk(chunk):
+
+    chapter = (chunk.get("metadata") or {}).get("chapter_arabic", "")
+    score = chunk.get("score")
+    score_text = (
+        f" | rerank score: {score:.4f}" if score is not None else ""
+    )
+
+    return (
+        f"Rank: {chunk['rank']} | "
+        f"Hadith ID: {chunk['hadith_id']} | "
+        f"Chapter: {chapter}"
+        f"{score_text}"
+    )
+
+
 def main():
 
-    retriever = build_default_retriever()
+    retriever = build_pipeline()
 
     for question in load_questions():
 
         print("=" * 80)
         print(question)
 
-        answer, chunks = answer_question(question, retriever)
+        answer, chunks = answer_question(question, retriever, k=DEFAULT_K)
 
         print("\nAnswer:")
         print(answer)
 
-        print("\nRetrieved Chunks:")
+        print("\nRetrieved Hadiths:")
 
         for chunk in chunks:
-
-            print(
-                f"Rank: {chunk['rank']} | "
-                f"Chunk ID: {chunk['chunk_id']} | "
-                f"Hadith ID: {chunk['hadith_id']} | "
-                f"Score: {chunk['score']:.4f}"
-            )
+            print(format_retrieved_chunk(chunk))
 
 
 if __name__ == "__main__":

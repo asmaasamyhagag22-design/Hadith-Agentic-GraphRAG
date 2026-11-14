@@ -28,11 +28,9 @@ from retrieve import (
     Retriever,
     LexicalRetriever,
     HybridRetriever,
-    UpgradedRetriever,
     load_chunk_lookup,
 )
-from lexical import BM25Index
-from experiment_variants import variant_text
+from pipeline import build_bm25, build_pipeline
 
 
 DENSE_VARIANTS = [
@@ -49,17 +47,7 @@ DENSE_VARIANTS = [
 K_VALUES = (1, 3, 5, 10)
 
 
-def build_bm25(chunk_ids, variant, chunk_lookup):
-
-    texts = [
-        variant_text(chunk_lookup[chunk_id], variant)
-        for chunk_id in chunk_ids
-    ]
-
-    return BM25Index(chunk_ids, texts)
-
-
-def build_retrievers(rerankers=(), include_upgraded=None):
+def build_retrievers(rerankers=(), include_upgraded=False):
     """
     بترجع [(اسم, retriever)] — كل السطور اللي بتتقارن في
     الجدول. الـ BM25 والهجين مبنيين على صيغة الـ matn لأنها
@@ -107,16 +95,10 @@ def build_retrievers(rerankers=(), include_upgraded=None):
             RerankingRetriever(hybrid, model_name=model_name),
         ))
 
-    if include_upgraded is None:
-        include_upgraded = (
-            RETRIEVAL_PIPELINE == "upgraded"
-            and VECTORS_MATN_GEMINI001.exists()
-        )
-
     if include_upgraded:
         retrievers.append((
             "Upgraded (E5)",
-            UpgradedRetriever.from_files(chunk_lookup=chunk_lookup),
+            build_pipeline(mode="upgraded", chunk_lookup=chunk_lookup),
         ))
 
     return retrievers
@@ -231,7 +213,12 @@ def main(eval_set="golden", rerankers=()):
 
     all_ranks = {}
 
-    for name, retriever in build_retrievers(rerankers):
+    include_upgraded = (
+        RETRIEVAL_PIPELINE == "upgraded" and VECTORS_MATN_GEMINI001.exists()
+    )
+    for name, retriever in build_retrievers(
+        rerankers, include_upgraded=include_upgraded
+    ):
 
         hits, mrr, ranks = evaluate(retriever, golden)
         all_ranks[name] = ranks
