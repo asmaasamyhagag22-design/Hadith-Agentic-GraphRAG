@@ -130,21 +130,39 @@ DEFAULT_AGENT_MODE = "off"
 AGENT_ENV_VAR = "MUSNAD_AGENT"
 
 
-def resolve_agent_enabled(agent=None):
-    """Resolve whether agent tool-calling mode is enabled (default ``off``)."""
+def resolve_agent_mode(agent=None):
+    """Resolve agent routing mode: ``'auto'``, ``'on'``, or ``'off'``."""
     raw = agent if agent is not None else os.environ.get(AGENT_ENV_VAR, DEFAULT_AGENT_MODE)
     if isinstance(raw, bool):
-        return raw
+        return "on" if raw else "off"
     normalized = str(raw).strip().lower()
-    if normalized in ("",):
+    if normalized == "":
         normalized = DEFAULT_AGENT_MODE
+    if normalized == "auto":
+        return "auto"
     if normalized in ("on", "true", "1", "yes"):
-        return True
+        return "on"
     if normalized in ("off", "false", "0", "no"):
-        return False
+        return "off"
     raise ValueError(
-        f"Invalid {AGENT_ENV_VAR} value {raw!r}; expected 'on' or 'off'."
+        f"Invalid {AGENT_ENV_VAR} value {raw!r}; expected 'auto', 'on', or 'off'."
     )
+
+
+def resolve_agent_enabled(agent=None, question=None):
+    """Resolve whether agent tool-calling is active (evaluating ``auto`` via router)."""
+    mode = resolve_agent_mode(agent)
+    if mode == "on":
+        return True
+    if mode == "off":
+        return False
+    if question is None:
+        return False
+    try:
+        from src.router import classify_intent
+    except ImportError:
+        from router import classify_intent
+    return classify_intent(question) == "chain"
 
 
 def build_pipeline(
@@ -196,10 +214,12 @@ def build_pipeline(
             bm25_weight=bm25_weight,
         )
 
+    agent_mode = resolve_agent_mode(agent)
     agent_enabled = resolve_agent_enabled(agent)
 
     if resolved_mode == "legacy":
         legacy_pipeline = _legacy_factory()
+        legacy_pipeline.agent_mode = agent_mode
         legacy_pipeline.agent_enabled = agent_enabled
         return legacy_pipeline
 
@@ -222,6 +242,7 @@ def build_pipeline(
     )
     pipeline.default_k = DEFAULT_K
     pipeline.mode = "upgraded"
+    pipeline.agent_mode = agent_mode
     pipeline.agent_enabled = agent_enabled
 
     return pipeline

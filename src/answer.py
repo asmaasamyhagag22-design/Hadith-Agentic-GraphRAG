@@ -495,17 +495,25 @@ def format_sanad_section(sanad, sanad_error=None):
     return "\n".join(lines)
 
 
-def _resolve_use_agent(retriever, use_agent=None):
+def _resolve_agent_enabled_fn():
+    try:
+        from src.pipeline import resolve_agent_enabled
+    except ImportError:
+        from pipeline import resolve_agent_enabled
+    return resolve_agent_enabled
+
+
+def _resolve_use_agent(retriever, use_agent=None, question=None):
     """Resolve whether to execute via tool-calling agent or legacy single-pass RAG."""
     if use_agent is not None:
-        return bool(use_agent)
+        if isinstance(use_agent, bool):
+            return use_agent
+        return _resolve_agent_enabled_fn()(use_agent, question=question)
     env_val = os.environ.get("MUSNAD_AGENT", "").strip()
     if env_val:
-        try:
-            from src.pipeline import resolve_agent_enabled
-        except ImportError:
-            from pipeline import resolve_agent_enabled
-        return resolve_agent_enabled(env_val)
+        return _resolve_agent_enabled_fn()(env_val, question=question)
+    if hasattr(retriever, "agent_mode"):
+        return _resolve_agent_enabled_fn()(getattr(retriever, "agent_mode"), question=question)
     return bool(getattr(retriever, "agent_enabled", False))
 
 
@@ -534,7 +542,7 @@ def answer_with_details(
     هتطلع صفر أخطاء دايمًا بحكم البناء، وده رقم بلا معنى.
     """
 
-    if _resolve_use_agent(retriever, use_agent=use_agent):
+    if _resolve_use_agent(retriever, use_agent=use_agent, question=question):
         return _call_agent(
             question,
             retriever,
