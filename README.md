@@ -1,6 +1,8 @@
 # مُسنَد · Musnad
 
-**Grounded Arabic question answering over Sahih Muslim, backed by a deterministic transmission-chain (sanad) graph.**
+**The upgraded default reached 100% hit@5 on 27 hand-verified questions and averaged 100% correct citations across three runs with `gemini-4-argon`.**
+
+Grounded Arabic question answering over Sahih Muslim, backed by a deterministic transmission-chain (sanad) graph.
 
 > «مُسنَد» بيجاوب على أسئلة من صحيح مسلم برقم الحديث ونص المتن، وبيرفض لما الإجابة مش موجودة في المصدر، وبيقدر يعرض سلسلة رواة الحديث اللي رجع.
 
@@ -11,14 +13,15 @@
 
 ## Demo
 
-Real output of the default `upgraded` pipeline (`uv run python -m src.answer`) on one answerable golden question and one golden refusal question:
+Output captured from `python -m src.answer` with the default `upgraded` pipeline on two golden questions from `data/raw/questions.txt`.
 
 ```text
 ================================================================================
 ما جزاء من صام رمضان إيماناً واحتساباً؟
 
 Answer:
-جزاء من صام رمضان إيماناً واحتساباً هو أن يُغفر له ما تقدم من ذنبه.
+جزاء من صام رمضان إيماناً واحتساباً أن يُغفر له ما تقدم من ذنبه، كما قال رسول الله صلى الله عليه وسلم: "مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ".
+
 (المصدر: صحيح مسلم، حديث رقم 8950)
 
 Retrieved Hadiths:
@@ -38,7 +41,7 @@ Rank: 1 | Hadith ID: 9052 | Chapter: كتاب صلاة المسافرين وقص
 Rank: 2 | Hadith ID: 9195 | Chapter: كتاب الجمعة
 Rank: 3 | Hadith ID: 9181 | Chapter: كتاب الجمعة
 Rank: 4 | Hadith ID: 9200 | Chapter: كتاب الجمعة
-Rank: 5 | Hadith ID: 9199 | Chapter: كتاب الجمعة
+Rank: 5 | Hadith ID: 9203 | Chapter: كتاب الجمعة
 ```
 
 ---
@@ -50,15 +53,15 @@ Rank: 5 | Hadith ID: 9199 | Chapter: كتاب الجمعة
   <img alt="Musnad system architecture" src="docs/assets/musnad-architecture-light.png">
 </picture>
 
-> *Note: The static diagram above illustrates the local offline baseline (`MUSNAD_RETRIEVAL_PIPELINE=legacy`). In the default `upgraded` mode (`src/pipeline.py`), retrieval replaces `multilingual-e5-base` and cross-encoder reranking with `gemini-3.8-flash` HyDE + `gemini-embedding-001` (`3072d`) + 4-way weighted RRF (`8 : 2 : 1 : 1`), falling back automatically to `legacy` if an API call fails or times out.*
+The diagram shows the original retrieval architecture. The steps below describe the current request path.
 
 ### Request lifecycle
 
 1. **Query normalisation and HyDE blending (default `upgraded` mode)** — Strip Arabic diacritics (`strip_diacritics`), generate a short hypothetical Sahih Muslim *matn* with `gemini-3.8-flash` (`location="global"`, `thinking_level="LOW"`, `temperature=0`), embed both query and HyDE text with `gemini-embedding-001` (`3072d`, `RETRIEVAL_QUERY`), and blend `0.7 * q + 0.3 * HyDE_q` (`src/retrieve.py`).
 2. **4-way dense + BM25 retrieval over matn and expansions** — Search `gemini-embedding-001` (`3072d`, `RETRIEVAL_DOCUMENT`) dot-product indexes and Okapi BM25 (`BM25Index`) over 7,110 diacritic-stripped matn chunks (`460` reference-only follow-ups excluded from `7,570` total chunks) and their `gemini-3.8-flash` document expansions, taking the top `candidates = 50` from each signal (`src/retrieve.py`, `src/lexical.py`).
 3. **Weighted Reciprocal Rank Fusion** — Merge the four rank lists (`Dense_matn_HyDE : Dense_exp_HyDE : BM25_matn : BM25_exp`) with `rrf_k = 60` and dev-tuned weights `8 : 2 : 1 : 1`, without cross-encoder reranking (`src/retrieve.py`, `src/pipeline.py`).
-4. **Offline baseline and automatic fallback (`legacy`)** — Setting `MUSNAD_RETRIEVAL_PIPELINE=legacy` (or an automatic fallback triggered if the HyDE/embedding Vertex AI call fails or times out past `MUSNAD_API_TIMEOUT_MS`) runs `intfloat/multilingual-e5-base` (`FAISS IndexFlatIP`) + `BM25Index` (equal `1.0 : 1.0` RRF) followed by `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` over `top_k_in = 10` candidates (`src/rerank.py`).
-5. **Context assembly and generation** — Format the top `k = 5` chunks with vocalised matn, `hadith_id`, and `chapter_arabic` (`format_context`), then call `gemini-2.5-pro` via Vertex AI at `temperature = 0` (`src/answer.py`).
+4. **Automatic retrieval fallback** — A failed or timed-out HyDE or embedding request switches that query to `legacy` retrieval. The same path can be selected with `MUSNAD_RETRIEVAL_PIPELINE=legacy` and uses local dense search, BM25 and a cross-encoder (`src/pipeline.py`, `src/rerank.py`).
+5. **Context assembly and generation** — Format the top `k = 5` chunks with vocalised matn, `hadith_id`, and `chapter_arabic` (`format_context`), then call `gemini-4-argon` via Vertex AI (`location="global"`, `thinking_level="LOW"`, `temperature = 0`) (`src/answer.py`).
 6. **Citation validation and single retry** — `validate_answer` checks that the reply is either a valid refusal (`REFUSAL` with at most one trailing `.`, `؟`, or `!`) or contains at least one strict citation (`حديث رقم XXXX`) with every strict and loose hadith number inside the retrieved `context_ids`. On `MISSING_CITATION`, `OUT_OF_CONTEXT_CITATION`, or `MIXED_REFUSAL`, regenerate once with `CORRECTIONS[status]`; if the retry is still invalid, return `REFUSAL`.
 7. **Sanad graph lookup (read-only API)** — Any retrieved chunk or `hadith_id` can be passed to `context_for_retrieval_result` / `context_for_local_hadith` (`src/sanad_context.py`) to resolve its recorded isnads in `sanad_graph.sqlite` through the frozen 1:1 linkage.
 
@@ -66,16 +69,16 @@ Rank: 5 | Hadith ID: 9199 | Chapter: كتاب الجمعة
 
 ## Results
 
-**Default pipeline (`Upgraded`: HyDE + Gemini-001 + RRF):** **85%** `hit@1`, **100%** `hit@5`, **100%** `hit@10`, and **0.926** MRR on the hand-verified golden set (`n = 27`); **38%** `hit@1`, **74%** `hit@5`, **85%** `hit@10`, and **0.528** MRR on the 224-query development set; **96%** correct citation (`26.0/27` 3-run mean), **0%** invalid out-of-context citation attempts (`0/30`), **0%** false refusals (`0/27`), and **2/3** correct refusals end to end.
+**Upgraded retrieval reached 85% hit@1, 100% hit@5, 100% hit@10 and 0.926 MRR** on the 27 hand-verified answerable questions. With `gemini-4-argon`, it averaged **100% correct citations** (`27/27`), **0%** out-of-context citation attempts (`0/30`), **0%** false refusals (`0/27`), **1%** wrong in-context citations (`1.1%`), and **8/9** (`88.9%`) correct refusals across three runs (upgraded from `96%` and `2/3` with `gemini-2.5-pro`). On the 224-query development set, retrieval reached **38%** `hit@1`, **74%** `hit@5`, **85%** `hit@10` and **0.528** MRR.
 
-`golden.jsonl` (33 hand-written, corpus-verified questions) is used for reporting, whereas `synthetic_eval.jsonl` (224 generated known-item queries) is used strictly for configuration selection; `Hybrid + rerank` and earlier `e5-base` / `BM25` rows serve as local offline baselines (`MUSNAD_RETRIEVAL_PIPELINE=legacy`). Full methodology, per-metric denominators, and all negative results are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+`golden.jsonl` contains 33 hand-written questions, including 27 answerable questions for retrieval and 3 refusal cases for answer evaluation. The development set (`synthetic_eval.jsonl`) contains 224 generated known-item queries used to select the configuration. Full methodology and denominators are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
 
 **Retrieval, hand-verified set (n = 27)**
 
 | Pipeline | hit@1 | hit@5 | hit@10 | MRR |
 |---|---|---|---|---|
 | **Upgraded (HyDE + Gemini-001 + RRF)** | **85%** | **100%** | **100%** | **0.926** |
-| Hybrid + rerank | 56% | 81% | 85% | 0.665 |
+| Hybrid + rerank (baseline) | 56% | 81% | 85% | 0.665 |
 | Hybrid (RRF) | 44% | 74% | 85% | 0.565 |
 | Dense only | 41% | 59% | 63% | 0.493 |
 | BM25 only | 33% | 63% | 67% | 0.464 |
@@ -93,16 +96,13 @@ Configuration tuned on the dev set; held-out evaluation in progress.
 
 **Answer quality (27 answerable + 3 unanswerable questions)**
 
-| Metric | **Upgraded (3-run mean)** | Hybrid + rerank (baseline) | Hybrid |
-|---|---|---|---|
-| Correct citation | **96%** | 81% | 63% |
-| Invalid citation attempts (measured before filtering) | **0%** | 0% | 0% |
-| Missing citation attempts (raw output) | **0%** | 0% | 0% |
-| Cited a non-gold hadith from the context | **7%** | 10% | 23% |
-| False refusals | **0%** | 0% | 0% |
-| Correct refusals | **2/3** | 3/3 | 3/3 |
+| Pipeline | Correct citation | Invalid citation attempts (raw) | Missing citation attempts (raw) | Non-gold citation from context | False refusals | Correct refusals |
+|---|---|---|---|---|---|---|
+| **Upgraded (3-run mean)** | **100%** | **0%** | **0%** | **1%** | **0%** | **8/9** |
+| Hybrid + rerank (baseline, 3-run mean) | 81% | 0% | 0% | 8% | 0% | 3/3 |
+| Hybrid (RRF) | 63% | 0% | 0% | 23% | 0% | 3/3 |
 
-Improving retrieval translated directly into better answers: upgrading retrieval brought the gold hadith into the top-5 context for all `27/27` answerable questions (`22` → `27` over the `Hybrid + rerank` baseline, which itself gained `2` over `Hybrid`'s `20`), raising correct citation from `63%` (`Hybrid`) and `81%` (`Hybrid + rerank`) to `96%` while reducing non-gold in-context citations from `23%` and `10%` to `7%` (for the third unanswerable question on Surat al-Kahf on Friday, upgraded retrieval surfaces Sahih Muslim hadith `#9842` on the first ten verses of al-Kahf, so the model cites `#9842` to clarify scope rather than emitting the bare refusal string). Citation enforcement blocks citations outside the retrieved evidence; it does not by itself catch a wrong hadith chosen from within it.
+With `gemini-4-argon`, wrong in-context citations dropped to **1%** (vs **7%** with `gemini-2.5-pro`, **8%** on the legacy `Hybrid + rerank` baseline, and **23%** on `Hybrid (RRF)`). On one of three runs, the generator cited a retrieved hadith about night prayer in response to a question specifically about Taraweeh (`2/3`, `3/3`, `3/3` = `8/9`). Citation validation blocks citations outside the retrieved evidence. A wrong hadith chosen from within it can pass validation.
 
 ---
 
@@ -169,7 +169,7 @@ Every evaluation dataset and graph build is pinned by a canonical SHA-256 digest
 Re-run the quality gates and evaluations:
 
 ```bash
-# 1. Documentation & dataset hash gate (checks all 37 table cells, denominators, prose figures, and SHA-256 hashes)
+# 1. Documentation & dataset hash gate
 uv run python -m src.check_docs
 
 # 2. Automated test suite (full suite with local data, or CI clean-checkout subset)
@@ -183,7 +183,7 @@ uv run python -m src.validate_golden
 uv run python -m src.evaluate golden cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 uv run python -m src.evaluate synthetic cross-encoder/mmarco-mMiniLMv2-L12-H384-v1
 
-# 5. End-to-end answer evaluation (calls Gemini 2.5 Pro via Vertex AI; consumes quota)
+# 5. End-to-end answer evaluation (calls Gemini 4 Argon via Vertex AI; consumes quota)
 uv run python -m src.answer_eval
 ```
 
@@ -195,24 +195,25 @@ uv run python -m src.answer_eval
 uv sync
 ```
 
-Configure Vertex AI Application Default Credentials in `.env` (optional `MUSNAD_RETRIEVAL_PIPELINE=legacy` forces the offline local baseline; `upgraded` is the default and falls back to `legacy` automatically if an API call fails or times out):
+Configure Vertex AI Application Default Credentials and set these values in `.env`. Set `MUSNAD_RETRIEVAL_PIPELINE=legacy` for local retrieval. The answer generator still uses Vertex AI.
 
 ```ini
 GOOGLE_GENAI_USE_VERTEXAI=True
 GOOGLE_CLOUD_PROJECT=your-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
-# MUSNAD_RETRIEVAL_PIPELINE=upgraded  # default ("legacy" for offline baseline)
-# MUSNAD_API_TIMEOUT_MS=15000         # API timeout before automatic fallback to legacy
+# MUSNAD_RETRIEVAL_PIPELINE=upgraded  # default
 ```
 
-If `data/processed/` is not yet built on your machine, build the chunk store, dense variant indexes, and SQLite sanad graph once:
+Build the chunk store, local dense indexes and SQLite sanad graph if they are missing.
 
 ```bash
 uv run python -m src.ingest && uv run python -m src.experiment_variants
 uv run python -m src.build_sanad_graph
 ```
 
-Run the verification gates, retrieval evaluation, smoke test, and CLI question answering:
+The default retrieval mode also needs `vectors_matn_gemini001_3072.npy`, `vectors_expansion_g38flash_gemini001_3072.npy` and `doc_expansions_g38flash.jsonl` in `data/processed/`. These artifacts are built using Vertex AI. Set `MUSNAD_API_TIMEOUT_MS` in the shell to change the retrieval API timeout from its default of 15,000 ms. [Matn embeddings](EXPERIMENTS.md#23-التجربة-e1--مقارنة-نماذج-التضمين-الكثيف-والهجين-dense--densesparse) · [Document expansions](EXPERIMENTS.md#28-التجربة-step-4--إعادة-تشغيل-e2-وe4-بأحدث-نموذج-flash-متاح-gemini-38-flash-وفحص-النماذج-غير-gemini)
+
+Run the verification gates, retrieval evaluation, smoke test and CLI question answering.
 
 ```bash
 uv run python -m src.validate_golden
@@ -238,8 +239,8 @@ src/
 ├── ingest.py, utils.py        # corpus chunking, Arabic normalisation, isnad/matn split
 ├── embed.py, lexical.py       # e5 dense embeddings, Arabic BM25, Reciprocal Rank Fusion
 ├── retrieve.py, rerank.py     # Retriever, HybridRetriever, UpgradedRetriever (with legacy fallback), CrossEncoder RerankingRetriever
-├── pipeline.py                # canonical pipeline factory (build_pipeline: upgraded default, legacy baseline)
-├── answer.py                  # Gemini 2.5 Pro generation, citation validator, single retry, CLI
+├── pipeline.py                # pipeline factory with upgraded retrieval as the default
+├── answer.py                  # Gemini 4 Argon generation, citation validator, single retry, CLI
 ├── evaluate.py, answer_eval.py, validate_golden.py, smoke_test.py
 ├── build_sanad_graph.py, sanad_graph.py, sanad_context.py
 ├── check_docs.py              # verifies README tables, prose figures, and dataset hashes against EXPERIMENTS.md
@@ -264,5 +265,5 @@ SANAD_GRAPH_READINESS.md       # linkage and narrator-identity readiness audit
 
 - **Sahih Muslim only** — The corpus covers the 7,459 hadiths of Sahih Muslim (`muslim.json`); hadiths recorded only in other collections (e.g., Sahih al-Bukhari) are out of scope and refused.
 - **Research aid, not a fatwa authority** — Musnad surfaces recorded texts with their hadith numbers and transmission chains for verification; it does not issue religious rulings.
-- **In-context wrong citations are not caught by regex validation** — `validate_answer` guarantees cited hadith numbers come from the retrieved context (`0%` out-of-context citations), but the generator still cites a non-gold hadith from within the retrieved top-5 context on `10%` of evaluated questions (`3/30`).
+- **In-context citation errors** — `validate_answer` checks that cited hadith numbers belong to the retrieved context. In the upgraded evaluation, a mean of `2/30` responses cited a non-gold hadith from that context (`7%`).
 - **Narrator gradings are not linked yet** — `sanad_graph.sqlite` records MIS narrator identities and transmission chains for `7,015` linked hadiths (`444` local hadiths remain unlinked); classical critic gradings (*al-jarḥ wa-l-taʿdīl*) remain gated until historical narrator entity resolution is validated.

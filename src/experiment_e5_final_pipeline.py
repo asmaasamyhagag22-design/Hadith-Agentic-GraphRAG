@@ -13,8 +13,9 @@ Step 5 — Final Retrieval Pipeline (E5) evaluation and multi-run `answer_eval`.
    - Old un-reranked (`Hybrid: dense + BM25`, `gemini-2.5-pro`): 1 run
    - New pipeline (`Upgraded (E5)`, `gemini-2.5-pro`): 3 runs
    - New pipeline (`Upgraded (E5)`, `gemini-3.1-pro-preview`): 1 run
-   - New pipeline (`Upgraded (E5)`, `gemini-4-argon`): 1 run
-   Computes mean and min-max across the 3 runs and saves full results to
+   - New pipeline (`Upgraded (E5)`, `gemini-4-argon`): 3 runs
+   - New pipeline (`Upgraded (E5)`, `gemini-4-hydrogen`): 3 runs
+   Computes mean and min-max across the runs and saves full results to
    `data/processed/e5_results.json`.
 """
 
@@ -142,10 +143,19 @@ def evaluate_answers_parallel(retriever, items, k=5, model=MODEL):
         (idx, item, pre_chunks[idx - 1])
         for idx, item in enumerate(items, start=1)
     ]
-    workers = 2 if (model.startswith("gemini-3") or model.startswith("gemini-4")) else MAX_WORKERS
+    workers = (
+        1
+        if "hydrogen" in model
+        else (2 if (model.startswith("gemini-3") or model.startswith("gemini-4")) else MAX_WORKERS)
+    )
+    done = 0
+    total_tasks = len(tasks)
     with ThreadPoolExecutor(max_workers=workers) as ex:
         for row in ex.map(run_one, tasks):
             counter.add(**row)
+            done += 1
+            if done % 5 == 0 or done == total_tasks:
+                print(f"    [{model}] progress: {done}/{total_tasks}", flush=True)
     return counter
 
 
@@ -284,7 +294,8 @@ def main():
             "gemini-3.1-pro-preview",
             1,
         ),
-        ("new_upgraded_e5_g4argon", "Upgraded (E5)", "gemini-4-argon", 1),
+        ("new_upgraded_e5_g4argon", "Upgraded (E5)", "gemini-4-argon", 3),
+        ("new_upgraded_e5_g4hydrogen", "Upgraded (E5)", "gemini-4-hydrogen", 3),
     ]
 
     for key, ret_name, gen_model, num_runs in run_plan:

@@ -64,7 +64,7 @@ README_TABLES = {
     ),
     "answer_quality": (
         "**Answer quality",
-        "Improving retrieval",
+        "## Engineering decisions",
     ),
 }
 

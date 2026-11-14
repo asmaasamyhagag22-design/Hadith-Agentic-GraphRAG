@@ -1,6 +1,7 @@
 import sys
 import os
 import re
+import threading
 import time
 from enum import Enum
 from pathlib import Path
@@ -21,7 +22,7 @@ load_dotenv()
 # بين الموديلات راحت مع Groq، والتنقل نفسه كان بيفسد
 # المقارنات — أي رقم اتقاس على موديل مختلف مش قابل
 # للمقارنة مع اللي قبله.
-MODEL = "gemini-2.5-pro"
+MODEL = "gemini-4-argon"
 
 # صفر عشان النتايج تبقى قابلة للتكرار في التجارب، وعشان
 # يوقف تسرّب حروف من لغات تانية اللي كان بيحصل مع الافتراضي.
@@ -34,10 +35,10 @@ REFUSAL = "المصادر المتاحة لا تجيب عن هذا السؤال"
 # والاعتماد على Application Default Credentials.
 MAX_ATTEMPTS = 5
 INITIAL_BACKOFF_SECONDS = 4
+GENERATE_TIMEOUT_MS = int(os.environ.get("MUSNAD_GENERATE_TIMEOUT_MS", "180000"))
 
 _client = None
-_global_client = None
-_regional_clients = {}
+_thread_clients = threading.local()
 _RR_LOCATIONS = (
     "global",
     "us-central1",
@@ -52,20 +53,28 @@ _rr_counter = 0
 
 def get_client(location=None):
 
-    global _client, _global_client
+    global _client
+
+    http_opts = types.HttpOptions(timeout=GENERATE_TIMEOUT_MS) if GENERATE_TIMEOUT_MS else None
 
     if location == "global":
-        if _global_client is None:
-            _global_client = genai.Client(location="global")
-        return _global_client
+        client = getattr(_thread_clients, "global_client", None)
+        if client is None:
+            client = genai.Client(location="global", http_options=http_opts)
+            _thread_clients.global_client = client
+        return client
 
     if location is not None:
-        if location not in _regional_clients:
-            _regional_clients[location] = genai.Client(location=location)
-        return _regional_clients[location]
+        regional = getattr(_thread_clients, "regional_clients", None)
+        if regional is None:
+            regional = {}
+            _thread_clients.regional_clients = regional
+        if location not in regional:
+            regional[location] = genai.Client(location=location, http_options=http_opts)
+        return regional[location]
 
     if _client is None:
-        _client = genai.Client()
+        _client = genai.Client(http_options=http_opts)
 
     return _client
 

@@ -63,12 +63,12 @@
 `answer_eval.report()`: الاستشهاد الصحيح بيتحسب على الأسئلة
 القابلة للإجابة (27)، والاستشهاد الباطل والخاطئ على كل
 الأسئلة (30)، والرفض الكاذب على الأسئلة اللي وصل فيها
-الحديث الصح للسياق (20 للهجين، 22 مع إعادة الترتيب).
+الحديث الصح للسياق (27 للمسار المرقّى، 22 مع إعادة الترتيب، 20 للهجين).
 
 ```canonical-results
 # table | row_id | README row label | meta | metric=value[@denominator]
 retrieval_golden | upgraded | Upgraded (HyDE + Gemini-001 + RRF) | dataset=golden.jsonl n=27 section=29 | hit@1=85%@27 hit@3=100%@27 hit@5=100%@27 hit@10=100%@27 MRR=0.926
-retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
+retrieval_golden | hybrid_rerank | Hybrid + rerank (baseline) | dataset=golden.jsonl n=27 section=6 | hit@1=56%@27 hit@3=74%@27 hit@5=81%@27 hit@10=85%@27 MRR=0.665
 retrieval_golden | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl n=27 section=5 | hit@1=44%@27 hit@3=67%@27 hit@5=74%@27 hit@10=85%@27 MRR=0.565
 retrieval_golden | dense_matn | Dense only | dataset=golden.jsonl n=27 section=5 | hit@1=41%@27 hit@3=56%@27 hit@5=59%@27 hit@10=63%@27 MRR=0.493
 retrieval_golden | bm25_matn | BM25 only | dataset=golden.jsonl n=27 section=5 | hit@1=33%@27 hit@3=59%@27 hit@5=63%@27 hit@10=67%@27 MRR=0.464
@@ -76,12 +76,9 @@ retrieval_synthetic | upgraded | Upgraded (HyDE + Gemini-001 + RRF) | dataset=sy
 retrieval_synthetic | hybrid_rerank | Hybrid + rerank (baseline) | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
 retrieval_synthetic | hybrid_rrf | Hybrid (RRF) | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=18%@224 hit@3=30%@224 hit@5=37%@224 hit@10=44%@224 MRR=0.256
 retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
-answer_quality | correct_citation | Correct citation | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=96%@27 Hybrid_+_rerank_(baseline)=81%@27 Hybrid=63%@27
-answer_quality | invalid_citation | Invalid citation attempts (measured before filtering) | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=0%@30 Hybrid_+_rerank_(baseline)=0%@30 Hybrid=0%@30
-answer_quality | missing_citation | Missing citation attempts (raw output) | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=0%@30 Hybrid_+_rerank_(baseline)=0%@30 Hybrid=0%@30
-answer_quality | wrong_citation | Cited a non-gold hadith from the context | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=7%@30 Hybrid_+_rerank_(baseline)=10%@30 Hybrid=23%@30
-answer_quality | false_refusal | False refusals | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=0%@27 Hybrid_+_rerank_(baseline)=0%@22 Hybrid=0%@20
-answer_quality | refusal_tests | Correct refusals | dataset=golden.jsonl section=29 | Upgraded_(3-run_mean)=2/3 Hybrid_+_rerank_(baseline)=3/3 Hybrid=3/3
+answer_quality | upgraded | Upgraded (3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=100%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=1%@30 False_refusals=0%@27 Correct_refusals=8/9
+answer_quality | hybrid_rerank | Hybrid + rerank (baseline, 3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=81%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=8%@30 False_refusals=0%@22 Correct_refusals=3/3
+answer_quality | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl section=29 | Correct_citation=63%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=23%@30 False_refusals=0%@20 Correct_refusals=3/3
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3346,7 +3343,8 @@ artifact was touched.
 شُغّل `src/answer_eval.py` (عبر `src/experiment_e5_final_pipeline.py`) على المجموعة اليدوية `golden.jsonl` (`n = 30` سؤالًا: `27` سؤال متن قابلًا للإجابة و`3` أسئلة رفض خارج نطاق صحيح مسلم، مع تمرير أعلى `k = 5` أحاديث مسترجعة للمولّد):
 - **3 تشغيلات مستقلة** لخط الاسترجاع القديم (`Hybrid + mmarco-mMiniLMv2-L12-H384-v1`) مع المولّد `gemini-2.5-pro` (`90` نداء Pro).
 - **3 تشغيلات مستقلة** لخط الاسترجاع الجديد (`Upgraded E5`) مع المولّد `gemini-2.5-pro` (`90` نداء Pro).
-- **تشغيل مستقل** لخط الاسترجاع الجديد (`Upgraded E5`) مع أحدث نماذج فئة Pro في Vertex AI: **`gemini-3.1-pro-preview`** (`30` نداء Pro) و**`gemini-4-argon`** (`30` نداء Pro).
+- **3 تشغيلات مستقلة** لخط الاسترجاع الجديد (`Upgraded E5`) مع المولّد **`gemini-4-argon`** (`90` نداء Pro) ومع **`gemini-4-hydrogen`** (`90` نداء Pro)، بالإضافة إلى تشغيل مرجعي واحد مع `gemini-3.1-pro-preview` (`30` نداء Pro).
+- **النماذج المتاحة من فئة Pro في Vertex AI بالمشروع (`generate-504115`، `location="global"`، بتاريخ 2026-11-14):** `gemini-2.5-pro`، `gemini-3.1-pro-preview`، `gemini-4-argon`، `gemini-4-hydrogen`، `gemini-4-carbon` *(بينما أعادت `gemini-3-pro` و`gemini-3-pro-preview` و`gemini-3.1-pro` و`gemini-3.5-pro` و`gemini-3.5-pro-preview` و`gemini-3.8-pro` و`gemini-4-pro` و`gemini-4-helium` و`gemini-4-neon` رمز `404`)*.
 
 #### أ) مقارنة خط الاسترجاع القديم والجديد عبر 3 تشغيلات بـ `gemini-2.5-pro` (المتوسط `Mean` والمدى `Min–Max`)
 
@@ -3356,25 +3354,27 @@ artifact was touched.
 | **الاستشهاد الصحيح بالحديث المرجعي (`Correct citation`)** | `27` | `22/27` · `22/27` · `22/27` | **81.5%** (`81.5%–81.5%`، المقرَّب `81%`) | `26/27` · `25/27` · `27/27` | **96.3%** (`92.6%–100.0%`، المقرَّب **`96%`**) |
 | **محاولات استشهاد بمعرّف خارج السياق (`Invalid citation attempts`)** | `30` | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) |
 | **إجابات بلا استشهاد قبل الإلحاق (`Missing citation attempts`)** | `30` | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) | `0/30` · `0/30` · `0/30` | **0.0%** (`0.0%–0.0%`، **`0%`**) |
-| **استشهاد بحديث غير مرجعي من السياق (`Wrong in-context citation`)** | `30` | `3/30` · `2/30` · `2/30` | **7.8%** (`6.7%–10.0%`) | `2/30` · `3/30` · `1/30` | **6.7%** (`3.3%–10.0%`، المقرَّب **`7%`**) |
+| **استشهاد بحديث غير مرجعي من السياق (`Wrong in-context citation`)** | `30` | `3/30` · `2/30` · `2/30` | **7.8%** (`6.7%–10.0%`، المقرَّب **`8%`**) | `2/30` · `3/30` · `1/30` | **6.7%** (`3.3%–10.0%`، المقرَّب **`7%`**) |
 | **رفض خاطئ والحديث في السياق (`False refusals`)** | `22` / `27` | `0/22` · `0/22` · `0/22` | **0.0%** (`0.0%–0.0%`، **`0%`**) | `0/27` · `0/27` · `0/27` | **0.0%** (`0.0%–0.0%`، **`0%`**) |
 | **رفض صحيح لأسئلة خارج المدونة (`Correct refusals`)** | `3` | `3/3` · `3/3` · `3/3` | **100.0%** (`100.0%–100.0%`، **`3/3`**) | `2/3` · `2/3` · `2/3` | **66.7%** (`66.7%–66.7%`، **`2/3`**) |
 
 *(المرجع القياسي في §21 قبل الدمج عبر تشغيل منفرد على `golden.jsonl`: خط الأساس `Hybrid (RRF)` حقق `63%` استشهاد صحيح [`17/27`]، `0%` محاولات خارج السياق [`0/30`]، `0%` بلا استشهاد [`0/30`]، `23%` استشهاد غير مرجعي من داخل السياق [`7/30`]، `0%` رفض خاطئ [`0/20`]، `3/3` رفض صحيح؛ وخط الأساس `Hybrid + rerank` حقق `81%` [`22/27`]، `0%` [`0/30`]، `0%` [`0/30`]، `10%` [`3/30`]، `0%` [`0/22`]، `3/3`.)*
 
-#### ب) مقارنة مولّدات فئة Pro فوق خط الاسترجاع الجديد (`Upgraded E5`, `k = 5`)
+#### ب) مقارنة مولّدات فئة Pro فوق خط الاسترجاع الجديد (`Upgraded E5`, `k = 5` — متوسط `Mean` والمدى `Min–Max`)
 
-| المقياس (المصدر: `golden.jsonl`, `k = 5`) | المقام | `Upgraded E5` + **`gemini-2.5-pro`** (متوسط 3 تشغيلات) | `Upgraded E5` + **`gemini-3.1-pro-preview`** (تشغيل 1) | `Upgraded E5` + **`gemini-4-argon`** (تشغيل 1) |
-|---|---:|---|---|---|
-| **وجود الحديث المرجعي في السياق (`Gold in top-5 context`)** | `27` | **100.0%** (`27/27`) | **100.0%** (`27/27`) | **100.0%** (`27/27`) |
-| **الاستشهاد الصحيح بالحديث المرجعي (`Correct citation`)** | `27` | **96.3%** (`26.0/27`، مدى `92.6%–100.0%`) | **88.9%** (`24/27`) | **100.0%** (`27/27`) |
-| **محاولات استشهاد بمعرّف خارج السياق (`Invalid citation attempts`)** | `30` | **0.0%** (`0/30`) | **0.0%** (`0/30`) | **0.0%** (`0/30`) |
-| **إجابات بلا استشهاد قبل الإلحاق (`Missing citation attempts`)** | `30` | **0.0%** (`0/30`) | **0.0%** (`0/30`) | **0.0%** (`0/30`) |
-| **استشهاد بحديث غير مرجعي من السياق (`Wrong in-context citation`)** | `30` | **6.7%** (`2.0/30`، مدى `3.3%–10.0%`) | **13.3%** (`4/30`) | **3.3%** (`1/30`، `0/27` على القابلة للإجابة) |
-| **رفض خاطئ والحديث في السياق (`False refusals`)** | `27` | **0.0%** (`0/27`) | **0.0%** (`0/27`) | **0.0%** (`0/27`) |
-| **رفض صحيح لأسئلة خارج المدونة (`Correct refusals`)** | `3` | **66.7%** (`2/3`) | **66.7%** (`2/3`) | **66.7%** (`2/3`) |
+| المقياس (المصدر: `golden.jsonl`, `k = 5`) | المقام | **`gemini-4-argon`** *(الافتراضي الجديد، 3 تشغيلات)* | **`gemini-2.5-pro`** *(الافتراضي السابق، 3 تشغيلات)* | **`gemini-4-hydrogen`** *(3 تشغيلات\*)* | **`gemini-3.1-pro-preview`** *(تشغيل 1)* |
+|---|---:|---|---|---|---|
+| **وجود الحديث المرجعي في السياق (`Gold in top-5 context`)** | `27` | **100.0%** (`27/27 · 27/27 · 27/27`) | **100.0%** (`27/27 · 27/27 · 27/27`) | **100.0%** (`27/27 · 27/27 · 27/27`) | **100.0%** (`27/27`) |
+| **الاستشهاد الصحيح بالحديث المرجعي (`Correct citation`)** | `27` | **100.0%** (`27/27 · 27/27 · 27/27`، مدى `100.0%–100.0%`، المقرَّب **`100%`**) | **96.3%** (`26/27 · 25/27 · 27/27`، مدى `92.6%–100.0%`، المقرَّب `96%`) | **84.0%** (`23/27 · 22/27 · 23/27`، مدى `81.5%–85.2%`، المقرَّب `84%`) | **88.9%** (`24/27`) |
+| **محاولات استشهاد بمعرّف خارج السياق (`Invalid citation attempts`)** | `30` | **0.0%** (`0/30 · 0/30 · 0/30`، **`0%`**) | **0.0%** (`0/30`) | **0.0%** (`0/30 · 0/30 · 0/30`، `0%`) | **0.0%** (`0/30`) |
+| **إجابات بلا استشهاد قبل الإلحاق (`Missing citation attempts`)** | `30` | **0.0%** (`0/30 · 0/30 · 0/30`، **`0%`**) | **0.0%** (`0/30`) | **0.0%** (`0/30 · 0/30 · 0/30`، `0%`) | **0.0%** (`0/30`) |
+| **استشهاد بحديث غير مرجعي من السياق (`Wrong in-context citation`)** | `30` | **1.1%** (`1/30 · 0/30 · 0/30`، مدى `0.0%–3.3%`، المقرَّب **`1%`**) | **6.7%** (`2/30 · 3/30 · 1/30`، مدى `3.3%–10.0%`، المقرَّب `7%`) | **13.3%** (`5/30 · 4/30 · 3/30`، مدى `10.0%–16.7%`) | **13.3%** (`4/30`) |
+| **رفض خاطئ والحديث في السياق (`False refusals`)** | `27` | **0.0%** (`0/27 · 0/27 · 0/27`، **`0%`**) | **0.0%** (`0/27`) | **2.5%** (`0/27 · 1/27 · 1/27`، مدى `0.0%–3.7%`) | **0.0%** (`0/27`) |
+| **رفض صحيح لأسئلة خارج المدونة (`Correct refusals`)** | `3` | **88.9%** (`2/3 · 3/3 · 3/3` = **`8/9`**، مدى `66.7%–100.0%`) | **66.7%** (`2/3 · 2/3 · 2/3` = `6/9`) | **88.9%** (`2/3 · 3/3 · 3/3` = `8/9`، مدى `66.7%–100.0%`) | **66.7%** (`2/3`) |
 
-- **تفسير حالة سؤال الرفض الثالث (`2/3` مقابل `3/3`):** سؤال الرفض رقم 28 يسأل عن «فضل قراءة سورة الكهف يوم الجمعة». في المسترجع القديم لم يظهر حديث سورة الكهف ضمن الخمسة الأوائل فرفض النموذج السؤال بعبارة الرفض القياسية (`3/3`). أمّا في المسترجع الجديد (`Upgraded E5`) فقد استُرجع الحديث رقم `9842` من صحيح مسلم («من حفظ عشر آيات من أول سورة الكهف عُصم من الدجال») في المركز الأول، فقام المولّد في جميع النماذج الثلاثة بتوضيح أن المرويّ في السياق من صحيح مسلم هو فضل حفظ أول عشر آيات من سورة الكهف للعصمة من الدجال `[حديث: 9842]` دون ذكر تخصيص يوم الجمعة؛ وبما أن نص الإجابة يحتوي على استشهاد `[حديث: 9842]` لشرح ما ورد في السياق بدل الاكتفاء بجملة الرفض المجرّدة، يحسبه فاحص الرفض الصارم في `answer_eval.py` إجابةً مستشهِدة لا رفضًا خالصًا.
+- **قرار اختيار المولّد الافتراضي (`src/answer.py`):** استوفى **`gemini-4-argon`** (`thinking_level="LOW"`, `location="global"`) شرطي التحوّل مقارنةً بـ `gemini-2.5-pro`: تفوّق في متوسط الاستشهاد الصحيح عبر 3 تشغيلات (`100.0%` مقابل `96.3%`، دون أي خطأ استشهاد على الأسئلة القابلة للإجابة الـ 27 في التشغيلات الثلاثة) وكان أفضل في الرفض الصحيح (`88.9%` = `8/9`: `2/3`, `3/3`, `3/3` مقابل `66.7%` = `2/3` في كل تشغيل لـ `gemini-2.5-pro`)، مع خفض الاستشهاد بحديث غير مرجعي من `6.7%` إلى `1.1%`؛ لذا حُوّل `MODEL = "gemini-4-argon"` افتراضيًا في `src/answer.py` (مع إضافة مهلة HTTP `180,000 ms` وعميل منفصل لكل thread). أمّا `gemini-4-hydrogen` فتراجع إلى `84.0%` مع رفض كاذب (`2.5%`).
+- \* **ملاحظة تشغيل `gemini-4-hydrogen`:** التشغيل 1 اكتمل على الاسترجاع المرقّى الخالص (`23/27`، `2/3` رفض). في محاولة التشغيل 2 عند `workers=4` ظهر خطأ `429 RESOURCE_EXHAUSTED` فأُعيد التشغيل بتسلسل `workers=1` (إجمالي P3 بقى ضمن ميزانية `200` نداء Pro)، وخلاله تعرّض أحد استعلامات الرفض الثلاثة غير المخزّنة في الكاش لـ `ReadTimeout` (`> 15,000 ms`) فانتقل مؤقتًا للاحتياطي المحلي `legacy` لأسئلة الرفض في التشغيلين 2–3 بينما اعتمدت الأسئلة القابلة للإجابة الـ 27 كلها على متجهات `Upgraded E5` المخزّنة (`27/27` في السياق).
+- سجّل `data/processed/e5_results.json` الرفض الصحيح لسؤال فضل قراءة سورة الكهف يوم الجمعة ولسؤال دعاء الاستخارة في جميع التشغيلات المذكورة أعلاه، وجاء التباين بين `2/3` و`3/3` من سؤال «كم عدد ركعات صلاة التراويح؟».
 - **تفعيل المسار الافتراضي المرقّى في التوثيق و`build_pipeline`:** ضُبط `build_pipeline(mode="upgraded")` ليكون المسار الافتراضي في `src/pipeline.py` (مع بقاء خط الأساس المحلي متاحًا عبر `MUSNAD_RETRIEVAL_PIPELINE=legacy` وكخيار احتياطي تلقائي عند تعذر واجهة API)، ووُضع الخط المرقّى عنوانًا رئيسيًا في `README.md` مع الإشارة إلى أن الأوزان مضبوطة على مجموعة التطوير `dev` وتقييم المجموعة المعمّاة لا يزال جاريًا.
 
 

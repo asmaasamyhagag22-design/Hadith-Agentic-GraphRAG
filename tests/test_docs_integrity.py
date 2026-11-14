@@ -82,13 +82,13 @@ class CheckerRejectsMisattributionTests(unittest.TestCase):
 
     def test_a_renamed_metric_row_is_rejected_even_with_a_valid_number(self):
         original = readme_text()
-        readme = original.replace("| Correct citation |", "| Citation accuracy |")
+        readme = original.replace("| Correct citation |", "| Citation accuracy |", 1)
         self.assertNotEqual(readme, original, "mutation was a no-op")
 
         problems, _ = results_problems(readme, experiments_text())
 
         self.assertTrue(problems)
-        self.assertTrue(any("Citation accuracy" in problem for problem in problems))
+        self.assertTrue(any("Citation_accuracy" in problem for problem in problems))
 
     def test_a_changed_value_is_rejected(self):
         original = readme_text()
@@ -113,7 +113,7 @@ class CheckerRejectsDenominatorProblemsTests(unittest.TestCase):
 
     def test_a_rate_without_a_denominator_is_rejected(self):
         original = experiments_text()
-        experiments = original.replace("Hybrid=63%@27", "Hybrid=63%", 1)
+        experiments = original.replace("Correct_citation=63%@27", "Correct_citation=63%", 1)
         self.assertNotEqual(experiments, original, "mutation was a no-op")
 
         problems, _ = denominator_problems(experiments)
@@ -137,10 +137,9 @@ class CheckerRejectsDenominatorProblemsTests(unittest.TestCase):
 
     def test_correct_citation_is_recorded_over_answerable_questions(self):
         canonical = parse_canonical(experiments_text())
-        record = canonical[("answer_quality", "correct_citation")]
-
-        for _, (_, denominator) in record["metrics"].items():
-            self.assertEqual(denominator, "27")
+        for (table, _), record in canonical.items():
+            if table == "answer_quality":
+                self.assertEqual(record["metrics"]["Correct_citation"][1], "27")
 
 
 class CheckerRejectsWrongSectionTests(unittest.TestCase):
@@ -150,8 +149,8 @@ class CheckerRejectsWrongSectionTests(unittest.TestCase):
         # Point the reranked row at the hybrid section; the value 0.665 lives
         # in section 6, not section 5.
         experiments = experiments_text().replace(
-            "retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=6",
-            "retrieval_golden | hybrid_rerank | Hybrid + rerank | dataset=golden.jsonl n=27 section=5",
+            "retrieval_golden | hybrid_rerank | Hybrid + rerank (baseline) | dataset=golden.jsonl n=27 section=6",
+            "retrieval_golden | hybrid_rerank | Hybrid + rerank (baseline) | dataset=golden.jsonl n=27 section=5",
         )
 
         self.assertNotEqual(experiments, experiments_text(), "mutation was a no-op")
@@ -283,7 +282,9 @@ class RefusalClaimTests(unittest.TestCase):
         end = readme.find("\n---\n", start)
         window = readme[start:end]
 
-        self.assertIn("10%", window)
+        self.assertIn("1%", window)
+        self.assertIn("7%", window)
+        self.assertIn("8%", window)
         self.assertIn("23%", window)
         self.assertIn("wrong hadith chosen from within it", window)
 

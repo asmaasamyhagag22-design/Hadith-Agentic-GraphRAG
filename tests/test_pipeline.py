@@ -3,10 +3,12 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from google.genai.errors import ServerError
 
 import src.answer as answer
 import src.answer_eval as answer_eval
@@ -20,7 +22,6 @@ from src.config import (
     VECTORS_MATN_GEMINI001,
     VECTORS_PATH,
 )
-from lexical import BM25Index
 import src.pipeline as pipeline_module
 from src.pipeline import (
     BM25_WEIGHT,
@@ -76,6 +77,77 @@ def _write_fixture_index(directory):
     return chunks_path, paths
 
 
+@pytest.mark.parametrize(
+    ("stage", "embedding_calls", "hyde_calls"),
+    [("query embedding", 1, 0), ("HyDE", 1, 1), ("HyDE embedding", 2, 1)],
+)
+@pytest.mark.parametrize("failure_kind", ["timeout", "api-error"])
+def test_default_pipeline_returns_legacy_results_on_api_failure(
+    tmp_path, monkeypatch, stage, embedding_calls, hyde_calls, failure_kind
+):
+    chunks_path, paths = _write_fixture_index(tmp_path)
+    vectors_path, ids_path = paths["matn"]
+    expansions_path = tmp_path / "expansions.jsonl"
+    expansions_path.write_text(
+        json.dumps({"chunk_id": "102_0", "expansion_text": "صيام رمضان"}) + "\n",
+        encoding="utf-8",
+    )
+    index_paths = {
+        "vectors_path": vectors_path,
+        "ids_path": ids_path,
+        "chunks_path": chunks_path,
+    }
+    monkeypatch.delenv("MUSNAD_RETRIEVAL_PIPELINE", raising=False)
+    upgraded = build_pipeline(
+        **index_paths,
+        matn_vectors_path=vectors_path,
+        exp_vectors_path=vectors_path,
+        expansions_jsonl_path=expansions_path,
+        query_cache_path=tmp_path / "no-query-cache.npz",
+        hyde_cache_path=tmp_path / "no-hyde-cache.npz",
+        api_timeout_ms=1500,
+    )
+    monkeypatch.setenv("MUSNAD_RETRIEVAL_PIPELINE", "legacy")
+    legacy = build_pipeline(**index_paths)
+    question = "ما فضل صيام رمضان؟"
+
+    local_encoder = MagicMock()
+    local_encoder.encode.return_value = np.array([[0.0, 1.0]], dtype=np.float32)
+    local_reranker = MagicMock()
+    local_reranker.predict.return_value = [0.9, 0.1]
+    local_reranker.tokenizer.return_value = {"input_ids": [1, 2]}
+
+    client = MagicMock()
+    embedding = SimpleNamespace(embeddings=[SimpleNamespace(values=[0.0, 1.0])])
+    client.models.embed_content.return_value = embedding
+    client.models.generate_content.return_value = SimpleNamespace(text="من صام رمضان")
+    failure = (
+        TimeoutError("request timed out") if failure_kind == "timeout"
+        else ServerError(503, {"error": {"message": "unavailable"}})
+    )
+    if stage == "query embedding":
+        client.models.embed_content.side_effect = failure
+    elif stage == "HyDE":
+        client.models.generate_content.side_effect = failure
+    else:
+        client.models.embed_content.side_effect = [embedding, failure]
+
+    with (
+        patch("retrieve.get_model", return_value=local_encoder),
+        patch("rerank.get_reranker", return_value=local_reranker),
+        patch("google.genai.Client", return_value=client) as mock_api,
+    ):
+        expected = legacy.search(question, k=1)
+        assert expected[0]["hadith_id"] == 8950
+        mock_api.assert_not_called()
+
+        assert upgraded.search(question, k=1) == expected
+        assert upgraded.last_used_fallback
+        assert client.models.generate_content.call_count == hyde_calls
+        assert client.models.embed_content.call_count == embedding_calls
+        assert all(call.kwargs["http_options"].timeout == 1500 for call in mock_api.call_args_list)
+
+
 class PipelineConfigurationTests(unittest.TestCase):
     """مسار الـ CLI هو نفسه المسار المقيس في evaluate و answer_eval بالظبط."""
 
@@ -124,59 +196,6 @@ class PipelineConfigurationTests(unittest.TestCase):
                 self.assertIs(build_pipeline(), sentinel_legacy)
                 mock_leg.assert_called_once()
                 mock_up.assert_not_called()
-
-    def test_upgraded_retriever_falls_back_to_legacy_on_api_timeout_or_error(self):
-        chunk_ids = ["101_0", "102_0"]
-        chunk_lookup = {
-            "101_0": {
-                "id": "101_0",
-                "text": "حدثنا زيد قال رسول الله لا يؤمن أحدكم حتى يحب لأخيه ما يحب لنفسه",
-                "metadata": {"hadith_number": 7354, "chapter_arabic": "كتاب الإيمان"},
-            },
-            "102_0": {
-                "id": "102_0",
-                "text": "حدثنا عمرو قال رسول الله من صام رمضان إيمانا واحتسابا غفر له",
-                "metadata": {"hadith_number": 8950, "chapter_arabic": "كتاب الصيام"},
-            },
-        }
-        vectors = np.asarray([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
-        bm25 = BM25Index(chunk_ids, ["لا يؤمن أحدكم", "من صام رمضان"])
-        fallback_hits = [
-            {
-                "rank": 1,
-                "score": 0.42,
-                "chunk_id": "102_0",
-                "hadith_id": 8950,
-                "text": chunk_lookup["102_0"]["text"],
-                "metadata": chunk_lookup["102_0"]["metadata"],
-            }
-        ]
-        mock_fallback = MagicMock()
-        mock_fallback.search.return_value = fallback_hits
-
-        retriever = UpgradedRetriever(
-            matn_vectors=vectors,
-            exp_vectors=vectors,
-            bm25_matn=bm25,
-            bm25_exp=bm25,
-            chunk_ids=chunk_ids,
-            chunk_lookup=chunk_lookup,
-            query_vec_cache={},
-            hyde_vec_cache={},
-            weights=(8.0, 2.0, 1.0, 1.0),
-            hyde_alpha=0.7,
-            candidates=2,
-            rrf_k=60,
-            api_timeout_ms=1500,
-            fallback_retriever=mock_fallback,
-        )
-
-        with patch("google.genai.Client", side_effect=TimeoutError("API timeout")):
-            results = retriever.search("ما فضل صيام رمضان؟", k=1)
-
-        self.assertEqual(results, fallback_hits)
-        self.assertTrue(retriever.last_used_fallback)
-        mock_fallback.search.assert_called_once_with("ما فضل صيام رمضان؟", k=1)
 
     def test_cli_pipeline_matches_evaluated_retriever_on_fixture(self):
         with tempfile.TemporaryDirectory() as directory:
