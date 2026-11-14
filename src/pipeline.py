@@ -126,6 +126,27 @@ def build_legacy_pipeline(
     return pipeline
 
 
+DEFAULT_AGENT_MODE = "off"
+AGENT_ENV_VAR = "MUSNAD_AGENT"
+
+
+def resolve_agent_enabled(agent=None):
+    """Resolve whether agent tool-calling mode is enabled (default ``off``)."""
+    raw = agent if agent is not None else os.environ.get(AGENT_ENV_VAR, DEFAULT_AGENT_MODE)
+    if isinstance(raw, bool):
+        return raw
+    normalized = str(raw).strip().lower()
+    if normalized in ("",):
+        normalized = DEFAULT_AGENT_MODE
+    if normalized in ("on", "true", "1", "yes"):
+        return True
+    if normalized in ("off", "false", "0", "no"):
+        return False
+    raise ValueError(
+        f"Invalid {AGENT_ENV_VAR} value {raw!r}; expected 'on' or 'off'."
+    )
+
+
 def build_pipeline(
     mode=None,
     vectors_path=VECTORS_MATN,
@@ -147,6 +168,7 @@ def build_pipeline(
     hyde_alpha=UPGRADED_HYDE_ALPHA,
     api_timeout_ms=API_TIMEOUT_MS,
     fallback_retriever=None,
+    agent=None,
 ):
     """
     نقطة بناء مسار الاسترجاع الموحّدة للنظام:
@@ -174,8 +196,12 @@ def build_pipeline(
             bm25_weight=bm25_weight,
         )
 
+    agent_enabled = resolve_agent_enabled(agent)
+
     if resolved_mode == "legacy":
-        return _legacy_factory()
+        legacy_pipeline = _legacy_factory()
+        legacy_pipeline.agent_enabled = agent_enabled
+        return legacy_pipeline
 
     pipeline = UpgradedRetriever.from_files(
         matn_vectors_path=matn_vectors_path,
@@ -196,6 +222,7 @@ def build_pipeline(
     )
     pipeline.default_k = DEFAULT_K
     pipeline.mode = "upgraded"
+    pipeline.agent_enabled = agent_enabled
 
     return pipeline
 

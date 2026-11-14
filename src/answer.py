@@ -268,17 +268,20 @@ def loose_cited_ids(answer):
     return {int(match) for match in LOOSE_CITATION.findall(answer)}
 
 
-def validate_answer(answer, context_ids):
+def validate_answer(answer, context_ids, *, tool_ids=None):
     """
     فحص صافي لمخرَج الموديل:
     - الرفض صالح فقط إذا طابق جملة الرفض حرفيًا بعد إزالة الفراغات وخلا من الأرقام.
     - جمع جملة الرفض مع أي نص أو رقم آخر يُعدّ رفضًا مختلطًا.
-    - أي رقم حديث (بصيغة رسمية أو حرة، بأرقام عربية أو هندية) خارج السياق يُرفض.
+    - أي رقم حديث (بصيغة رسمية أو حرة، بأرقام عربية أو هندية) خارج السياق أو
+      خارج مخرجات أدوات هذا الطلب (عند تمرير tool_ids) يُرفض.
     - أي إجابة غير رافضة لا تحوي استشهادًا بالصيغة المطلوبة تُرفض لغياب المصدر.
     """
 
     stripped = (answer or "").strip()
     allowed_ids = set(context_ids)
+    if tool_ids is not None:
+        allowed_ids &= set(tool_ids)
 
     if _VALID_REFUSAL.fullmatch(stripped) and not _DIGIT.search(stripped):
         return VALID_REFUSAL
@@ -296,6 +299,25 @@ def validate_answer(answer, context_ids):
         return MISSING_CITATION
 
     return VALID_ANSWER
+
+
+def validate_narrator_names(answer, isnad_results=(), *, lexicon=None, db_path=None):
+    """Return any narrator names in ``answer`` absent from ``get_isnad`` results."""
+    from sanad_graph import GraphNotBuiltError
+    try:
+        from src.sanad_graph import GraphNotBuiltError as SrcGraphNotBuiltError
+        from src.sanad_names import NarratorLexicon, find_disallowed_narrators, load_narrator_lexicon
+    except ImportError:
+        SrcGraphNotBuiltError = GraphNotBuiltError
+        from sanad_names import NarratorLexicon, find_disallowed_narrators, load_narrator_lexicon
+
+    active_lex = lexicon
+    if active_lex is None:
+        try:
+            active_lex = load_narrator_lexicon(str(db_path) if db_path is not None else None)
+        except (GraphNotBuiltError, SrcGraphNotBuiltError, FileNotFoundError):
+            active_lex = NarratorLexicon({})
+    return find_disallowed_narrators(answer or "", isnad_results or (), active_lex)
 
 
 GRADE_PROMPT = """قيّم مدى صلة الأحاديث التالية بالسؤال.
@@ -473,6 +495,28 @@ def format_sanad_section(sanad, sanad_error=None):
     return "\n".join(lines)
 
 
+def _resolve_use_agent(retriever, use_agent=None):
+    """Resolve whether to execute via tool-calling agent or legacy single-pass RAG."""
+    if use_agent is not None:
+        return bool(use_agent)
+    env_val = os.environ.get("MUSNAD_AGENT", "").strip()
+    if env_val:
+        try:
+            from src.pipeline import resolve_agent_enabled
+        except ImportError:
+            from pipeline import resolve_agent_enabled
+        return resolve_agent_enabled(env_val)
+    return bool(getattr(retriever, "agent_enabled", False))
+
+
+def _call_agent(question, retriever, **kwargs):
+    try:
+        from src.agent import run_agent
+    except ImportError:
+        from agent import run_agent
+    return run_agent(question, retriever, **kwargs)
+
+
 def answer_with_details(
     question,
     retriever,
@@ -481,6 +525,7 @@ def answer_with_details(
     self_correct=False,
     model=MODEL,
     sanad_db_path=None,
+    use_agent=None,
 ):
     """
     بترجع dict فيه الإجابة النهائية **والمحاولة الخام**.
@@ -488,6 +533,26 @@ def answer_with_details(
     القياس بيحصل على المحاولة الخام: لو قِسنا بعد التصفية
     هتطلع صفر أخطاء دايمًا بحكم البناء، وده رقم بلا معنى.
     """
+
+    if _resolve_use_agent(retriever, use_agent=use_agent):
+        return _call_agent(
+            question,
+            retriever,
+            k=k,
+            enforce_citations=enforce_citations,
+            model=model,
+            sanad_db_path=sanad_db_path,
+            fallback_fn=lambda: answer_with_details(
+                question,
+                retriever,
+                k=k,
+                enforce_citations=enforce_citations,
+                self_correct=self_correct,
+                model=model,
+                sanad_db_path=sanad_db_path,
+                use_agent=False,
+            ),
+        )
 
     rewritten = None
     retried = False
