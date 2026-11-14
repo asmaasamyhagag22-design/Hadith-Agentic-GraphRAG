@@ -43,7 +43,12 @@
   - `OFF`: Routing `0/25` (`0.0%`), Answer `3/25` (`12.0%`; `0/22` answerable + `3/3` blind refusals), Median `11,033.5 ms`, p95 `16,778.9 ms` (`25` Pro, `25` Flash).
   - `ON`: Routing `25/25` (`100.0%`), Answer `25/25` (`100.0%`), Hallucinated narrators `0/25`, Abstention `3/3` (`100.0%`), Median `8,560.4 ms`, p95 `50,520.4 ms` (`59` Pro, `5` Flash).
 - **Documentation & Verification**: Added canonical rows and Section 32 (and fixed `## 31.` heading syntax) in `EXPERIMENTS.md`. Full pytest `309 passed, 35 subtests passed`, CI marker pytest `283 passed, 26 deselected`, `check_docs` all 5 checks passed.
-- **⛔ GATE 1 STATUS**: Stopped because `correct_refusals` dropped by `1.33` (`> 1.0`) and `golden` pooled median latency rose `+253.2%` (`> +50%`). `MUSNAD_AGENT` remains `off` by default.
+- **⛔ GATE 1 STATUS**: Resolved by user decision (Option 1, simplified): keep agent prompt (`AGENT_SYSTEM_INSTRUCTION`) and single-turn text path unchanged; add deterministic Arabic router + `MUSNAD_AGENT=auto` composition.
 
-## Next Step (Blocked at ⛔ GATE 1)
-- Waiting for user decision among Gate 1 options before modifying default flag or proceeding to Phase D (or skipping D1 if keeping `off`) and Phase E (`docs/holdout_review.md`).
+### Gate 1 Resolution Step 1–2 — Deterministic Arabic router & `auto` composition (`ea9c282`)
+- **Router (`src/router.py`)**: Added deterministic zero-API Arabic intent classifier (`classify_intent`, `matched_chain_rule`, `normalize_for_routing`) based purely on general Arabic hadith-sciences linguistic cues (committed prior to computing any routing evaluation metric; `holdout_draft.jsonl` untouched).
+- **Composition (`src/pipeline.py`, `src/answer.py`)**: Extended `MUSNAD_AGENT` modes to `auto|on|off` (keeping `DEFAULT_AGENT_MODE="off"` until routing evaluation + 3+3 live smoke check pass). In `auto`, `chain` queries dispatch to unchanged `src/agent.py`, and `text` queries dispatch to unchanged single-turn RAG + Phase A `attach_sanad()`.
+- **Verification (`tests/test_router.py`)**: `4 passed, 23 subtests passed`; full pytest `313 passed, 58 subtests passed`; CI marker pytest `287 passed, 26 deselected`; `check_docs` green (`0` API calls).
+
+## Next Step
+- Run 0-API routing evaluation + confusion matrices across `golden.jsonl` (33), `synthetic_eval.jsonl` (224), `chain_eval_dev.jsonl` (15), and frozen `chain_eval_test.jsonl` (25), then (if thresholds pass) run 3+3 live smoke test (`<= 15` Pro) and flip `DEFAULT_AGENT_MODE = "auto"`.
