@@ -95,10 +95,15 @@
 - Extended `src/check_docs.py` `README_TABLES` to validate `chain_eval_test` and `router_fresh2` tables directly against `EXPERIMENTS.md` `canonical-results`.
 - **Verification**: `! grep -in "graph database" README.md`, empty `git diff --stat docs/assets/`, `check_docs` (`74` cells, `128` canonical values, `106` denominators, `81` prose figures, `3` dataset hashes all green), CI pytest `292 passed, 26 deselected, 74 subtests passed`, full pytest `318 passed, 74 subtests passed`.
 
-### Step 4 — Held-Out Review Package (`Phase E1`, `src/build_holdout_review.py` → `docs/holdout_review.md`)
+### Step 4 — Held-Out Review Package (`bec9fb2`, `Phase E1`, `src/build_holdout_review.py` → `docs/holdout_review.md`)
 - Built `docs/holdout_review.md` (`5,598` lines, `1,204,105` bytes) strictly read-only from `data/raw/holdout_draft.jsonl` (`120` items: `single_hadith=75`, `sibling_hadiths=30`, `out_of_scope_refusal=15`, sha256 `71ccb73d0a308371214137f6da5862cb9eb731c89e05eb71c1257d3aaf233760`) and `data/raw/muslim.json`, including full vocalised *matn* (`split_isnad_matn`) for all candidate IDs plus `[ ] accept / [ ] reject / [ ] edit` checkboxes (`120` each, `0` missing IDs). Did NOT edit or run any evaluation on `holdout_draft.jsonl`.
 - Added offline unit test `tests/test_holdout_review.py` (`1 passed`).
 - **Verification**: `holdout_draft.jsonl` sha256 unchanged; `check_docs` 5/5 green; CI pytest `293 passed, 26 deselected, 74 subtests passed`; full pytest `319 passed, 74 subtests passed`.
 
-## Next Step
-- **Step 5**: Final consistency & verification pass across tests, docs, protected dataset hashes, `docs/assets/` cleanliness, `SPRINT_PROGRESS.md` finalization, push, and final report.
+### Step 5 — Final Consistency Verification & Hand-off
+- Verified all protected dataset SHA-256 digests unchanged (`golden`, `synthetic_eval`, `muslim.json`, `chain_eval_dev`, `chain_eval_test`, `router_fresh`, `router_fresh2`, `router_train`, `holdout_draft`) and `git diff --stat 354c01a -- docs/assets/` empty.
+- Budget remaining: `51` Pro (`449 / 500` used) and `654` Flash (`146 / 800` used).
+
+## Next Step (Awaiting User Review)
+- Specialist human review of [`docs/holdout_review.md`](docs/holdout_review.md) (`120` draft items) before freezing `holdout.jsonl` and running held-out evaluation.
+- Phase D1 architecture diagram update in `docs/assets/` remains skipped per user instruction until user provides updated diagrams.
