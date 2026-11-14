@@ -48,7 +48,8 @@ from validate_golden import check_item, load_corpus_text, normalize
 HOLDOUT_DRAFT_PATH = RAW_DIR / "holdout_draft.jsonl"
 HOLDOUT_META_PATH = PROCESSED_DIR / "holdout_draft_meta.json"
 SEED = 20261113
-DRAFT_MODEL = "gemini-2.5-flash"
+DRAFT_MODEL = "gemma-4-26b-a4b-it-maas"
+DRAFT_LOCATION = "global"
 
 DRAFT_PROMPT = """أنت تكتب مسودة أسئلة معيارية (Holdout Set) لتقييم باحث في صحيح مسلم.
 لكل متن حديث مرقّم أدناه، اكتب سؤالاً واحداً باللغة العربية الفصحى المعاصرة (MSA) المصاغة بأسلوب القارئ المعاصر، بحيث تكون إجابته في هذا المتن.
@@ -245,11 +246,13 @@ def generate_questions_for_pool(client, pool, target_count):
                     config=types.GenerateContentConfig(
                         temperature=0,
                         response_mime_type="application/json",
-                        thinking_config=types.ThinkingConfig(thinking_budget=0),
                     ),
                 )
                 api_calls += 1
-                data = json.loads(resp.text or "{}")
+                raw_text = (resp.text or "{}").strip()
+                if raw_text.startswith("```"):
+                    raw_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text, flags=re.DOTALL).strip()
+                data = json.loads(raw_text)
                 for entry in data.get("questions", []):
                     if isinstance(entry, dict) and isinstance(entry.get("idx"), int):
                         parsed_qs[entry["idx"]] = str(entry.get("question", "")).strip()
@@ -297,18 +300,19 @@ def main():
         f"{len(single_pool)} single-hadith, {len(sibling_pool)} sibling clusters"
     )
 
-    client = genai.Client()
-    print("Generating 75 single-hadith paraphrased MSA questions...")
+    draft_client = genai.Client(location=DRAFT_LOCATION)
+    embed_client = genai.Client()
+    print(f"Generating 75 single-hadith paraphrased MSA questions with {DRAFT_MODEL}...")
     single_accepted, calls_single = generate_questions_for_pool(
-        client, single_pool, 75
+        draft_client, single_pool, 75
     )
     print(
         f"  Got {len(single_accepted)}/75 single questions (calls={calls_single})"
     )
 
-    print("Generating 30 sibling-cluster paraphrased MSA questions...")
+    print(f"Generating 30 sibling-cluster paraphrased MSA questions with {DRAFT_MODEL}...")
     sibling_accepted, calls_sibling = generate_questions_for_pool(
-        client, sibling_pool, 30
+        draft_client, sibling_pool, 30
     )
     print(
         f"  Got {len(sibling_accepted)}/30 sibling questions (calls={calls_sibling})"
@@ -326,7 +330,7 @@ def main():
     ans_items = single_accepted + sibling_accepted
     ans_qs = [strip_diacritics(x[0]) for x in ans_items]
     q_vecs = l2_norm(
-        embed_batches(client, "gemini-embedding-001", ans_qs, "RETRIEVAL_QUERY")
+        embed_batches(embed_client, "gemini-embedding-001", ans_qs, "RETRIEVAL_QUERY")
     )
     embed_calls = 1
 
@@ -432,11 +436,13 @@ def main():
     digest = canonical_hash(HOLDOUT_DRAFT_PATH)
     meta = {
         "path": str(HOLDOUT_DRAFT_PATH),
+        "model": DRAFT_MODEL,
+        "location": DRAFT_LOCATION,
         "total_questions": len(rows),
         "single_hadith_count": len(single_accepted),
         "sibling_hadiths_count": len(sibling_accepted),
         "out_of_scope_refusal_count": len(OUT_OF_SCOPE_CANDIDATES),
-        "flash_api_calls": calls_single + calls_sibling,
+        "draft_api_calls": calls_single + calls_sibling,
         "embed_api_calls": embed_calls,
         "sha256": digest,
     }
