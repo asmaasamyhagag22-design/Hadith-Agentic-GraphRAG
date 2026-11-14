@@ -28,8 +28,7 @@ from retrieve import (
     HybridRetriever,
     load_chunk_lookup,
 )
-from lexical import BM25Index
-from experiment_variants import variant_text
+from pipeline import build_bm25
 
 
 DENSE_VARIANTS = [
@@ -44,16 +43,6 @@ DENSE_VARIANTS = [
 ]
 
 K_VALUES = (1, 3, 5, 10)
-
-
-def build_bm25(chunk_ids, variant, chunk_lookup):
-
-    texts = [
-        variant_text(chunk_lookup[chunk_id], variant)
-        for chunk_id in chunk_ids
-    ]
-
-    return BM25Index(chunk_ids, texts)
 
 
 def build_retrievers(rerankers=()):

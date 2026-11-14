@@ -44,13 +44,13 @@ def check(name):
 @check("imports")
 def step_imports():
 
-    import ingest, embed, utils, lexical, retrieve, rerank  # noqa: F401
+    import ingest, embed, utils, lexical, retrieve, rerank, pipeline  # noqa: F401
     import answer, evaluate, answer_eval, validate_golden  # noqa: F401
     import build_eval_set, chroma_ingest, debug_query  # noqa: F401
     import experiment_variants, experiment_retrieval  # noqa: F401
     import experiment_rerank, experiment_fusion  # noqa: F401
 
-    return 16
+    return 17
 
 
 @check("chunks on disk")
@@ -69,48 +69,50 @@ def step_chunks():
 @check("index loads and ids align")
 def step_index():
 
-    from evaluate import build_retrievers
+    from pipeline import build_pipeline
 
-    retrievers = dict(build_retrievers())
-
-    hybrid = retrievers["Hybrid: dense + BM25"]
+    pipeline = build_pipeline()
+    hybrid = pipeline.base
 
     # الـ Retriever بيرمي ValueError لو الفهرس والـ ids مش متطابقين
     assert hybrid.dense.index.ntotal == len(hybrid.dense.chunk_ids)
 
-    return retrievers, hybrid.dense.index.ntotal
+    return pipeline, hybrid.dense.index.ntotal
 
 
 @check("retrieval returns hadiths")
-def step_retrieve(hybrid):
+def step_retrieve(pipeline):
 
-    results = hybrid.search(ANSWERABLE, k=5)
+    from pipeline import DEFAULT_K
 
-    assert len(results) == 5, f"expected 5 results, got {len(results)}"
+    results = pipeline.base.search(ANSWERABLE, k=DEFAULT_K)
+
+    assert len(results) == DEFAULT_K, f"expected {DEFAULT_K} results, got {len(results)}"
     assert all(r["hadith_id"] for r in results)
 
     return [r["hadith_id"] for r in results]
 
 
 @check("reranking reorders")
-def step_rerank(hybrid):
+def step_rerank(pipeline):
 
-    from rerank import RerankingRetriever
+    from pipeline import DEFAULT_K
 
-    reranked = RerankingRetriever(hybrid).search(ANSWERABLE, k=5)
+    reranked = pipeline.search(ANSWERABLE, k=DEFAULT_K)
 
-    assert len(reranked) == 5
+    assert len(reranked) == DEFAULT_K
     assert reranked[0]["score"] is not None, "reranker produced no score"
 
     return [r["hadith_id"] for r in reranked]
 
 
 @check("generation cites only from context")
-def step_answer(hybrid):
+def step_answer(pipeline):
 
     from answer import answer_with_details, cited_ids
+    from pipeline import DEFAULT_K
 
-    details = answer_with_details(ANSWERABLE, hybrid, k=5)
+    details = answer_with_details(ANSWERABLE, pipeline, k=DEFAULT_K)
 
     context_ids = {c["hadith_id"] for c in details["chunks"]}
 
@@ -122,11 +124,12 @@ def step_answer(hybrid):
 
 
 @check("refuses when the answer is absent")
-def step_refusal(hybrid):
+def step_refusal(pipeline):
 
     from answer import answer_with_details, cited_ids, REFUSAL
+    from pipeline import DEFAULT_K
 
-    details = answer_with_details(UNANSWERABLE, hybrid, k=5)
+    details = answer_with_details(UNANSWERABLE, pipeline, k=DEFAULT_K)
 
     answer = details["answer"]
 
@@ -146,17 +149,16 @@ def main():
     total, indexable = step_chunks()
     print(f"  chunks / indexable          {total} / {indexable}")
 
-    retrievers, vectors = step_index()
-    hybrid = retrievers["Hybrid: dense + BM25"]
+    pipeline, vectors = step_index()
     print(f"  vectors in index            {vectors}")
 
-    print(f"  retrieved                   {step_retrieve(hybrid)}")
-    print(f"  reranked                    {step_rerank(hybrid)}")
+    print(f"  retrieved                   {step_retrieve(pipeline)}")
+    print(f"  reranked                    {step_rerank(pipeline)}")
 
-    answer = step_answer(hybrid)
+    answer = step_answer(pipeline)
     print(f"  answered                    {answer.splitlines()[0][:60]}…")
 
-    refusal = step_refusal(hybrid)
+    refusal = step_refusal(pipeline)
     print(f"  refused                     {refusal[:60]}")
 
     failed = [r for r in _results if not r[1]]

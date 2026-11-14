@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import QUESTIONS_PATH
+from pipeline import DEFAULT_K, build_pipeline
 from retrieve import Retriever
 from experiment_variants import variant_text
 
@@ -425,14 +426,14 @@ def load_questions(path=QUESTIONS_PATH):
 
 def main():
 
-    retriever = Retriever.from_files()
+    retriever = build_pipeline()
 
     for question in load_questions():
 
         print("=" * 80)
         print(question)
 
-        answer, chunks = answer_question(question, retriever)
+        answer, chunks = answer_question(question, retriever, k=DEFAULT_K)
 
         print("\nAnswer:")
         print(answer)

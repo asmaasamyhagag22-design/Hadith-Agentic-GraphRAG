@@ -36,7 +36,14 @@ class Retriever:
     يبقوا في نفس الكائن، مستحيل تستخدمي فهرس مع قايمة غيره.
     """
 
-    def __init__(self, index, chunk_ids, chunk_lookup):
+    def __init__(
+        self,
+        index,
+        chunk_ids,
+        chunk_lookup,
+        vectors_path=None,
+        ids_path=None,
+    ):
 
         if index.ntotal != len(chunk_ids):
             raise ValueError(
@@ -49,6 +56,8 @@ class Retriever:
         self.index = index
         self.chunk_ids = chunk_ids
         self.chunk_lookup = chunk_lookup
+        self.vectors_path = Path(vectors_path) if vectors_path else None
+        self.ids_path = Path(ids_path) if ids_path else None
 
     @classmethod
     def from_files(
@@ -74,7 +83,13 @@ class Retriever:
         if chunk_lookup is None:
             chunk_lookup = load_chunk_lookup(chunks_path)
 
-        return cls(index, chunk_ids, chunk_lookup)
+        return cls(
+            index,
+            chunk_ids,
+            chunk_lookup,
+            vectors_path=vectors_path,
+            ids_path=ids_path,
+        )
 
     def search(self, question, k=5):
 

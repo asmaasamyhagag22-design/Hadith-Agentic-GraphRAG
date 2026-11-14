@@ -25,8 +25,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from config import GOLDEN_PATH
-from evaluate import load_golden, build_retrievers
-from rerank import DEFAULT_MODEL
+from evaluate import load_golden
+from pipeline import DEFAULT_K, RERANK_MODEL, build_pipeline
+from rerank import DEFAULT_MODEL, RerankingRetriever
 from answer import (
     answer_with_details,
     cited_ids,
@@ -36,8 +37,7 @@ from answer import (
     VALID_REFUSAL,
 )
 
-DEFAULT_K = 5
-DEFAULT_RERANKERS = (DEFAULT_MODEL,)
+DEFAULT_RERANKERS = (RERANK_MODEL,)
 
 
 def is_refusal(answer):
@@ -185,7 +185,20 @@ def main(k=DEFAULT_K, rerankers=DEFAULT_RERANKERS, include_crag=False):
         f"Hybrid + {name.split('/')[-1]}" for name in rerankers
     ]
 
-    retrievers = dict(build_retrievers(rerankers))
+    pipeline = build_pipeline()
+    hybrid = pipeline.base
+
+    retrievers = {
+        "Hybrid: dense + BM25": hybrid,
+        f"Hybrid + {pipeline.model_name.split('/')[-1]}": pipeline,
+    }
+
+    for name in rerankers:
+        label = f"Hybrid + {name.split('/')[-1]}"
+        if label not in retrievers:
+            retrievers[label] = RerankingRetriever(
+                hybrid, model_name=name, top_k_in=pipeline.top_k_in
+            )
 
     configurations = [(label, retrievers[label], False) for label in wanted]
 
