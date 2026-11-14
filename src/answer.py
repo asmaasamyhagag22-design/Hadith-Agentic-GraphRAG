@@ -158,6 +158,7 @@ LOOSE_CITATION = re.compile(
 )
 
 _DIGIT = re.compile(r"\d")
+_VALID_REFUSAL = re.compile(rf"^{re.escape(REFUSAL)}[.؟!]?$")
 
 
 class ValidationResult(Enum):
@@ -224,7 +225,7 @@ def validate_answer(answer, context_ids):
     stripped = (answer or "").strip()
     allowed_ids = set(context_ids)
 
-    if stripped == REFUSAL and not _DIGIT.search(stripped):
+    if _VALID_REFUSAL.fullmatch(stripped) and not _DIGIT.search(stripped):
         return VALID_REFUSAL
 
     if REFUSAL in stripped:

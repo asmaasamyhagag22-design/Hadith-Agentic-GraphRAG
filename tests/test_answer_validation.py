@@ -107,6 +107,25 @@ class ValidateAnswerTests(unittest.TestCase):
             VALID_REFUSAL,
         )
 
+    def test_refusal_with_at_most_one_trailing_punctuation_returns_valid_refusal(self):
+        for punct in (".", "؟", "!"):
+            with self.subTest(punct=punct):
+                self.assertEqual(
+                    validate_answer(f"{REFUSAL}{punct}", {7354}),
+                    VALID_REFUSAL,
+                )
+                self.assertEqual(
+                    validate_answer(f"  {REFUSAL}{punct}\n ", {7354}),
+                    VALID_REFUSAL,
+                )
+
+        for multi_punct in ("..", "؟؟", "!!", ".!", "؟."):
+            with self.subTest(multi_punct=multi_punct):
+                self.assertEqual(
+                    validate_answer(f"{REFUSAL}{multi_punct}", {7354}),
+                    MIXED_REFUSAL,
+                )
+
     def test_refusal_followed_by_answer_returns_mixed_refusal(self):
         mixed = (
             f"{REFUSAL}\n"
