@@ -263,31 +263,53 @@ def run_agent(
     resolved_model = model or MODEL
     resolved_db_path = Path(sanad_db_path) if sanad_db_path is not None else GRAPH_DB_PATH
     agent_tools = build_agent_tools()
+    is_global_model = resolved_model.startswith("gemini-3") or resolved_model.startswith("gemini-4")
+
+    def _is_retryable_api_error(exc: Exception) -> bool:
+        code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+        if isinstance(code, int):
+            return code == 429 or code >= 500
+        msg = str(exc)
+        return any(tok in msg for tok in ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "DEADLINE_EXCEEDED", "UNAVAILABLE"))
 
     def _default_generate(contents: list[Any], *, allow_tools: bool) -> Any:
+        import time
+        from src.answer import INITIAL_BACKOFF_SECONDS, MAX_ATTEMPTS
+
         active_client = client if client is not None else _get_default_client()
         mode = "AUTO" if allow_tools else "NONE"
-        config = types.GenerateContentConfig(
-            system_instruction=AGENT_SYSTEM_INSTRUCTION,
-            temperature=TEMPERATURE,
-            thinking_config=types.ThinkingConfig(thinking_level="LOW"),
-            http_options=types.HttpOptions(timeout=GENERATE_TIMEOUT_MS),
-            tools=[agent_tools],
-            tool_config=types.ToolConfig(
+        config_kwargs: dict[str, Any] = {
+            "system_instruction": AGENT_SYSTEM_INSTRUCTION,
+            "temperature": TEMPERATURE,
+            "http_options": types.HttpOptions(timeout=GENERATE_TIMEOUT_MS),
+            "tools": [agent_tools],
+            "tool_config": types.ToolConfig(
                 function_calling_config=types.FunctionCallingConfig(mode=mode)
             ),
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-        )
-        return active_client.models.generate_content(
-            model=resolved_model,
-            contents=contents,
-            config=config,
-        )
+            "automatic_function_calling": types.AutomaticFunctionCallingConfig(disable=True),
+        }
+        if is_global_model:
+            config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level="LOW")
+        config = types.GenerateContentConfig(**config_kwargs)
+
+        delay = INITIAL_BACKOFF_SECONDS
+        for attempt in range(MAX_ATTEMPTS):
+            try:
+                return active_client.models.generate_content(
+                    model=resolved_model,
+                    contents=contents,
+                    config=config,
+                )
+            except Exception as exc:
+                if attempt == MAX_ATTEMPTS - 1 or not _is_retryable_api_error(exc):
+                    raise
+                time.sleep(delay)
+                delay *= 2
 
     def _get_default_client() -> Any:
         from src.answer import get_client
 
-        return get_client()
+        return get_client(location="global" if is_global_model else None)
 
     model_call = generate_fn if generate_fn is not None else _default_generate
 

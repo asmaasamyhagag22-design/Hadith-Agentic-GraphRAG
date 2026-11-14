@@ -76,6 +76,17 @@ class SanadNamesTests(unittest.TestCase):
         text = "توكّل على الله كما بيّن نبي الله داود وعبد الله الصالح في صحيح مسلم."
         self.assertEqual(self.lex.find_mentions(text), [])
 
+    def test_anonymous_mis_descriptions_do_not_false_trigger(self) -> None:
+        records = [
+            {"narrator_id": "NM_49", "name_ar": "من أدرك من الصحابة [ سهل بن أبى حثمة ]", "name_ar_mapped": "NotMapped-49"},
+            {"narrator_id": "NM_26", "name_ar": "إحدى نسوة النبى [ حفصة أم المؤمنين ]", "name_ar_mapped": "NotMapped-26"},
+            {"narrator_id": "NM_35", "name_ar": "أصحاب رسول الله [ سهل بن أبى حثمة ]", "name_ar_mapped": "NotMapped-35"},
+            {"narrator_id": "56_1", "name_ar": "بعض أزواج النبى [ أم سلمة ]", "name_ar_mapped": "أم سلمة بنت أبي أمية"},
+        ]
+        lex = NarratorLexicon.from_records(records)
+        prose = "روى هذا الحديث من الصحابة وأصحاب رسول الله وبعض أزواج النبي وإحدى نسوة النبي."
+        self.assertEqual(lex.find_mentions(prose), [])
+
 
 class ChainEvalScoringTests(unittest.TestCase):
     def setUp(self) -> None:

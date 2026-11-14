@@ -80,6 +80,10 @@ answer_quality | upgraded | Upgraded (3-run mean) | dataset=golden.jsonl section
 answer_quality | hybrid_rerank | Hybrid + rerank (baseline, 3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=81%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=8%@30 False_refusals=0%@22 Correct_refusals=3/3
 answer_quality | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl section=29 | Correct_citation=63%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=23%@30 False_refusals=0%@20 Correct_refusals=3/3
 sanad_attachment | default_3runs | Sanad-attached answers (3 runs) | dataset=golden.jsonl section=30 | Attachment_coverage=95.9%@220 Unique_hadith_coverage=97.4%@76 Median_latency_ms=2.226 p95_latency_ms=3.444
+golden_agent | off_3runs | Baseline non-agent (3-run mean) | dataset=golden.jsonl section=32 | Correct_citation=96.3%@27 False_refusals=3.7%@27 Correct_refusals=100.0%@3 Pooled_median_ms=4906.0 Pooled_p95_ms=25074.3
+golden_agent | on_3runs | Tool-calling agent (3-run mean) | dataset=golden.jsonl section=32 | Correct_citation=100.0%@27 False_refusals=0.0%@27 Correct_refusals=55.6%@3 Pooled_median_ms=17326.3 Pooled_p95_ms=29167.4
+chain_eval_test | agent_off | Non-agent baseline (frozen test) | dataset=chain_eval_test.jsonl n=25 section=32 | Routing_accuracy=0.0%@25 Answer_accuracy=12.0%@25 Hallucinated_narrators=0.0%@25 Abstention_accuracy=100.0%@3 Median_latency_ms=11033.5
+chain_eval_test | agent_on | Tool-calling agent ON (frozen test) | dataset=chain_eval_test.jsonl n=25 section=32 | Routing_accuracy=100.0%@25 Answer_accuracy=100.0%@25 Hallucinated_narrators=0.0%@25 Abstention_accuracy=100.0%@3 Median_latency_ms=8560.4
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3494,7 +3498,7 @@ artifact was touched.
 
 ---
 
-## القسم 31 — مجموعة تقييم أسئلة السند والمقيّم الحتمي (`Phase B`)
+## 31. مجموعة تقييم أسئلة السند والمقيّم الحتمي (`Phase B`)
 
 بُنيت مجموعة `data/raw/chain_eval.jsonl` (`40` سؤالًا) وحُسبت كل إجاباتها الذهبية مباشرةً من قاعدة بيانات السند (`sanad_graph.sqlite`) عبر `src/build_chain_eval.py` دون أي استدعاء لنماذج لغوية (`0` نداءات LLM، وصياغة بشرية طبيعية متنوعة، مع تضمين أسئلة الرواة الثلاثة من `golden.jsonl`).
 
@@ -3518,6 +3522,60 @@ artifact was touched.
 - **صحة التوجيه (`routing_correct`)**: التحقق من استدعاء `get_isnad` عند الحاجة (وبالمعرف المستهدف عند ذكر رقم الحديث)، واستدعاء `search_hadith` فقط عندما لا يكون رقم الحديث مذكورًا في السؤال.
 - **عدم اختلاق الرواة (`no_hallucinated_narrators`)**: كشف أسماء الرواة عبر معجم `mis_narrator` المطبع مع دعم السوابق العربية (`و/ف/ب/ل/ك`) وأطول تطابق لتفادي التداخل الفرعي، ومطابقتها حصريًا مع الرواة الواردين في نتائج `get_isnad` للطلب نفسه.
 - **صحة الإجابة والامتناع (`answer_correct` / `abstain_correct`)**: التحقق الحتمي من وجود معرّفات/أسماء الرواة المتوقعة، أو تطابق العدد (`isnad_count`)، أو النفي/الإثبات (`narrator_in_chain`)، والامتناع الواضح عند غياب السند المسجل أو عند طلب أحكام الجرح والتعديل غير المدرجة (`7380` وامتناع جزئي في `12068`).
+
+---
+
+## 32. المرحلة C — تقييم الوكيل مع استدعاء الأدوات وبوابة القرار الأولى (`Phase C`)
+
+**تاريخ القياس:** 2026-11-15 · **الكود:** `src/agent.py`, `src/answer.py`, `src/pipeline.py`, `src/sanad_names.py`, `src/experiment_c5_agent.py` · **حصة النداءات المستخدمة في `C5`:** `434 / 500` Pro (`gemini-4-argon`) و`110 / 800` Flash (`gemini-3.8-flash`) و`218` Embed (`data/processed/c5_api_ledger.json`).
+
+### 1) مجموعة التطوير `chain_eval_dev.jsonl` (`n = 15`، تشغيلة تطوير — `agent ON`)
+
+- **المخرجات:** `data/processed/c5_dev_results.json` · **البصمة:** `ee90b7fa0eed67aee18927254e4dc894ae4fa37d531e2d16bd0c539ec3f92057`
+- **صحة التوجيه (`routing_accuracy`):** **`100.0%`** (`15/15`) عبر الأنواع الخمسة (`3/3` لكل نوع).
+- **صحة الإجابة (`answer_accuracy`):** **`93.3%`** (`14/15`): `3/3` (`100.0%`) في `who_narrated_companion` و`who_narrated_teacher` و`isnad_count` و`narrator_in_chain`، و`2/3` (`66.7%`) في `topic_who_narrated` (حالة `chain_topic_03`: اختار الوكيل رواية شقيقة صحيحة المتن `11242` بدل `11245` واستخرج الصحابي الصحيح «النعمان بن بشير» من `get_isnad(11242)` دون اختلاق).
+- **اختلاق الرواة:** **`0/15` (`0.0%`)** · **الامتناع الصحيح:** **`2/2` (`100.0%`)** · **زمن الاستجابة:** الوسيط `9587.6 ms`، المئين 95 `51108.4 ms` (`min 5923.6`, `max 51881.8`).
+- **ملاحظة تطويرية:** في محاولة `chain_comp_02` التقط المعجم عبارة «من الصحابة» لوجود صف `NM_49` («من أدرك من الصحابة») وأعاد التوليد بنجاح (`1/15`)؛ وُحّدت بادئات الوصف غير الشخصي في `_NON_PERSON_PREFIXES` داخل `src/sanad_names.py` مع اختبار وحدة مانع قبل الانتقال إلى `golden` و`test` (`0` نداءات لـ `disallowed_narrators` في `golden` و`test` بعد التحديث).*(سُجّلت أيضًا `30` Pro + `15` Flash قبل إصلاح `location="global"` في `src/agent.py` و`2` Pro + `1` Flash لاختبار السبر الأولي.)*
+
+### 2) أسئلة النص الذهبية `golden.jsonl` (`n = 30`: `27` قابلًا للإجابة + `3` رفض؛ `3` تشغيلات لكل وضع = `90` طلبًا)
+
+**المخرجات:** `data/processed/c5_golden_results.json` · المقارنة عبر نقطة الدخول الموحّدة `build_pipeline()` + `answer_with_details`:
+
+| الوضع (`MUSNAD_AGENT`) | الاستشهاد الصحيح (`27`) | الرفض الخاطئ (`27`) | الرفض الصحيح (`3`) | محاولات استشهاد غير صالحة (`90`) | وسيط الزمن المجمّع (`n=90`) | المئين 95 المجمّع (`n=90`) | نداءات API (`3` تشغيلات) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| **`off` (الافتراضي)** | `96.3%` (`26.0/27`؛ `[26,26,26]`) | `3.7%` (`1.0/27`؛ `[1,1,1]`) | **`100.0%`** (`3.0/3`؛ `[3,3,3]`) | `0.0%` (`0/90`) | **`4906.0 ms`** (`4.91 s`) | `25074.3 ms` | `98` Pro · `4` Flash |
+| **`on` (الوكيل)** | **`100.0%`** (`27.0/27`؛ `[27,27,27]`) | **`0.0%`** (`0.0/27`؛ `[0,0,0]`) | `55.6%` (`1.67/3`؛ `[1,2,2]`) | `0.0%` (`0/90`) | `17326.3 ms` (`17.33 s`) | `29167.4 ms` | `181` Pro · `57` Flash |
+
+- **تحسّن الاستشهاد النصي:** رفع الوكيل `ON` دقة الاستشهاد من `96.3%` إلى **`100.0%`** (`+1.0` سؤال في المتوسط) وأزال حالة الرفض الخاطئ المتكررة على السؤال `#4` مع `0` محاولات استشهاد غير صالحة و`0` أسماء رواة مخالفة و`0` حالات إعادة توليد، وتحقق مسار الرجوع الاحتياطي حيًّا بنجاح في حالة واحد (`1/90` عند مهلة أداة `15.0s` في التشغيلة 3 `#2`).
+- **انخفاض الرفض الصحيح (`−1.33` سؤال عن `OFF`، تجاوز حد بوابة 1 البالغ `1.0`):** في سؤال الرفض `#29` («كم عدد ركعات صلاة التراويح؟») أعاد الوكيل صياغة استعلام البحث مستندًا إلى معرفته المسبقة («قيام رمضان إحدى عشرة ركعة»)، فاسترجع أحاديث صلاة الليل وأجاب بدل الرفض في `3/3` تشغيلات؛ وفي التشغيلة 1 من `#28` («فضل سورة الكهف يوم الجمعة») أجاب جزئيًا دون صيغة الرفض الصارمة.
+- **ارتفاع الزمن الوسيط (`+253.2%`، `3.53×` مقابل `OFF`، تجاوز حد بوابة 1 البالغ `+50%`):** يتطلب الوكيل جولتي `gemini-4-argon` على الأقل (`181` مقابل `98` نداء Pro) كما أن إعادة صياغة الاستعلامات في `search_hadith` كسرت تطابق كاش الأسئلة المسبق على `golden` (`57` نداء HyDE Flash حي مقابل `4` في `OFF` حيث تطابقت أسئلة `golden` حرفيًا مع الكاش: `4906.0 ms`). وحتى بمقارنة وسيط الاستعلامات الحية دون كاش في §29 (`12,550.5 ms`) يبقى وسيط الوكيل `17326.3 ms` أعلى بنحو `+38.1%`.
+
+### 3) الاختبار المجمّد `chain_eval_test.jsonl` (`n = 25`، تشغيلة نهائية واحدة — `agent ON` مقابل `agent OFF`)
+
+**المخرجات:** `data/processed/c5_chain_test_results.json` · **البصمة المجمّدة:** `7cb399587827dddee45ed5af083407f21d04056fd4dcee7f9cb8931777c39025`
+
+| الإعداد | التوجيه الصحيح | الإجابة الصحيحة | اختلاق الرواة | الامتناع الصحيح (`3`) | وسيط الزمن (`median`) | المئين 95 (`p95`) | نداءات API |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| **`agent_off` (غير الوكيل)** | `0.0%` (`0/25`) | `12.0%` (`3/25`*) | `0.0%` (`0/25`) | `100.0%` (`3/3`) | `11033.5 ms` | `16778.9 ms` | `25` Pro · `25` Flash |
+| **`agent_on` (الوكيل)** | **`100.0%`** (`25/25`) | **`100.0%`** (`25/25`) | **`0.0%`** (`0/25`) | **`100.0%`** (`3/3`) | **`8560.4 ms`** | `50520.4 ms` | `59` Pro · `5` Flash |
+
+> *\* جميع النجاحات الثلاث في `agent_off` (`3/25`) كانت رفضًا أعمى («المصادر المتاحة لا تجيب عن هذا السؤال») صادف أسئلة الامتناع الثلاث (`chain_teach_08`, `chain_in_08`, `chain_topic_05`)، بينما حقق `0/22` (`0.0%`) في جميع أسئلة السند القابلة للإجابة.*
+
+تفصيل أنواع الاختبار المجمّد تحت `agent_on`:
+- `who_narrated_companion`: `5/5` توجيه (`100.0%`) · `5/5` إجابة (`100.0%`)
+- `who_narrated_teacher`: `5/5` توجيه (`100.0%`) · `5/5` إجابة (`100.0%`)
+- `isnad_count`: `5/5` توجيه (`100.0%`) · `5/5` إجابة (`100.0%`)
+- `narrator_in_chain`: `5/5` توجيه (`100.0%`) · `5/5` إجابة (`100.0%`)
+- `topic_who_narrated`: `5/5` توجيه (`100.0%`) · `5/5` إجابة (`100.0%`، متضمنة `12068` بالامتناع الجزئي و`7380` برفض الجرح والتعديل مع سلسلة السند)
+
+### 4) حالة بوابة القرار الأولى (`⛔ GATE 1`)
+
+- دقة الإجابات على `chain_eval_test`: `100.0%` (`25/25 >= 80%`) — **ناجح**.
+- الاستشهاد الصحيح على `golden`: `100.0%` مقابل `96.3%` (`+1.0` سؤال) — **ناجح**.
+- الرفض الصحيح على `golden`: `55.6%` (`1.67/3`) مقابل `100.0%` (`3.0/3`)، تراجع بمقدار **`1.33` سؤال (> `1.0`)** — **⛔ شرط إيقاف مُفعَّل**.
+- ارتفاع الوسيط الزمني على `golden`: `17326.3 ms` مقابل `4906.0 ms` (**`+253.2%`** > **`+50%`**) — **⛔ شرط إيقاف مُفعَّل**.
+- **الوضع الملتزَم به عند التوقف:** يبقى `DEFAULT_AGENT_MODE = "off"` (`MUSNAD_AGENT=off` افتراضيًا) بانتظار قرار المستخدم عند البوابة 1.
+
 
 
 

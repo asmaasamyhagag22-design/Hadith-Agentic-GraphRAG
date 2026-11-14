@@ -421,6 +421,30 @@ class AgentTests(unittest.TestCase):
                 self.assertEqual(st_answer, dummy_agent_result["answer"])
                 self.assertEqual(mock_agent.call_count, 3)
 
+    def test_global_location_client_used_for_argon(self) -> None:
+        observed_locations: list[str | None] = []
+
+        class _FakeModels:
+            def generate_content(self, *, model, contents, config):
+                return _fake_resp(text=ans.REFUSAL)
+
+        def _fake_get_client(location=None):
+            observed_locations.append(location)
+            return SimpleNamespace(models=_FakeModels())
+
+        with patch("src.answer.get_client", side_effect=_fake_get_client):
+            with tempfile.TemporaryDirectory() as tmp:
+                db_path = Path(tmp) / "sanad.sqlite"
+                _create_fixture_db(db_path)
+                out = run_agent(
+                    "سؤال تجريبي",
+                    _DummyRetriever(),
+                    sanad_db_path=db_path,
+                    lexicon=NarratorLexicon({}),
+                )
+        self.assertFalse(out["agent_fallback"])
+        self.assertEqual(observed_locations, ["global"])
+
 
 if __name__ == "__main__":
     unittest.main()
