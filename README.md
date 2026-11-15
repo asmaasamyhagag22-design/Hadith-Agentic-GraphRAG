@@ -13,7 +13,7 @@ Grounded Arabic question answering over Sahih Muslim, combining dense semantic m
 
 ## Live demo
 
-- **Hosted URL:** _TBD — fill in `ServiceUrl` from [`docs/deploy_aws.md`](docs/deploy_aws.md) after `cdk deploy`_
+- **Hosted URL:** http://Musnad-Musna-Pq3Zic0CzM17-727892108.us-east-1.elb.amazonaws.com
 - **Run locally (live or replay):**
   ```bash
   uv run streamlit run app/streamlit_app.py            # Live mode (uses Vertex AI ADC / .env)
