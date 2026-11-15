@@ -208,6 +208,8 @@ html, body, .stApp {
     border-radius: 12px;
     padding: 0.9rem 1.1rem;
     margin-bottom: 0.85rem;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .sanad-card-header {
@@ -222,23 +224,29 @@ html, body, .stApp {
 .sanad-strip {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.45rem 0;
+    padding: 0.45rem 0.1rem 0.6rem 0.1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    direction: rtl;
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
 }
 
 .narrator-chip {
     display: inline-flex;
     flex-direction: column;
     align-items: flex-start;
+    flex: 0 0 auto;
+    white-space: nowrap;
     padding: 0.4rem 0.72rem;
     border-radius: 10px;
     background: #F8F7F2;
     border: 1px solid #D6D3C8;
     font-size: 0.86rem;
     color: #292524;
-    max-width: 100%;
 }
 
 .narrator-chip--teacher {
@@ -262,6 +270,7 @@ html, body, .stApp {
 }
 
 .sanad-arrow {
+    flex: 0 0 auto;
     color: #78716C;
     font-weight: 700;
     font-size: 1rem;
@@ -709,6 +718,29 @@ def _summarize_trace_event(stage: str, data: dict[str, Any]) -> tuple[str, bool]
     if stage == "generation":
         model = data.get("model") or "—"
         attempts = data.get("attempts") or 1
+        timeout_s = data.get("timeout_s")
+        timeout_label = f"{float(timeout_s):g} ث" if isinstance(timeout_s, (int, float)) else "45 ث"
+        if data.get("event_kind") == "timeout_retry":
+            return (
+                html.escape(
+                    f"⏱️ انتهت مهلة التوليد ({model}) بعد {timeout_label} في المحاولة الأولى — جاري إعادة المحاولة مرة واحدة…"
+                ),
+                False,
+            )
+        if data.get("timed_out"):
+            return (
+                html.escape(
+                    f"⏱️ انتهت مهلة التوليد ({model}) بعد {timeout_label} في المحاولتين ({attempts} محاولات) — يُرجى إعادة المحاولة."
+                ),
+                False,
+            )
+        if data.get("timeout_retries"):
+            return (
+                html.escape(
+                    f"النموذج: {model} | عدد المحاولات: {attempts} (نجحت بعد إعادة محاولة انتهاء المهلة)"
+                ),
+                False,
+            )
         return html.escape(f"النموذج: {model} | عدد المحاولات: {attempts}"), False
 
     if stage == "validation":

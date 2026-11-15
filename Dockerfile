@@ -39,6 +39,7 @@ WORKDIR /app
 COPY --from=builder --chown=musnad:musnad /opt/venv /opt/venv
 
 # Copy application code & runtime-only data artifacts
+COPY --chown=musnad:musnad .streamlit /app/.streamlit
 COPY --chown=musnad:musnad app /app/app
 COPY --chown=musnad:musnad src /app/src
 COPY --chown=musnad:musnad data/demo/recorded_runs.json /app/data/demo/recorded_runs.json

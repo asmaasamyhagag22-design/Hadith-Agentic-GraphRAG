@@ -244,12 +244,16 @@ def run_agent(
     isnad_fn: Callable[[int], dict[str, Any]] | None = None,
     lexicon: NarratorLexicon | None = None,
     fallback_fn: Callable[[], dict[str, Any]] | None = None,
+    model_timeout_s: float | None = None,
     trace: Any = None,
 ) -> dict[str, Any]:
     """Run tool-calling loop with C1 bounds/timeout/fallback and C2 validation."""
     from src.answer import (
         CORRECTIONS,
         GENERATE_TIMEOUT_MS,
+        GenerationTimeoutError,
+        INITIAL_BACKOFF_SECONDS,
+        MAX_ATTEMPTS,
         MODEL,
         REFUSAL,
         TEMPERATURE,
@@ -258,8 +262,10 @@ def run_agent(
         _format_trace_top5,
         attach_sanad,
         cited_ids,
+        is_timeout_exception,
         loose_cited_ids,
         ordered_cited_ids,
+        run_model_call_with_timeout_and_retry,
         validate_answer,
     )
 
@@ -267,53 +273,63 @@ def run_agent(
     resolved_db_path = Path(sanad_db_path) if sanad_db_path is not None else GRAPH_DB_PATH
     agent_tools = build_agent_tools()
     is_global_model = resolved_model.startswith("gemini-3") or resolved_model.startswith("gemini-4")
+    resolved_model_timeout_s = (
+        float(model_timeout_s)
+        if model_timeout_s is not None
+        else (GENERATE_TIMEOUT_MS / 1000.0 if GENERATE_TIMEOUT_MS > 0 else None)
+    )
+    resolved_http_timeout_ms = (
+        int(round(resolved_model_timeout_s * 1000))
+        if resolved_model_timeout_s is not None and resolved_model_timeout_s > 0
+        else None
+    )
 
     def _is_retryable_api_error(exc: Exception) -> bool:
+        if is_timeout_exception(exc):
+            return False
         code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
         if isinstance(code, int):
             return code == 429 or code >= 500
         msg = str(exc)
-        return any(tok in msg for tok in ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "DEADLINE_EXCEEDED", "UNAVAILABLE"))
+        return any(tok in msg for tok in ("429", "500", "502", "503", "RESOURCE_EXHAUSTED", "UNAVAILABLE"))
 
     def _default_generate(contents: list[Any], *, allow_tools: bool) -> Any:
-        from src.answer import INITIAL_BACKOFF_SECONDS, MAX_ATTEMPTS
-
         active_client = client if client is not None else _get_default_client()
         mode = "AUTO" if allow_tools else "NONE"
         config_kwargs: dict[str, Any] = {
             "system_instruction": AGENT_SYSTEM_INSTRUCTION,
             "temperature": TEMPERATURE,
-            "http_options": types.HttpOptions(timeout=GENERATE_TIMEOUT_MS),
             "tools": [agent_tools],
             "tool_config": types.ToolConfig(
                 function_calling_config=types.FunctionCallingConfig(mode=mode)
             ),
             "automatic_function_calling": types.AutomaticFunctionCallingConfig(disable=True),
         }
+        if resolved_http_timeout_ms:
+            config_kwargs["http_options"] = types.HttpOptions(timeout=resolved_http_timeout_ms)
         if is_global_model:
             config_kwargs["thinking_config"] = types.ThinkingConfig(thinking_level="LOW")
         config = types.GenerateContentConfig(**config_kwargs)
 
-        delay = INITIAL_BACKOFF_SECONDS
-        for attempt in range(MAX_ATTEMPTS):
-            try:
-                return active_client.models.generate_content(
-                    model=resolved_model,
-                    contents=contents,
-                    config=config,
-                )
-            except Exception as exc:
-                if attempt == MAX_ATTEMPTS - 1 or not _is_retryable_api_error(exc):
-                    raise
-                time.sleep(delay)
-                delay *= 2
+        return active_client.models.generate_content(
+            model=resolved_model,
+            contents=contents,
+            config=config,
+        )
 
     def _get_default_client() -> Any:
-        from src.answer import get_client
+        from src.answer import GENERATE_TIMEOUT_MS, get_client
 
-        return get_client(location="global" if is_global_model else None)
+        location = "global" if is_global_model else None
+        if resolved_http_timeout_ms != GENERATE_TIMEOUT_MS:
+            try:
+                return get_client(location=location, timeout_ms=resolved_http_timeout_ms)
+            except TypeError:
+                pass
+        return get_client(location=location)
 
     model_call = generate_fn if generate_fn is not None else _default_generate
+    using_default_generate = generate_fn is None
 
     def _exec_search(query: str) -> list[dict[str, Any]]:
         if search_fn is not None:
@@ -336,16 +352,43 @@ def run_agent(
     ordered_chunks: list[dict[str, Any]] = []
     pro_calls_used = 0
     gen_ms_total = 0.0
+    timeout_retries_total = 0
 
     def _timed_model_call(call_contents: list[Any], *, allow_tools: bool) -> Any:
-        nonlocal pro_calls_used, gen_ms_total
-        pro_calls_used += 1
+        nonlocal pro_calls_used, gen_ms_total, timeout_retries_total
+        call_state = {"calls": 0, "timeout_retries": 0}
         t0 = time.perf_counter() if trace is not None else 0.0
         try:
-            return model_call(call_contents, allow_tools=allow_tools)
+            return run_model_call_with_timeout_and_retry(
+                lambda: model_call(call_contents, allow_tools=allow_tools),
+                model=resolved_model,
+                timeout_s=resolved_model_timeout_s,
+                max_transient_attempts=MAX_ATTEMPTS if using_default_generate else 1,
+                transient_retry_predicate=_is_retryable_api_error,
+                initial_backoff_s=INITIAL_BACKOFF_SECONDS,
+                trace=trace,
+                ctx_state=call_state,
+            )
         finally:
+            pro_calls_used += int(call_state["calls"])
+            timeout_retries_total += int(call_state["timeout_retries"])
             if trace is not None:
                 gen_ms_total += (time.perf_counter() - t0) * 1000.0
+
+    def _record_generation_timeout(exc: GenerationTimeoutError) -> None:
+        if trace is not None:
+            attempts_made = max(pro_calls_used, exc.attempts)
+            trace.record_generation(
+                model=resolved_model,
+                attempts=attempts_made,
+                duration_ms=gen_ms_total,
+                pro_calls=attempts_made,
+                timeout_retries=max(1, timeout_retries_total),
+                timed_out=True,
+                timeout_s=exc.timeout_s,
+                status="timeout",
+                error=f"{type(exc).__name__}: {exc}",
+            )
 
     def _record_chunk(chunk: dict[str, Any]) -> None:
         hid = int(chunk["hadith_id"])
@@ -514,6 +557,9 @@ def run_agent(
             _, draft_answer, final_content = _extract_response_parts(final_resp)
             if final_content is not None:
                 contents.append(final_content)
+    except GenerationTimeoutError as exc:
+        _record_generation_timeout(exc)
+        raise
     except Exception as exc:
         return _run_fallback(exc)
 
@@ -553,6 +599,9 @@ def run_agent(
         try:
             regen_resp = _timed_model_call(regen_contents, allow_tools=False)
             _, regen_text, _ = _extract_response_parts(regen_resp)
+        except GenerationTimeoutError as exc:
+            _record_generation_timeout(exc)
+            raise
         except Exception as exc:
             return _run_fallback(exc)
 
@@ -572,12 +621,18 @@ def run_agent(
             final_status = VALID_REFUSAL
 
     if trace is not None:
+        gen_extra = (
+            {"timeout_retries": timeout_retries_total}
+            if timeout_retries_total > 0
+            else {}
+        )
         trace.record_generation(
             model=resolved_model,
-            attempts=2 if regenerated else 1,
+            attempts=(2 if regenerated else 1) + timeout_retries_total,
             duration_ms=gen_ms_total,
             pro_calls=pro_calls_used,
             regenerated=regenerated,
+            **gen_extra,
         )
         retry_reason = None
         if regenerated:

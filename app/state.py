@@ -358,9 +358,15 @@ def execute_live_query(
 
 def format_error_details(exc: Exception) -> tuple[str, str]:
     """Return a friendly Arabic error message and technical details string."""
-    friendly = (
-        "تعذّر إتمام البحث حاليًا بسبب خلل مؤقت في الاتصال أو خدمة التوليد. "
-        "يمكنك المحاولة مجددًا أو التبديل إلى الوضع المحلي/المسجّل."
-    )
+    if isinstance(exc, TimeoutError):
+        friendly = (
+            "استغرقت خدمة التوليد وقتًا أطول من المهلة المحددة (45 ثانية) ولم تكتمل بعد إعادة المحاولة. "
+            "يُرجى إعادة المحاولة مرة أخرى بعد قليل."
+        )
+    else:
+        friendly = (
+            "تعذّر إتمام البحث حاليًا بسبب خلل مؤقت في الاتصال أو خدمة التوليد. "
+            "يمكنك المحاولة مجددًا أو التبديل إلى الوضع المحلي/المسجّل."
+        )
     details = "".join(traceback.format_exception_only(type(exc), exc)).strip()
     return friendly, details

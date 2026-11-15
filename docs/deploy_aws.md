@@ -106,7 +106,7 @@ docker build --platform linux/amd64 -t musnad-demo:latest .
 
 # Optional: if building directly from a symlinked worktree where data/processed is a symlink:
 # tar -chf - --exclude='__pycache__' --exclude='*.pyc' --exclude='.env*' --exclude='*service-account*.json' \
-#   pyproject.toml uv.lock .dockerignore Dockerfile app src \
+#   pyproject.toml uv.lock .dockerignore Dockerfile .streamlit app src \
 #   data/demo/recorded_runs.json \
 #   data/processed/vectors_matn_gemini001_3072.npy \
 #   data/processed/chunk_ids_matn.json \

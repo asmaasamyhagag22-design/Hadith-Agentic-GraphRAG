@@ -290,3 +290,87 @@ def test_step5_ui_fixes_markdown_lists_status_localization_and_bidi():
     assert "إسناد واحد" in trace_html
     assert '[data-testid="stSidebar"][data-collapsed="true"]' in _CSS
     assert '[data-testid="stAppViewContainer"]' in _CSS
+
+
+def test_sanad_strip_single_line_rtl_and_minimal_toolbar_config():
+    from app.components import _CSS
+
+    sanad_strip_rule = _CSS.split(".sanad-strip {", 1)[1].split("}", 1)[0]
+    assert "flex-wrap: nowrap" in sanad_strip_rule
+    assert "overflow-x: auto" in sanad_strip_rule
+    assert "direction: rtl" in sanad_strip_rule
+
+    chip_rule = _CSS.split(".narrator-chip {", 1)[1].split("}", 1)[0]
+    assert "flex: 0 0 auto" in chip_rule
+    assert "white-space: nowrap" in chip_rule
+
+    config_toml = (ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8")
+    assert 'toolbarMode = "minimal"' in config_toml
+
+
+def test_timeout_error_shows_arabic_retry_message_even_in_cloud_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    from app.usage_guard import InMemoryUsageBackend
+    from src.answer import GenerationTimeoutError
+
+    monkeypatch.setattr("app.usage_guard._LOCAL_BACKEND", InMemoryUsageBackend())
+
+    def _fake_warm_up(config, retrieval_mode, *, load_pipeline=True):
+        return {
+            "router_ready": True,
+            "sanad_ready": True,
+            "pipeline_ready": True,
+            "hadith_count": 5300,
+            "pipeline": object(),
+            "matn_by_hadith_id": {},
+            "error": None,
+        }
+
+    def _fake_timeout_answer(*args, **kwargs):
+        trace = kwargs.get("trace")
+        if trace is not None:
+            trace.record(
+                "generation",
+                duration_ms=45000.0,
+                model="gemini-4-argon",
+                attempts=1,
+                pro_calls=0,
+                event_kind="timeout_retry",
+                timed_out=True,
+                timeout_s=45.0,
+            )
+            trace.record_generation(
+                model="gemini-4-argon",
+                attempts=2,
+                duration_ms=90000.0,
+                pro_calls=2,
+                timeout_retries=1,
+                timed_out=True,
+                timeout_s=45.0,
+                status="timeout",
+            )
+        raise GenerationTimeoutError()
+
+    monkeypatch.setenv("MUSNAD_CLOUD", "1")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-dummy-key")
+    monkeypatch.setattr(app_state, "warm_up_resources", _fake_warm_up)
+    monkeypatch.setattr(app_state, "answer_with_details", _fake_timeout_answer)
+
+    at = AppTest.from_file(str(ROOT / "app" / "streamlit_app.py"))
+    at.run(timeout=30)
+    assert not at.exception
+
+    caplog.clear()
+    with caplog.at_level(logging.ERROR, logger="musnad"):
+        at.text_area[0].input("سؤال تتجاوز مهلة التوليد").run(timeout=30)
+        submit_btn = next(b for b in at.button if "اسأل" in b.label)
+        submit_btn.click().run(timeout=30)
+
+    assert not at.exception
+    markdown_blob = "\n".join(m.value for m in at.markdown)
+    assert "45 ثانية" in markdown_blob
+    assert "إعادة المحاولة" in markdown_blob
+    assert "انتهت مهلة التوليد" in markdown_blob
+    assert any("Error during live query execution" in rec.message for rec in caplog.records)

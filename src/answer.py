@@ -1,4 +1,8 @@
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
+from contextlib import contextmanager
+import logging
 import sys
 import os
 import re
@@ -42,11 +46,19 @@ REFUSAL = "المصادر المتاحة لا تجيب عن هذا السؤال"
 # GOOGLE_CLOUD_LOCATION و GOOGLE_GENAI_USE_VERTEXAI في .env،
 # والاعتماد على Application Default Credentials.
 MAX_ATTEMPTS = 5
+MAX_TIMEOUT_RETRIES = 1
 INITIAL_BACKOFF_SECONDS = 4
-GENERATE_TIMEOUT_MS = int(os.environ.get("MUSNAD_GENERATE_TIMEOUT_MS", "180000"))
+TIMEOUT_RETRY_BACKOFF_SECONDS = 1.0
+GENERATE_TIMEOUT_MS = int(os.environ.get("MUSNAD_GENERATE_TIMEOUT_MS", "45000"))
+GENERATION_TIMEOUT_MESSAGE = (
+    "استغرقت خدمة التوليد وقتًا أطول من المهلة المحددة (45 ثانية) ولم تكتمل بعد إعادة المحاولة. "
+    "يُرجى إعادة المحاولة مرة أخرى بعد قليل."
+)
 
+_logger = logging.getLogger("musnad.answer")
 _client = None
 _thread_clients = threading.local()
+_generation_trace_ctx = threading.local()
 _RR_LOCATIONS = (
     "global",
     "us-central1",
@@ -59,17 +71,186 @@ _RR_LOCATIONS = (
 _rr_counter = 0
 
 
-def get_client(location=None):
+class GenerationTimeoutError(TimeoutError):
+    """Raised when a generation model call exceeds the per-call deadline on both attempts."""
+
+    def __init__(
+        self,
+        message: str = GENERATION_TIMEOUT_MESSAGE,
+        *,
+        timeout_s: float | None = None,
+        attempts: int = 2,
+        model: str = MODEL,
+    ) -> None:
+        super().__init__(message)
+        self.timeout_s = (
+            GENERATE_TIMEOUT_MS / 1000.0 if timeout_s is None else float(timeout_s)
+        )
+        self.attempts = int(attempts)
+        self.model = model
+
+
+@contextmanager
+def _generation_trace_context(trace=None):
+    prev = getattr(_generation_trace_ctx, "current", None)
+    state = {"trace": trace, "timeout_retries": 0, "calls": 0}
+    _generation_trace_ctx.current = state
+    try:
+        yield state
+    finally:
+        _generation_trace_ctx.current = prev
+
+
+_TIMEOUT_MSG_RE = re.compile(
+    r"\b(?:timed out|deadline[_ ]exceeded|gateway timeout|request timeout|504)\b",
+    re.IGNORECASE,
+)
+
+
+def is_timeout_exception(exc: Exception) -> bool:
+    """Return True when ``exc`` represents an HTTP/RPC or deadline timeout."""
+    if isinstance(exc, TimeoutError):
+        return True
+    if any(
+        "timeout" in cls.__name__.lower() or "deadline" in cls.__name__.lower()
+        for cls in type(exc).__mro__
+    ):
+        return True
+    code = getattr(exc, "code", None) or getattr(exc, "status_code", None)
+    if code == 504:
+        return True
+    if isinstance(exc, (TypeError, ValueError, AttributeError, KeyError, RuntimeError)):
+        return False
+    return bool(_TIMEOUT_MSG_RE.search(str(exc)))
+
+
+def _invoke_with_wall_timeout(fn, timeout_s: float | None, model: str):
+    if timeout_s is None or timeout_s <= 0:
+        return fn()
+    executor = ThreadPoolExecutor(max_workers=1)
+    try:
+        future = executor.submit(fn)
+        return future.result(timeout=timeout_s)
+    except FutureTimeoutError as exc:
+        raise TimeoutError(
+            f"Model generation call to {model} timed out after {timeout_s:.1f}s"
+        ) from exc
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)
+
+
+def run_model_call_with_timeout_and_retry(
+    invoke_once,
+    *,
+    model: str,
+    timeout_s: float | None = None,
+    max_timeout_retries: int = MAX_TIMEOUT_RETRIES,
+    max_transient_attempts: int = MAX_ATTEMPTS,
+    transient_retry_predicate=None,
+    initial_backoff_s: float = INITIAL_BACKOFF_SECONDS,
+    timeout_backoff_s: float | None = None,
+    trace=None,
+    ctx_state: dict | None = None,
+):
+    """Execute one logical model turn with a per-call timeout and single timeout retry."""
+    eff_timeout_s = (
+        float(timeout_s)
+        if timeout_s is not None
+        else (GENERATE_TIMEOUT_MS / 1000.0 if GENERATE_TIMEOUT_MS > 0 else None)
+    )
+    if timeout_backoff_s is not None:
+        eff_timeout_backoff = float(timeout_backoff_s)
+    elif eff_timeout_s is not None:
+        eff_timeout_backoff = min(float(TIMEOUT_RETRY_BACKOFF_SECONDS), eff_timeout_s)
+    else:
+        eff_timeout_backoff = float(TIMEOUT_RETRY_BACKOFF_SECONDS)
+
+    active_ctx = (
+        ctx_state if ctx_state is not None else getattr(_generation_trace_ctx, "current", None)
+    )
+    active_trace = trace if trace is not None else (active_ctx.get("trace") if active_ctx else None)
+
+    timeout_failures = 0
+    transient_failures = 0
+    delay = float(initial_backoff_s)
+    total_calls = 0
+
+    while True:
+        total_calls += 1
+        if active_ctx is not None:
+            active_ctx["calls"] = int(active_ctx.get("calls", 0)) + 1
+        t_call0 = time.perf_counter()
+        try:
+            return _invoke_with_wall_timeout(invoke_once, eff_timeout_s, model)
+        except Exception as exc:
+            call_ms = (time.perf_counter() - t_call0) * 1000.0
+            if is_timeout_exception(exc):
+                if timeout_failures < max_timeout_retries:
+                    timeout_failures += 1
+                    if active_ctx is not None:
+                        active_ctx["timeout_retries"] = (
+                            int(active_ctx.get("timeout_retries", 0)) + 1
+                        )
+                    _logger.warning(
+                        "Generation call timed out after %.1fs (attempt %d, retrying once): %s",
+                        eff_timeout_s or 0.0,
+                        total_calls,
+                        exc,
+                    )
+                    if active_trace is not None:
+                        active_trace.record(
+                            "generation",
+                            duration_ms=call_ms,
+                            model=model,
+                            attempts=total_calls,
+                            pro_calls=0,
+                            event_kind="timeout_retry",
+                            timeout_s=eff_timeout_s,
+                            timed_out=True,
+                            error=f"{type(exc).__name__}: {exc}",
+                        )
+                    if eff_timeout_backoff > 0:
+                        time.sleep(eff_timeout_backoff)
+                    continue
+
+                _logger.error(
+                    "Generation call timed out twice after %.1fs (%d attempts): %s",
+                    eff_timeout_s or 0.0,
+                    total_calls,
+                    exc,
+                )
+                raise GenerationTimeoutError(
+                    GENERATION_TIMEOUT_MESSAGE,
+                    timeout_s=eff_timeout_s or 0.0,
+                    attempts=total_calls,
+                    model=model,
+                ) from exc
+
+            should_retry = (
+                transient_retry_predicate(exc)
+                if transient_retry_predicate is not None
+                else True
+            )
+            transient_failures += 1
+            if not should_retry or transient_failures >= max_transient_attempts:
+                raise
+            time.sleep(delay)
+            delay *= 2
+
+
+def get_client(location=None, *, timeout_ms=None):
 
     global _client
 
-    http_opts = types.HttpOptions(timeout=GENERATE_TIMEOUT_MS) if GENERATE_TIMEOUT_MS else None
+    resolved_timeout_ms = GENERATE_TIMEOUT_MS if timeout_ms is None else int(timeout_ms)
+    http_opts = types.HttpOptions(timeout=resolved_timeout_ms) if resolved_timeout_ms else None
 
     if location == "global":
         client = getattr(_thread_clients, "global_client", None)
-        if client is None:
+        if client is None or (timeout_ms is not None):
             client = genai.Client(location="global", http_options=http_opts)
-            _thread_clients.global_client = client
+            if timeout_ms is None:
+                _thread_clients.global_client = client
         return client
 
     if location is not None:
@@ -87,9 +268,17 @@ def get_client(location=None):
     return _client
 
 
-def generate(prompt, system_instruction=None, history=(), model=MODEL):
+def generate(
+    prompt,
+    system_instruction=None,
+    history=(),
+    model=MODEL,
+    *,
+    timeout_s=None,
+):
     """
-    نداء واحد لـ Gemini مع انتظار متصاعد.
+    نداء واحد لـ Gemini مع مهلة 45 ثانية وإعادة محاولة واحدة عند انتهاء المهلة،
+    وانتظار متصاعد للأخطاء العابرة الأخرى.
 
     history: أدوار سابقة كـ (role, text) — بتستخدم في
     إعادة التوليد بعد استشهاد غلط.
@@ -119,37 +308,32 @@ def generate(prompt, system_instruction=None, history=(), model=MODEL):
             system_instruction=system_instruction,
         )
 
-    delay = INITIAL_BACKOFF_SECONDS
+    rr_lock = threading.Lock()
+    timeout_ms_override = int(round(float(timeout_s) * 1000)) if timeout_s is not None else None
 
-    for attempt in range(MAX_ATTEMPTS):
-
-        try:
-            if is_global_model:
-                client = get_client(location="global")
-            elif _client is not None:
-                client = _client
-            else:
+    def _invoke_once():
+        if is_global_model:
+            client = get_client(location="global", timeout_ms=timeout_ms_override)
+        elif _client is not None:
+            client = _client
+        else:
+            with rr_lock:
                 loc = _RR_LOCATIONS[_rr_counter % len(_RR_LOCATIONS)]
                 _rr_counter += 1
-                client = get_client(location=loc)
+            client = get_client(location=loc, timeout_ms=timeout_ms_override)
 
-            response = client.models.generate_content(
-                model=model,
-                contents=contents,
-                config=config,
-            )
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=config,
+        )
+        return (response.text or "").strip()
 
-            return (response.text or "").strip()
-
-        except Exception:
-
-            if attempt == MAX_ATTEMPTS - 1:
-                raise
-
-            time.sleep(delay)
-            delay *= 2
-
-    return ""
+    return run_model_call_with_timeout_and_retry(
+        _invoke_once,
+        model=model,
+        timeout_s=timeout_s,
+    )
 
 
 def build_system_prompt(context_text):
@@ -208,9 +392,11 @@ def format_context(relevant_chunks):
 # الصيغة مفروضة في build_system_prompt
 CITATION = re.compile(r"حديث\s*رقم\s*[:\s]*(\d+)")
 
+_HSPACE = r"[^\S\r\n]"
 # إشارات غير منضبطة لرقم حديث (مثل: "حديث 999"، "حديث رقم: 999"، "مسلم 999"، "مسلم، 999"، "مسلم، رقم 999")
+# تقتصر الفواصل على الفراغ الأفقي أو النقطتين أو الفاصلة العربية دون عبور الأسطر حتى لا تلتقط ترقيم القوائم.
 LOOSE_CITATION = re.compile(
-    r"(?:حديث(?:\s*رقم)?|مسلم(?:\s*[،,])?(?:\s*رقم)?)\s*[:\s]*(\d+)"
+    rf"(?:حديث(?:{_HSPACE}*رقم)?|مسلم(?:{_HSPACE}*[،,])?(?:{_HSPACE}*رقم)?)(?:{_HSPACE}|[:،])*(\d+)"
 )
 
 _DIGIT = re.compile(r"\d")
@@ -682,57 +868,86 @@ def answer_with_details(
     system_instruction = build_system_prompt(format_context(chunks))
 
     t_gen0 = time.perf_counter() if trace is not None else 0.0
-    raw = generate(question, system_instruction=system_instruction, model=model)
-    gen_ms = (time.perf_counter() - t_gen0) * 1000.0 if trace is not None else 0.0
-
-    t_val0 = time.perf_counter() if trace is not None else 0.0
-    status = validate_answer(raw, context_ids)
-    invalid = bool(cited_ids(raw) - context_ids)
-    missing_citation = status == MISSING_CITATION
-    loose_out_of_context = bool(
-        (loose_cited_ids(raw) - cited_ids(raw)) - context_ids
-    )
-    mixed_refusal = status == MIXED_REFUSAL
-    val_ms = (time.perf_counter() - t_val0) * 1000.0 if trace is not None else 0.0
-
-    answer = raw
+    gen_ms = 0.0
+    val_ms = 0.0
     regenerated = False
-    final_status = status
 
-    if status not in (VALID_ANSWER, VALID_REFUSAL) and enforce_citations:
+    with _generation_trace_context(trace) as gen_ctx:
+        try:
+            raw = generate(question, system_instruction=system_instruction, model=model)
+            if trace is not None:
+                gen_ms = (time.perf_counter() - t_gen0) * 1000.0
 
-        # مرة واحدة بس. لو فشل تاني بنرفض — إجابة بلا مصدر
-        # في المجال ده أسوأ من الاعتراف بعدم المعرفة.
-        regenerated = True
+            t_val0 = time.perf_counter() if trace is not None else 0.0
+            status = validate_answer(raw, context_ids)
+            invalid = bool(cited_ids(raw) - context_ids)
+            missing_citation = status == MISSING_CITATION
+            loose_out_of_context = bool(
+                (loose_cited_ids(raw) - cited_ids(raw)) - context_ids
+            )
+            mixed_refusal = status == MIXED_REFUSAL
+            if trace is not None:
+                val_ms = (time.perf_counter() - t_val0) * 1000.0
 
-        t_regen0 = time.perf_counter() if trace is not None else 0.0
-        answer = generate(
-            CORRECTIONS[status],
-            system_instruction=system_instruction,
-            history=[("user", question), ("model", raw)],
-            model=model,
-        )
-        if trace is not None:
-            gen_ms += (time.perf_counter() - t_regen0) * 1000.0
+            answer = raw
+            final_status = status
 
-        t_val1 = time.perf_counter() if trace is not None else 0.0
-        final_status = validate_answer(answer, context_ids)
-        if final_status not in (
-            VALID_ANSWER,
-            VALID_REFUSAL,
-        ):
-            answer = REFUSAL
-            final_status = VALID_REFUSAL
-        if trace is not None:
-            val_ms += (time.perf_counter() - t_val1) * 1000.0
+            if status not in (VALID_ANSWER, VALID_REFUSAL) and enforce_citations:
+
+                # مرة واحدة بس. لو فشل تاني بنرفض — إجابة بلا مصدر
+                # في المجال ده أسوأ من الاعتراف بعدم المعرفة.
+                regenerated = True
+
+                t_regen0 = time.perf_counter() if trace is not None else 0.0
+                answer = generate(
+                    CORRECTIONS[status],
+                    system_instruction=system_instruction,
+                    history=[("user", question), ("model", raw)],
+                    model=model,
+                )
+                if trace is not None:
+                    gen_ms += (time.perf_counter() - t_regen0) * 1000.0
+
+                t_val1 = time.perf_counter() if trace is not None else 0.0
+                final_status = validate_answer(answer, context_ids)
+                if final_status not in (
+                    VALID_ANSWER,
+                    VALID_REFUSAL,
+                ):
+                    answer = REFUSAL
+                    final_status = VALID_REFUSAL
+                if trace is not None:
+                    val_ms += (time.perf_counter() - t_val1) * 1000.0
+        except GenerationTimeoutError as exc:
+            if trace is not None:
+                timeout_retries = max(1, int(gen_ctx.get("timeout_retries", 0)))
+                attempts_made = max(int(gen_ctx.get("calls", 0)), exc.attempts)
+                trace.record_generation(
+                    model=model,
+                    attempts=attempts_made,
+                    duration_ms=(time.perf_counter() - t_gen0) * 1000.0,
+                    pro_calls=attempts_made,
+                    timeout_retries=timeout_retries,
+                    timed_out=True,
+                    timeout_s=exc.timeout_s,
+                    status="timeout",
+                    error=f"{type(exc).__name__}: {exc}",
+                )
+            raise
 
     if trace is not None:
+        timeout_retries = int(gen_ctx.get("timeout_retries", 0))
+        base_calls = 2 if regenerated else 1
+        gen_extra = (
+            {"timeout_retries": timeout_retries} if timeout_retries > 0 else {}
+        )
         trace.record_generation(
             model=model,
-            attempts=2 if regenerated else 1,
+            attempts=base_calls + timeout_retries,
             duration_ms=gen_ms,
-            pro_calls=2 if regenerated else 1,
+            pro_calls=base_calls + timeout_retries,
             regenerated=regenerated,
+            **gen_extra,
         )
         refusal_reason = None
         if final_status == VALID_REFUSAL:

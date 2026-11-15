@@ -2,7 +2,7 @@
 
 Branch: `demo-app` (worktree `../sanad-demo`, branched from `origin/retrieval-upgrade`)
 
-API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `40 Pro`, `39 Flash`, `103 Embed` — Step 3 `17P/8F/16E`, Step 4 `0P/15F/30E`, Step 5 router `0P/0F/24E`, Step 5 live `23P/16F/33E`; remaining: `0 Pro`, `1 Flash`)
+API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (base sprint: `40 Pro`, `39 Flash`, `103 Embed` — Step 3 `17P/8F/16E`, Step 4 `0P/15F/30E`, Step 5 router `0P/0F/24E`, Step 5 live `23P/16F/33E`) + Pre-deploy `run_03` re-record (`2 Pro`, `0 Flash`, `0 Embed`; total recorded: `42 Pro`, `39 Flash`, `103 Embed`)
 
 ## Step Status
 - [done] **Step 1 — Observational Trace Collector (`src/trace.py`)**:
@@ -33,3 +33,8 @@ API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `40 Pro`, `39 Flash`, 
 - [done] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**
   - `git fetch origin && git merge origin/retrieval-upgrade --no-edit` -> `Already up to date.` (`origin/retrieval-upgrade` at `2665785` is ancestor of `demo-app`).
   - Final post-merge checks: `uv run python infra/app.py`, `uv run python -m src.check_docs`, CI pytest subset, and full `pytest` suite.
+- [done] **Pre-Deployment Fixes (`demo-app`)**:
+  - **Finding #1 (`LOOSE_CITATION` newline fix)**: Restricted separator in `src/answer.py` (`_HSPACE = r"[^\S\r\n]"`) so numeric lists after `"مسلم:\n1."` never produce phantom citations (`tests/test_answer_validation.py`). Offline re-validation across all `741` saved outputs (`735` JSON rows across `e5_results.json`, `e5_simple_default_results.json`, `c5_dev_results.json`, `c5_golden_results.json`, `c5_chain_test_results.json`, `recorded_runs.json` + `6` `auto_smoke_cli.txt` blocks; `0` API calls) changed `1` item ONLY: `recorded_runs.json` `runs[2]` (`run_03_chain_id_7306`), where `loose_cited_ids` dropped from `{1, 7306}` to `{7306}` (`out_of_context_citation` -> `valid_answer`); `0` eval metrics in `EXPERIMENTS.md`/`README.md` changed. Re-recorded `run_03_chain_id_7306` cleanly (`2 Pro, 0 Flash, 0 Embed`, `regenerated=False`).
+  - **Generation Timeout (`45 s` + 1 retry)**: Set default `GENERATE_TIMEOUT_MS=45000`, `MAX_TIMEOUT_RETRIES=1`, added `GenerationTimeoutError` and `run_model_call_with_timeout_and_retry` across `src/answer.py`, `src/agent.py`, `src/trace.py`, `app/state.py`, `app/components.py`, and `app/streamlit_app.py` (showing the Arabic retry message instead of replay on double timeout even when `MUSNAD_CLOUD=1`, and logging timeout retries without Pro double-counting). Verified in `tests/test_generation_timeout.py` and `tests/test_app_ui.py`.
+  - **UI Polish & Docker Verification**: Added `.streamlit/config.toml` `[client] toolbarMode = "minimal"` (copied into `Dockerfile` and `docs/deploy_aws.md`), updated `.sanad-strip`/`.narrator-chip` in `app/components.py` to stay on one horizontal RTL scrolling line, rebuilt `musnad-demo:latest` (`1.11GB`), verified layout in Playwright (`deployVisible=False`, `chipTopSpread <= 1px`, `overflowX=0` on `run_05`, `7294`, and `7306`), and recaptured 2x `docs/assets/demo-screenshot.png`.
+  - **Docs & Assets Cleanup**: Removed 4 unused `docs/assets/musnad-architecture-{final,v2}-{dark,light}.png` files (`git rm`) and shortened `README.md` line 3 to `"Arabic question answering over Sahih Muslim that cites the exact hadith, attaches its narrator chain from a SQLite graph, and refuses when the source is silent."`.

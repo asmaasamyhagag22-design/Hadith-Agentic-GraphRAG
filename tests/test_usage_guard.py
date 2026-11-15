@@ -106,7 +106,8 @@ def test_in_memory_backend_session_ip_daily_and_ttl_rollover() -> None:
 
 
 @mock_aws
-def test_dynamo_backend_atomic_caps_and_ttl() -> None:
+def test_dynamo_backend_atomic_caps_and_ttl(monkeypatch) -> None:
+    monkeypatch.setattr("app.usage_guard._LOCAL_BACKEND", InMemoryUsageBackend())
     ddb = boto3.client("dynamodb", region_name="us-east-1")
     table_name = "musnad-usage-test"
     ddb.create_table(

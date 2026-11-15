@@ -47,7 +47,7 @@ from app.usage_guard import (
     get_streamlit_client_ip,
     peek_usage_limits,
 )
-from src.answer import REFUSAL
+from src.answer import REFUSAL, GenerationTimeoutError
 
 
 def _select_example_callback(question: str) -> None:
@@ -361,7 +361,7 @@ def main() -> None:
 
                 if err is not None or result is None:
                     answer_slot.empty()
-                    if config.cloud_mode:
+                    if config.cloud_mode and not isinstance(err, GenerationTimeoutError):
                         logger.warning(
                             "Cloud API execution failed (%s); falling back to replay mode.",
                             type(err).__name__ if err else "EmptyResult",

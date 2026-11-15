@@ -7,6 +7,8 @@
 !uv.lock
 
 # Application & inference modules
+!.streamlit/
+!.streamlit/config.toml
 !app/
 !app/*.py
 !src/

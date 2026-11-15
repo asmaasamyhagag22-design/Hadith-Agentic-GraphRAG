@@ -1,6 +1,6 @@
 # Musnad — Agentic GraphRAG over Sahih Muslim
 
-**The upgraded default reaches 100% hit@5 on 27 hand-verified questions, averages 96.3% correct citations (`156/162`) and 83.3% correct refusals (`15/18`) across 6 text runs with SQLite sanad chains attached on 95.9% of citations (`211/220`), and answers 100.0% (`25/25`) on frozen chain evaluation with `0` hallucinated narrators.**
+Arabic question answering over Sahih Muslim that cites the exact hadith, attaches its narrator chain from a SQLite graph, and refuses when the source is silent.
 
 Grounded Arabic question answering over Sahih Muslim, combining dense semantic matn retrieval (`gemini-embedding-001` + HyDE), a hybrid Arabic intent router (`v3`), a tool-calling chain agent (`gemini-4-argon`), and a deterministic transmission-chain (sanad) graph in SQLite (`sanad_graph.sqlite`).
 

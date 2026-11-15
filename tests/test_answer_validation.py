@@ -70,6 +70,7 @@ class ValidateAnswerTests(unittest.TestCase):
             "كما ورد في حديث 999 عن النبي ﷺ.",
             "الدليل في حديث رقم: 999.",
             "رواه الإمام في (مسلم 999).",
+            "مسلم 999",
             "مسلم، 999",
             "رواه في (صحيح مسلم، 999).",
             "رواه في (صحيح مسلم، رقم 999).",
@@ -80,6 +81,21 @@ class ValidateAnswerTests(unittest.TestCase):
                     validate_answer(snippet, {7354, 7355}),
                     OUT_OF_CONTEXT_CITATION,
                 )
+
+    def test_loose_citation_does_not_cross_newlines(self):
+        body_without_citation = (
+            "الإسناد المتصل إلى (شيخ الإمام مسلم)\n"
+            "1. يحيى بن يحيى التميمي.\n"
+            "قال الإمام مسلم:\n"
+            "1. مسدد بن مسرهد.\n"
+            "وفي رواية مسلم،\n"
+            "2. قتيبة بن سعيد."
+        )
+        self.assertEqual(loose_cited_ids(body_without_citation), set())
+
+        full_answer = body_without_citation + "\n(المصدر: صحيح مسلم، حديث رقم 7306)"
+        self.assertEqual(loose_cited_ids(full_answer), {7306})
+        self.assertEqual(validate_answer(full_answer, {7306}, tool_ids={7306}), VALID_ANSWER)
 
     def test_loose_in_context_reference_without_required_format_is_missing_citation(self):
         answer = "ورد ذلك في حديث 7354 ومسلم 7355."

@@ -253,7 +253,8 @@ class TraceCollector:
                 if d.get("agent_fallback"):
                     pro_calls += int(d.get("pro_calls") or 0)
             elif ev.stage == "generation":
-                pro_calls += int(d.get("pro_calls") or d.get("attempts") or 0)
+                if d.get("event_kind") != "timeout_retry":
+                    pro_calls += int(d.get("pro_calls") or d.get("attempts") or 0)
             elif ev.stage == "sanad" and d.get("status") != "error":
                 sqlite_queries += 1
         return {

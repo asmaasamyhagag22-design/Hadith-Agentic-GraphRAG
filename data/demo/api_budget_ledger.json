@@ -4,7 +4,7 @@
     "flash": 40
   },
   "used": {
-    "pro": 40,
+    "pro": 42,
     "flash": 39,
     "embed": 103
   },
@@ -43,6 +43,13 @@
       "pro": 23,
       "flash": 16,
       "embed": 33
+    },
+    {
+      "timestamp": "2026-11-15T06:40:45.270031+00:00",
+      "step": "Pre-deploy fix #1: re-record run_03_chain_id_7306",
+      "pro": 2,
+      "flash": 0,
+      "embed": 0
     }
   ]
 }
