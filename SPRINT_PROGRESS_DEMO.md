@@ -2,7 +2,7 @@
 
 Branch: `demo-app` (worktree `../sanad-demo`, branched from `origin/retrieval-upgrade`)
 
-API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `17 Pro`, `23 Flash`, `46 Embed` — `17 Pro / 8 Flash / 16 Embed` in Step 3 + `0 Pro / 15 Flash / 30 Embed` in Step 4; remaining: `23 Pro`, `17 Flash`)
+API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `40 Pro`, `39 Flash`, `103 Embed` — Step 3 `17P/8F/16E`, Step 4 `0P/15F/30E`, Step 5 router `0P/0F/24E`, Step 5 live `23P/16F/33E`; remaining: `0 Pro`, `1 Flash`)
 
 ## Step Status
 - [done] **Step 1 — Observational Trace Collector (`src/trace.py`)**:
@@ -19,6 +19,10 @@ API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `17 Pro`, `23 Flash`, 
   - Verified byte-identical vectors (`np.array_equal`), retrieved IDs, and `format_context` outputs + true `Barrier(2)` concurrency in `tests/test_parallel_hyde.py` (2/2).
   - Measured live uncached latency on `n=15` golden questions (`live_latency_and_cost.records[:15]` via `src/measure_parallel_hyde.py`): median `7587.98 ms -> 6148.29 ms` (`-1439.69 ms`, `-19.0%`), p95 `9995.12 ms -> 7590.15 ms` (`-2404.97 ms`, `-24.1%`). Recorded in `EXPERIMENTS.md` (`## 35.`) and `README.md`.
   - Verified: `check_docs` 5/5, CI subset `307 passed, 26 deselected`, full `pytest` `333 passed`.
-- [in_progress] **Step 5 — 20-Question Live Playwright Self-Test & Findings**
-- [pending] **Step 6 — Docker, AWS CDK (`infra/`), Usage Guard, Runbook & README**
+- [done] **Step 5 — 20-Question Live Playwright Self-Test & Findings**:
+  - Executed 20 brand-new natural Arabic questions (`text`, `chain`, `refusal`, `mixed`, `typos`, `colloquial`, `very_short`, `very_long`, verified non-overlapping with all 753 eval strings & 10 recorded runs) live via Playwright (`23 Pro, 16 Flash, 33 Embed`; 20/20 accurate & verified vs `muslim_chunks.json`/`sanad_graph.sqlite`, 0 console/page errors, 0 horizontal overflow on desktop & mobile).
+  - Fixed 4 visual UI bugs caught from screenshots in `app/components.py` (collapsed sidebar RTL transform overlap, markdown-in-HTML numbered list border clipping & vertical gaps + bold/code rendering, Arabic status localization for unlinked hadiths, and trace `[ids]` bidi/plural grammar) + added unit test coverage in `tests/test_app_ui.py` (4/4).
+  - Recorded all 20 results + 6 open quality/validator/latency findings (untouched per rules) in `docs/demo_findings.md` and `data/demo/step5_selftest_results.json`.
+  - Verified: `check_docs` 5/5, CI subset `308 passed, 26 deselected`, full `pytest` `334 passed`.
+- [in_progress] **Step 6 — Docker, AWS CDK (`infra/`), Usage Guard, Runbook & README**
 - [pending] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**

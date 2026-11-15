@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import re
 from typing import Any
 
 import streamlit as st
@@ -21,14 +22,30 @@ _CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
 
 html, body, .stApp {
-    direction: rtl;
-    text-align: right;
     font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
 }
 
-.stApp [data-testid="stSidebar"] {
+/* Keep outer flex layout LTR so Streamlit's native sidebar collapse transform (-300px)
+   moves the collapsed sidebar offscreen left rather than sliding across the RTL page. */
+[data-testid="stAppViewContainer"] {
+    direction: ltr;
+}
+
+[data-testid="stMain"],
+.stMainBlockContainer {
     direction: rtl;
     text-align: right;
+}
+
+[data-testid="stSidebar"] {
+    direction: rtl;
+    text-align: right;
+}
+
+[data-testid="stSidebar"][data-collapsed="true"] {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
 }
 
 .stApp textarea, .stApp input {
@@ -109,9 +126,34 @@ html, body, .stApp {
 .musnad-answer-body {
     font-family: 'Amiri', 'Noto Sans Arabic', serif;
     font-size: 1.22rem;
-    line-height: 1.95;
+    line-height: 1.9;
     color: #1C1917;
-    white-space: pre-wrap;
+    white-space: normal;
+}
+
+.musnad-answer-para {
+    margin: 0 0 0.55rem 0;
+}
+
+.musnad-answer-para:last-child {
+    margin-bottom: 0;
+}
+
+.musnad-answer-list {
+    margin: 0.35rem 0 0.65rem 0;
+    padding-inline-start: 2.1rem;
+    list-style-position: outside;
+}
+
+.musnad-answer-list li {
+    margin-bottom: 0.35rem;
+}
+
+.musnad-answer-citation {
+    margin-top: 0.6rem;
+    font-size: 1.04rem;
+    color: #166534;
+    font-weight: 600;
 }
 
 .musnad-status-row {
@@ -409,6 +451,83 @@ def render_how_it_works() -> None:
         )
 
 
+_BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+_CODE_SPAN_RE = re.compile(r"`([^`]+)`")
+_ORDERED_LIST_RE = re.compile(r"^\d+[\.\)]\s+(.*)$")
+_BULLET_LIST_RE = re.compile(r"^[-*•]\s+(.*)$")
+_CITATION_LINE_RE = re.compile(r"^\(المصدر:\s*.+\)$")
+
+SANAD_STATUS_ARABIC_UI: dict[str, str] = {
+    "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK": "الحديث موثق محليًا ولا يوجد ربط مقبول بسند المسند بعد",
+    "NO_RECORDED_ISNAD": "لا يوجد إسناد مسجّل في قاعدة البيانات",
+    "LINKED_WITH_ZERO_ISNADS": "الحديث مربوط ولا توجد له طرق مسجّلة",
+    "AMBIGUOUS_MIS_LINK": "توجد أكثر من مطابقة محتملة في قاعدة السند",
+    "GRAPH_UNAVAILABLE": "تعذّر الوصول إلى قاعدة بيانات السند",
+}
+
+
+def _format_inline_markdown_html(text: str) -> str:
+    """Escape HTML safely and render **bold** and `code` spans without CommonMark leaks."""
+    escaped = html.escape(text)
+    escaped = _BOLD_RE.sub(r"<strong>\1</strong>", escaped)
+    return _CODE_SPAN_RE.sub(r'<code dir="ltr">\1</code>', escaped)
+
+
+def _format_isnad_count_ar(cnt: int) -> str:
+    if cnt == 1:
+        return "إسناد واحد"
+    if cnt == 2:
+        return "إسنادان"
+    if 3 <= cnt <= 10:
+        return f"{cnt} أسانيد"
+    return f"{cnt} إسنادًا"
+
+
+def format_answer_body_html(answer: str) -> str:
+    """Convert answer text (paragraphs, markdown lists, bold, citations) into clean RTL HTML."""
+    lines = [ln.strip() for ln in (answer or "").replace("\r\n", "\n").splitlines()]
+    blocks: list[str] = []
+    list_kind: str | None = None
+    list_items: list[str] = []
+
+    def _flush_list() -> None:
+        nonlocal list_kind, list_items
+        if list_kind and list_items:
+            tag = "ol" if list_kind == "ol" else "ul"
+            inner = "".join(f"<li>{_format_inline_markdown_html(it)}</li>" for it in list_items)
+            blocks.append(f'<{tag} class="musnad-answer-list">{inner}</{tag}>')
+        list_kind = None
+        list_items = []
+
+    for ln in lines:
+        if not ln:
+            _flush_list()
+            continue
+        m_ol = _ORDERED_LIST_RE.match(ln)
+        m_ul = _BULLET_LIST_RE.match(ln)
+        if m_ol:
+            if list_kind not in (None, "ol"):
+                _flush_list()
+            list_kind = "ol"
+            list_items.append(m_ol.group(1).strip())
+        elif m_ul:
+            if list_kind not in (None, "ul"):
+                _flush_list()
+            list_kind = "ul"
+            list_items.append(m_ul.group(1).strip())
+        else:
+            _flush_list()
+            cls = (
+                "musnad-answer-para musnad-answer-citation"
+                if _CITATION_LINE_RE.match(ln)
+                else "musnad-answer-para"
+            )
+            blocks.append(f'<p class="{cls}">{_format_inline_markdown_html(ln)}</p>')
+
+    _flush_list()
+    return "".join(blocks) if blocks else f'<p class="musnad-answer-para">{html.escape(answer)}</p>'
+
+
 def render_sanad_chain_html(sanad_entry: dict[str, Any]) -> str:
     """Build escaped HTML card with horizontal narrator chips from Muslim's teacher to Companion."""
     hadith_id = html.escape(str(sanad_entry.get("hadith_id", "؟")))
@@ -425,14 +544,16 @@ def render_sanad_chain_html(sanad_entry: dict[str, Any]) -> str:
     source_badge = '<span class="musnad-pill musnad-pill--db">source: SQLite sanad graph</span>'
 
     if not isnads:
-        status_note = html.escape(status or "لا يوجد إسناد مسجل في قاعدة البيانات")
+        status_ar = SANAD_STATUS_ARABIC_UI.get(
+            status, status or "لا يوجد إسناد مسجل في قاعدة البيانات"
+        )
         return (
             f'<div class="sanad-card">'
             f'<div class="sanad-card-header">'
             f'<strong>سند حديث رقم {hadith_id}</strong>'
             f'<div class="musnad-status-row">{source_badge}</div>'
             f'</div>'
-            f'<div class="trace-detail">الحالة: {status_note}</div>'
+            f'<div class="trace-detail">الحالة: {html.escape(status_ar)}</div>'
             f'</div>'
         )
 
@@ -473,12 +594,10 @@ def render_answer_panel(
     """Render replay banner (if active), answer card, horizontal sanad chips, and retrieved matns."""
     if replay_reason:
         st.markdown(
-            f"""
-            <div class="musnad-banner musnad-banner--replay">
-                <strong>Recorded run — replayed</strong>
-                <span>{html.escape(replay_reason)}</span>
-            </div>
-            """,
+            f'<div class="musnad-banner musnad-banner--replay">'
+            f'<strong>Recorded run — replayed</strong>'
+            f'<span>{_format_inline_markdown_html(replay_reason)}</span>'
+            f'</div>',
             unsafe_allow_html=True,
         )
 
@@ -499,13 +618,12 @@ def render_answer_panel(
         pills.append('<span class="musnad-pill musnad-pill--warn">تمت إعادة الصياغة بعد فحص التوثيق</span>')
 
     card_cls = "musnad-answer-card musnad-answer-card--refusal" if is_refusal else "musnad-answer-card"
+    body_html = format_answer_body_html(answer)
     st.markdown(
-        f"""
-        <div class="{card_cls}">
-            <div class="musnad-status-row">{"".join(pills)}</div>
-            <div class="musnad-answer-body">{html.escape(answer)}</div>
-        </div>
-        """,
+        f'<div class="{card_cls}">'
+        f'<div class="musnad-status-row">{"".join(pills)}</div>'
+        f'<div class="musnad-answer-body">{body_html}</div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
 
@@ -559,12 +677,12 @@ def _summarize_trace_event(stage: str, data: dict[str, Any]) -> tuple[str, bool]
         ids_str = ", ".join(str(item.get("hadith_id")) for item in top5) or "لا يوجد"
         hyde = str(data.get("hyde_text") or "").strip()
         hyde_snippet = (hyde[:110] + "…") if len(hyde) > 110 else hyde
-        parts = [f"أعلى 5 أحاديث: [{ids_str}]"]
+        parts = [f'أعلى 5 أحاديث: <code dir="ltr">[{html.escape(ids_str)}]</code>']
         if hyde_snippet:
-            parts.append(f"HyDE: {hyde_snippet}")
+            parts.append(f"HyDE: {html.escape(hyde_snippet)}")
         if data.get("legacy_fallback"):
-            parts.append("⚠️ تحويل لمسار الاسترجاع المحلي (legacy_fallback)")
-        return "<br/>".join(html.escape(p) for p in parts), False
+            parts.append(html.escape("⚠️ تحويل لمسار الاسترجاع المحلي (legacy_fallback)"))
+        return "<br/>".join(parts), False
 
     if stage == "agent":
         if data.get("agent_fallback"):
@@ -575,15 +693,16 @@ def _summarize_trace_event(stage: str, data: dict[str, Any]) -> tuple[str, bool]
         returned = data.get("returned_ids") or []
         if tool_name == "get_isnad":
             show_sqlite_badge = True
-            cnt = data.get("isnad_count", 0)
+            cnt = int(data.get("isnad_count", 0) or 0)
             return (
-                html.escape(
-                    f"الأداة: get_isnad({args}) → أُعيد: {returned} | عدد الأسانيد: {cnt}"
-                ),
+                f'الأداة: <code dir="ltr">get_isnad({html.escape(str(args))})</code> → '
+                f'أُعيد: <code dir="ltr">{html.escape(str(returned))}</code> | '
+                f'عدد الأسانيد: {html.escape(_format_isnad_count_ar(cnt))}',
                 show_sqlite_badge,
             )
         return (
-            html.escape(f"الأداة: {tool_name}({args}) → أُعيد: {returned}"),
+            f'الأداة: <code dir="ltr">{html.escape(tool_name)}({html.escape(str(args))})</code> → '
+            f'أُعيد: <code dir="ltr">{html.escape(str(returned))}</code>',
             False,
         )
 
@@ -604,12 +723,13 @@ def _summarize_trace_event(stage: str, data: dict[str, Any]) -> tuple[str, bool]
     if stage == "sanad":
         show_sqlite_badge = True
         hid = data.get("hadith_id")
-        status = data.get("status") or "—"
-        cnt = data.get("isnad_count", 0)
+        status = str(data.get("status") or "—")
+        status_ar = SANAD_STATUS_ARABIC_UI.get(status, status)
+        cnt = int(data.get("isnad_count", 0) or 0)
         ms = data.get("ms")
         ms_str = f" | {ms} ms" if ms is not None else ""
         return (
-            html.escape(f"حديث {hid}: {status} | {cnt} أسانيد{ms_str}"),
+            html.escape(f"حديث {hid}: {status_ar} | {_format_isnad_count_ar(cnt)}{ms_str}"),
             show_sqlite_badge,
         )
 

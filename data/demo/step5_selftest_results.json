@@ -1,0 +1,2145 @@
+{
+  "totals": {
+    "questions_run": 20,
+    "step5_pro_calls": 23,
+    "step5_flash_calls": 16,
+    "step5_embed_calls": 33
+  },
+  "results": [
+    {
+      "id": "Q01",
+      "category": "text",
+      "question": "ما تعريف الغيبة في صحيح مسلم كما بيّنه النبي صلى الله عليه وسلم؟",
+      "expected_ids": [
+        13708
+      ],
+      "notes": "ذكر أخيك بما يكره حتى إن كان فيه",
+      "ui_elapsed_ms": 16388.3,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "14.06 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "1"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.167",
+          "dur": "2.74 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [13708, 14302, 10962, 12112, 10616]\nHyDE: «أَتَدْرُونَ مَا الْغِيبَةُ؟ قَالُوا: اللهُ وَرَسُولُهُ أَعْلَمُ، قَالَ: ذِكْرُكَ أَخَاكَ بِمَا يَكْرَهُ، قِيل…",
+          "dur": "5.84 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "5.46 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 13708: LINKED_WITH_RECORDED_ISNAD | 3 أسانيد | 1.86 ms",
+          "dur": "1.9 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "عرّف النبي صلى الله عليه وسلم الغيبة بأنها: \"ذكرك أخاك بما يكره\". وقد بيّن صلى الله عليه وسلم أنه إن كان في أخيك ما تقول فقد اغتبته، وإن لم يكن فيه ما تقول فقد بهته.\n\n\n(المصدر: صحيح مسلم، حديث رقم 13708)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+2 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 13708 (من شيخ مسلم إلى الصحابي)\n+2 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعلي بن حجر بن إياس بن مقاتل",
+            "الطبقة 4\nإسماعيل بن جعفر بن أبي كثير الأنصاري",
+            "الطبقة 3\nالعلاء بن عبد الرحمن",
+            "الطبقة 2\nعبد الرحمن بن يعقوب الجهني",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+2 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 13708 (3 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 13708 — كتاب البر والصلة والآداب",
+        "keyboard_arrow_right\n\n[2] حديث رقم 14302 — كتاب الجنة وصفة نعيمها وأهلها",
+        "keyboard_arrow_right\n\n[3] حديث رقم 10962 — كتاب البيوع",
+        "keyboard_arrow_right\n\n[4] حديث رقم 12112 — كتاب الإمارة",
+        "keyboard_arrow_right\n\n[5] حديث رقم 10616 — كتاب النكاح"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q01_text.png"
+    },
+    {
+      "id": "Q02",
+      "category": "text",
+      "question": "كيف يُطهَّر الإناء إذا شرب منه الكلب وفقًا لما ورد في صحيح مسلم؟",
+      "expected_ids": [
+        7833
+      ],
+      "notes": "غسله سبع مرات أولاهن بالتراب",
+      "ui_elapsed_ms": 50899.5,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "48.82 s",
+        "Pro": "1",
+        "Flash": "0",
+        "Embeddings": "1",
+        "Tools": "0",
+        "SQLite": "5"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.206",
+          "dur": "2.58 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [7833, 7830, 7832, 7835, 7834]\n⚠️ تحويل لمسار الاسترجاع المحلي (legacy_fallback)",
+          "dur": "36.18 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "10.05 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7830: LINKED_WITH_RECORDED_ISNAD | 2 أسانيد | 1.534 ms",
+          "dur": "1.5 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7832: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.335 ms",
+          "dur": "1.3 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7834: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.084 ms",
+          "dur": "1.1 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7833: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.883 ms",
+          "dur": "1.9 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7835: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.964 ms",
+          "dur": "2.0 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "وفقًا لما ورد في الأحاديث المتاحة، يُطهَّر الإناء إذا شرب أو ولغ فيه الكلب بالخطوات والكيفيات التالية التي أمر بها رسول الله صلى الله عليه وسلم:\n\n\n\n\n\n\nإراقة ما في الإناء أولًا، ثم غسله سبع مرات، حيث قال صلى الله عليه وسلم: \"إِذَا وَلَغَ الْكَلْبُ فِي إِنَاءِ أَحَدِكُمْ فَلْيُرِقْهُ ثُمَّ لْيَغْسِلْهُ سَبْعَ مِرَارٍ\". (المصدر: صحيح مسلم، حديث رقم 7830)\n\n\n\n\n\n\n\n\nغسل الإناء سبع مرات، وجاء في ذلك قوله صلى الله عليه وسلم: \"إِذَا شَرِبَ الْكَلْبُ فِي إِنَاءِ أَحَدِكُمْ فَلْيَغْسِلْهُ سَبْعَ مَرَّاتٍ\"، وقوله: \"طُهُورُ إِنَاءِ أَحَدِكُمْ إِذَا وَلَغَ الْكَلْبُ فِيهِ أَنْ يَغْسِلَهُ سَبْعَ مَرَّاتٍ\". (المصدر: صحيح مسلم، حديث رقم 7832)، (المصدر: صحيح مسلم، حديث رقم 7834)\n\n\n\n\n\n\n\n\nأن تكون الغسلة الأولى من السبع بالتراب، لقوله صلى الله عليه وسلم: \"طُهُورُ إِنَاءِ أَحَدِكُمْ إِذَا وَلَغَ فِيهِ الْكَلْبُ أَنْ يَغْسِلَهُ سَبْعَ مَرَّاتٍ أُولاَهُنَّ بِالتُّرَابِ\". (المصدر: صحيح مسلم، حديث رقم 7833)\n\n\n\n\n\n\n\n\nوفي رواية أخرى، يُغسل الإناء سبع مرات ويُعفَّر في المرة الثامنة بالتراب، لقوله صلى الله عليه وسلم: \"إِذَا وَلَغَ الْكَلْبُ فِي الإِنَاءِ فَاغْسِلُوهُ سَبْعَ مَرَّاتٍ وَعَفِّرُوهُ الثَّامِنَةَ فِي التُّرَابِ\". (المصدر: صحيح مسلم، حديث رقم 7835)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+1 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 7830 (من شيخ مسلم إلى الصحابي)\n+1 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعلي بن حجر بن إياس بن مقاتل",
+            "الطبقة 4\nعلي بن مسهر",
+            "الطبقة 3\nالأعمش / سليمان بن مهران",
+            "الطبقة 2\nذكوان أبو صالح السمان الزيات",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+1 طرق أخرى"
+        },
+        {
+          "header": "سند حديث رقم 7832 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nيحيى بن يحيى بن بكير",
+            "الطبقة 4\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 3\nأبو الزناد",
+            "الطبقة 2\nعبد الرحمن بن هرمز الأعرج أبو داود",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 7834 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن رافع",
+            "الطبقة 4\nعبد الرزاق بن همام",
+            "الطبقة 3\nمعمر بن راشد",
+            "الطبقة 2\nهمام بن منبه بن كامل",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 7833 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nزهير بن حرب بن شداد أبو خثيمة",
+            "الطبقة 4\nإسماعيل بن إبراهيم - ابن علية",
+            "الطبقة 3\nهشام بن حسان الأزدي القردوسي",
+            "الطبقة 2\nمحمد بن سيرين الأنصاري",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 7835 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعبيد الله بن معاذ بن معاذ بن نصر",
+            "الطبقة 5\nمعاذ بن معاذ بن نصر",
+            "الطبقة 4\nشعبة بن الحجاج",
+            "الطبقة 3\nيزيد بن حميد أبو التياح الضبعي",
+            "الطبقة 2\nمطرف بن عبد الله بن الشخير",
+            "الصحابي\nعبد الله بن مغفل المزني"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 7830 (2 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 7833 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[2] حديث رقم 7830 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[3] حديث رقم 7832 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 7835 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[5] حديث رقم 7834 — كتاب الطهارة"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q02_text.png"
+    },
+    {
+      "id": "Q03",
+      "category": "text",
+      "question": "ما فضل صلاة الجماعة في المسجد على صلاة الرجل وحده؟",
+      "expected_ids": [
+        8645
+      ],
+      "notes": "خمس وعشرون أو سبع وعشرون درجة",
+      "ui_elapsed_ms": 19739.5,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "18.97 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "5"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.027",
+          "dur": "2.61 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [8678, 8644, 8649, 8650, 8647]\nHyDE: صَلَاةُ الرَّجُلِ فِي الجَمَاعَةِ تَفْضُلُ عَلَى صَلَاتِهِ وَحْدَهُ بِخَمْسٍ وَعِشْرِينَ ضِعْفًا، وَمَنْ تَوَض…",
+          "dur": "6.73 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "9.61 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.2 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8678: LINKED_WITH_RECORDED_ISNAD | 2 أسانيد | 1.395 ms",
+          "dur": "1.4 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8644: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.361 ms",
+          "dur": "1.4 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8647: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.364 ms",
+          "dur": "1.4 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8649: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.641 ms",
+          "dur": "1.6 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8650: LINKED_WITH_RECORDED_ISNAD | 2 أسانيد | 1.564 ms",
+          "dur": "1.6 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "بناءً على الأحاديث الواردة في السياق، يتبين فضل صلاة الجماعة في المسجد على صلاة الرجل وحده في عدة أمور:\n\n\n1. مضاعفة الأجر والدرجات:\n\n\n\n\n\nتزيد صلاة الرجل في جماعة على صلاته في بيته وصلاته في سوقه ببضع وعشرين درجة (حديث رقم 8678).\n\n\nصلاة الجماعة أفضل من صلاة الرجل وحده بخمسة وعشرين جزءاً، وتعدل خمساً وعشرين من صلاة الفذ (المنفرد) (حديث رقم 8644، وحديث رقم 8647).\n\n\nصلاة الجماعة تزيد وتفضل على صلاة الفذ (أو صلاة الرجل وحده) بسبع وعشرين درجة (حديث رقم 8649، وحديث رقم 8650).\n\n\n\n\n\n2. الفضائل المترتبة على إتيان المسجد للصلاة:\nإذا توضأ الرجل فأحسن الوضوء، ثم أتى المسجد لا يخرجه ولا يريد إلا الصلاة، فله الفضائل التالية:\n\n\n\n\n\nرفع الدرجات ومحو الخطايا: لا يخطو خطوة إلا رُفع له بها درجة، وحُطّ (مُحي) عنه بها خطيئة حتى يدخل المسجد.\n\n\nاحتساب وقت الانتظار كصلاة: إذا دخل المسجد كان في حكم المصلي ما دامت الصلاة هي التي تحبسه في المسجد.\n\n\nدعاء الملائكة له: تصلي عليه الملائكة ما دام في مجلسه الذي صلى فيه، قائلين: \"اللهم ارحمه، اللهم اغفر له، اللهم تب عليه\"، ويستمر ذلك ما لم يؤذِ فيه أو يُحدث (ينتقض وضوؤه).\n\n\n\n\n\n(المصدر: صحيح مسلم، حديث رقم 8678)\n(المصدر: صحيح مسلم، حديث رقم 8644)\n(المصدر: صحيح مسلم، حديث رقم 8649)\n(المصدر: صحيح مسلم، حديث رقم 8650)\n(المصدر: صحيح مسلم، حديث رقم 8647)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+1 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "+1 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 8678 (من شيخ مسلم إلى الصحابي)\n+1 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nأبو بكر بن أبي شيبة",
+            "الطبقة 4\nمحمد بن خازم أبو معاوية الضرير",
+            "الطبقة 3\nالأعمش / سليمان بن مهران",
+            "الطبقة 2\nذكوان أبو صالح السمان الزيات",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+1 طرق أخرى"
+        },
+        {
+          "header": "سند حديث رقم 8644 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nيحيى بن يحيى بن بكير",
+            "الطبقة 4\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 3\nابن شهاب الزهري‎, محمد بن مسلم",
+            "الطبقة 2\nسعيد بن المسيب بن حزن أبو محمد القرشي",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 8647 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعبد الله بن مسلمة بن قعنب القعنبي",
+            "الطبقة 4\nأفلح بن حميد بن نافع",
+            "الطبقة 3\nأبو بكر بن محمد بن عمرو بن حزم",
+            "الطبقة 2\nسلمان الأغر أبو عبد الله",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 8649 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nيحيى بن يحيى بن بكير",
+            "الطبقة 3\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 2\nنافع مولى ابن عمر",
+            "الصحابي\nعبد الله بن عمر بن الخطاب"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 8650 (من شيخ مسلم إلى الصحابي)\n+1 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nزهير بن حرب بن شداد أبو خثيمة",
+            "الطبقة 4\nيحيى بن سعيد بن فروخ القطان",
+            "الطبقة 3\nعبيد الله بن عمر بن حفص بن عاصم",
+            "الطبقة 2\nنافع مولى ابن عمر",
+            "الصحابي\nعبد الله بن عمر بن الخطاب"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+1 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 8678 (2 طرق مسجلة)",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 8650 (2 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 8678 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[2] حديث رقم 8644 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[3] حديث رقم 8649 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[4] حديث رقم 8650 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[5] حديث رقم 8647 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q03_text.png"
+    },
+    {
+      "id": "Q04",
+      "category": "text",
+      "question": "ماذا يفعل المسلم إذا حلف على يمين ثم رأى غيرها خيرًا منها؟",
+      "expected_ids": [
+        11418,
+        11419,
+        11420,
+        11423
+      ],
+      "notes": "فليأت الذي هو خير وليكفر عن يمينه",
+      "ui_elapsed_ms": 15252.1,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "14.29 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "5"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.025",
+          "dur": "2.57 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [11420, 11423, 11424, 11419, 11426]\nHyDE: «مَنْ حَلَفَ عَلَى يَمِينٍ، فَرَأَى غَيْرَهَا خَيْرًا مِنْهَا، فَلْيَأْتِ الَّذِي هُوَ خَيْرٌ، وَلْيُكَفِّرْ ع…",
+          "dur": "5.43 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "6.28 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11420: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.219 ms",
+          "dur": "1.2 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11423: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.838 ms",
+          "dur": "1.8 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11424: LINKED_WITH_RECORDED_ISNAD | 2 أسانيد | 2.051 ms",
+          "dur": "2.1 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11419: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.385 ms",
+          "dur": "1.4 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11426: LINKED_WITH_RECORDED_ISNAD | 2 أسانيد | 1.545 ms",
+          "dur": "1.5 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "إذا حلف المسلم على يمين فرأى غيرها خيرًا منها، فعليه أن يترك يمينه، ويأتي الذي هو خير ويفعله، ويكفّر عن يمينه.\n\n\n(المصدر: صحيح مسلم، حديث رقم 11420)\n(المصدر: صحيح مسلم، حديث رقم 11423)\n(المصدر: صحيح مسلم، حديث رقم 11424)\n(المصدر: صحيح مسلم، حديث رقم 11419)\n(المصدر: صحيح مسلم، حديث رقم 11426)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "+1 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "+1 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 11420 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nزهير بن حرب بن شداد أبو خثيمة",
+            "الطبقة 5\nإسماعيل بن عبد الله بن عبد الله بن أويس",
+            "الطبقة 4\nعبد العزيز بن المطلب بن عبد الله",
+            "الطبقة 3\nسهيل بن أبي صالح",
+            "الطبقة 2\nذكوان أبو صالح السمان الزيات",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 11423 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعبيد الله بن معاذ بن معاذ بن نصر",
+            "الطبقة 5\nمعاذ بن معاذ بن نصر",
+            "الطبقة 4\nشعبة بن الحجاج",
+            "الطبقة 3\nعبد العزيز بن رفيع",
+            "الطبقة 2\nتميم بن طرفة",
+            "الصحابي\nعدي بن حاتم الطائي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 11424 (من شيخ مسلم إلى الصحابي)\n+1 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن طريف بن خليف",
+            "الطبقة 5\nمحمد بن فضيل بن غزوان",
+            "الطبقة 4\nالأعمش / سليمان بن مهران",
+            "الطبقة 3\nعبد العزيز بن رفيع",
+            "الطبقة 2\nتميم بن طرفة",
+            "الصحابي\nعدي بن حاتم الطائي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+1 طرق أخرى"
+        },
+        {
+          "header": "سند حديث رقم 11419 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nأحمد بن عمرو بن السرح أبو الطاهر",
+            "الطبقة 5\nعبد الله بن وهب بن مسلم القرشي",
+            "الطبقة 4\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 3\nسهيل بن أبي صالح",
+            "الطبقة 2\nذكوان أبو صالح السمان الزيات",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 11426 (من شيخ مسلم إلى الصحابي)\n+1 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن بشار بندار",
+            "الطبقة 5\nمحمد بن جعفر غندر صاحب الكرابيس",
+            "الطبقة 4\nشعبة بن الحجاج",
+            "الطبقة 3\nسماك بن حرب بن أوس",
+            "الطبقة 2\nتميم بن طرفة",
+            "الصحابي\nعدي بن حاتم الطائي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+1 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 11424 (2 طرق مسجلة)",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 11426 (2 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 11420 — كتاب الأيمان",
+        "keyboard_arrow_right\n\n[2] حديث رقم 11423 — كتاب الأيمان",
+        "keyboard_arrow_right\n\n[3] حديث رقم 11424 — كتاب الأيمان",
+        "keyboard_arrow_right\n\n[4] حديث رقم 11419 — كتاب الأيمان",
+        "keyboard_arrow_right\n\n[5] حديث رقم 11426 — كتاب الأيمان"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q04_text.png"
+    },
+    {
+      "id": "Q05",
+      "category": "chain",
+      "question": "ما سلسلة الإسناد الكاملة لحديث رقم 7285 من شيخ الإمام مسلم إلى الصحابي؟",
+      "expected_ids": [
+        7285
+      ],
+      "notes": "قتيبة بن سعيد ← مالك ← نافع بن مالك ← مالك بن أبي عامر ← طلحة بن عبيد الله (1 إسناد)",
+      "ui_elapsed_ms": 13619.3,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "11.74 s",
+        "Pro": "2",
+        "Flash": "0",
+        "Embeddings": "0",
+        "Tools": "1",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: chain | المصدر: regex | احتمال السند: 1.000",
+          "dur": "0.2 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛠️ أداة الوكيل agent",
+          "detail": "الأداة: get_isnad({'hadith_id': 7285}) → أُعيد: [7285] | عدد الأسانيد: 1",
+          "dur": "2.2 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "10.39 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "11.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7285: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.518 ms",
+          "dur": "1.5 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "سلسلة الإسناد الكاملة للحديث رقم 7285 مرتبةً من شيخ الإمام مسلم المباشر إلى الصحابي هي:\n\n\n\nقتيبة بن سعيد بن جميل (شيخ الإمام مسلم)\n\n\nمالك بن أنس بن مالك بن أبي عامر\n\n\nنافع بن مالك بن أبي عامر الأصبحي\n\n\nمالك بن أبي عامر الأصبحي\n\n\nطلحة بن عبيد الله (الصحابي)\n\n\n\n\n\n(المصدر: صحيح مسلم، حديث رقم 7285)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "مسار الوكيل الإسنادي",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 7285 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nقتيبة بن سعيد بن جميل",
+            "الطبقة 4\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 3\nنافع بن مالك بن أبي عامر الأصبحي",
+            "الطبقة 2\nمالك بن أبي عامر الأصبحي",
+            "الصحابي\nطلحة بن عبيد الله"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 7285 — كتاب الإيمان"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q05_chain.png"
+    },
+    {
+      "id": "Q06",
+      "category": "chain",
+      "question": "هل روى أبو هريرة حديث رقم 9025 أم رواه صحابي آخر وما إسناده؟",
+      "expected_ids": [
+        9025
+      ],
+      "notes": "لا، رواه البراء بن عازب بن الحارث (يحيى ← زهير ← أبو إسحاق ← البراء بن عازب)",
+      "ui_elapsed_ms": 8576.6,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "7.62 s",
+        "Pro": "2",
+        "Flash": "0",
+        "Embeddings": "0",
+        "Tools": "1",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: chain | المصدر: regex | احتمال السند: 1.000",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛠️ أداة الوكيل agent",
+          "detail": "الأداة: get_isnad({'hadith_id': 9025}) → أُعيد: [9025] | عدد الأسانيد: 1",
+          "dur": "2.0 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "7.60 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "11.5 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9025: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.15 ms",
+          "dur": "1.1 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "لا، لم يرد الراوي المذكور في أسانيد هذا الحديث، بل رواه صحابي آخر هو **البراء بن عازب بن الحارث**.\n\n\nإسناد الحديث المسجل (من الصحابي إلى شيخ الإمام مسلم):\n\n\n\n\n\nالبراء بن عازب بن الحارث\n\n\nأبو إسحاق السبيعي عمرو بن عبد الله\n\n\nزهير بن معاوية بن حديج\n\n\nيحيى بن يحيى بن بكير (شيخ مسلم المباشر)\n\n\n\n\n\n(المصدر: صحيح مسلم، حديث رقم 9025)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "مسار الوكيل الإسنادي",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 9025 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nيحيى بن يحيى بن بكير",
+            "الطبقة 3\nزهير بن معاوية بن حديج",
+            "الطبقة 2\nأبو إسحاق السبيعي عمرو بن عبد الله",
+            "الصحابي\nالبراء بن عازب بن الحارث"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 9025 — كتاب صلاة المسافرين وقصرها"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q06_chain.png"
+    },
+    {
+      "id": "Q07",
+      "category": "chain",
+      "question": "من هم رواة حديث رقم 9008 وكم عدد أسانيده المسجلة؟",
+      "expected_ids": [
+        9008
+      ],
+      "notes": "يحيى ← مالك ← نافع ← عبد الله بن عمر (1 إسناد)",
+      "ui_elapsed_ms": 81268.3,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "80.43 s",
+        "Pro": "2",
+        "Flash": "0",
+        "Embeddings": "0",
+        "Tools": "1",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: chain | المصدر: regex | احتمال السند: 1.000",
+          "dur": "2.3 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛠️ أداة الوكيل agent",
+          "detail": "الأداة: get_isnad({'hadith_id': 9008}) → أُعيد: [9008] | عدد الأسانيد: 1",
+          "dur": "2.0 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "80.41 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "8.7 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9008: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.188 ms",
+          "dur": "1.2 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "عدد الأسانيد المسجلة للحديث رقم 9008 هو إسناد واحد (1).\n\n\nورواته بالترتيب من الصحابي إلى شيخ الإمام مسلم هم:\n\n\n\n\n\nعبد الله بن عمر بن الخطاب\n\n\nنافع مولى ابن عمر\n\n\nمالك بن أنس بن مالك بن أبي عامر\n\n\nيحيى بن يحيى بن بكير\n\n\n\n\n\n(المصدر: صحيح مسلم، حديث رقم 9008)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "مسار الوكيل الإسنادي",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 9008 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nيحيى بن يحيى بن بكير",
+            "الطبقة 3\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 2\nنافع مولى ابن عمر",
+            "الصحابي\nعبد الله بن عمر بن الخطاب"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 9008 — كتاب صلاة المسافرين وقصرها"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q07_chain.png"
+    },
+    {
+      "id": "Q08",
+      "category": "refusal",
+      "question": "ما هو النظام الغذائي المعتمد طبيًا لمرضى السكري من النوع الثاني؟",
+      "expected_ids": [],
+      "notes": "Refusal required",
+      "ui_elapsed_ms": 14196.0,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "13.11 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "0"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.037",
+          "dur": "2.63 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [11824, 7344, 12520, 9787, 12448]\nHyDE: «عَلَيْكُمْ بِالقَصْدِ فِي المَطْعَمِ، وَكُفُّوا عَنِ الحُلْوِ وَالبَيْضَاءِ مِنَ الحُبُوبِ، وَأَصْلِحُوا غِذَ…",
+          "dur": "6.76 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "3.72 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_refusal | سبب الامتناع: model_refused",
+          "dur": "0.0 ms",
+          "sqliteBadge": false
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": true,
+      "answer_text": "المصادر المتاحة لا تجيب عن هذا السؤال",
+      "pills": [
+        "امتناع منضبط عن الإجابة"
+      ],
+      "sanad_cards": [],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 11824 — كتاب الجهاد والسير",
+        "keyboard_arrow_right\n\n[2] حديث رقم 7344 — كتاب الإيمان",
+        "keyboard_arrow_right\n\n[3] حديث رقم 12520 — كتاب الأشربة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 9787 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[5] حديث رقم 12448 — كتاب الأشربة"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q08_refusal.png"
+    },
+    {
+      "id": "Q09",
+      "category": "refusal",
+      "question": "ما عقوبة انتهاك حقوق الملكية الفكرية وبراءات الاختراع في القانون التجاري المعاصر؟",
+      "expected_ids": [],
+      "notes": "Refusal required",
+      "ui_elapsed_ms": 13631.8,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "12.58 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "0"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.027",
+          "dur": "2.61 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [12202, 11271, 11137, 7541, 11555]\nHyDE: «مَنْ غَصَبَ مَالَ امْرِئٍ مُسْلِمٍ، أَوْ حَبَسَ سَعْيَهُ وَصَنْعَتَهُ فَنَسَبَهَا إِلَى نَفْسِهِ بِغَيْرِ طِي…",
+          "dur": "6.46 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "3.51 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_refusal | سبب الامتناع: model_refused",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": true,
+      "answer_text": "المصادر المتاحة لا تجيب عن هذا السؤال",
+      "pills": [
+        "امتناع منضبط عن الإجابة"
+      ],
+      "sanad_cards": [],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 12202 — كتاب الصيد والذبائح وما يؤكل من الحيوان",
+        "keyboard_arrow_right\n\n[2] حديث رقم 11271 — كتاب المساقاة",
+        "keyboard_arrow_right\n\n[3] حديث رقم 11137 — كتاب المساقاة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 7541 — كتاب الإيمان",
+        "keyboard_arrow_right\n\n[5] حديث رقم 11555 — كتاب الحدود"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q09_refusal.png"
+    },
+    {
+      "id": "Q10",
+      "category": "refusal",
+      "question": "ما هي شروط الترشح لجائزة نوبل في الفيزياء ومعايير التحكيم العلمية فيها؟",
+      "expected_ids": [],
+      "notes": "Refusal required",
+      "ui_elapsed_ms": 96277.0,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "95.28 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "0"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.025",
+          "dur": "2.62 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [11824, 10410, 14670, 11915, 12636]\nHyDE: «لا يُسْمَى لِلْحِظْوَةِ عِنْدَهُمْ مَنْ طَلَبَهَا لِنَفْسِهِ، وَإِنَّمَا يُرْفَعُ أَمْرُهُ مِنْ أَهْلِ الدِّي…",
+          "dur": "7.28 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "85.37 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_refusal | سبب الامتناع: model_refused",
+          "dur": "0.0 ms",
+          "sqliteBadge": false
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": true,
+      "answer_text": "المصادر المتاحة لا تجيب عن هذا السؤال",
+      "pills": [
+        "امتناع منضبط عن الإجابة"
+      ],
+      "sanad_cards": [],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 11824 — كتاب الجهاد والسير",
+        "keyboard_arrow_right\n\n[2] حديث رقم 10410 — كتاب الحج",
+        "keyboard_arrow_right\n\n[3] حديث رقم 14670 — المقدمة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 11915 — كتاب الإمارة",
+        "keyboard_arrow_right\n\n[5] حديث رقم 12636 — كتاب اللباس والزينة"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q10_refusal.png"
+    },
+    {
+      "id": "Q11",
+      "category": "mixed",
+      "question": "ما قصة الثلاثة الذين انطبقت عليهم الصخرة في الغار وما الأعمال الصالحة التي توسلوا بها في صحيح مسلم؟",
+      "expected_ids": [
+        14058
+      ],
+      "notes": "Three deeds: بر الوالدين / العفة عن الفاحشة / حفظ أمانة الأجير وتنميتها",
+      "ui_elapsed_ms": 43443.0,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "42.56 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.229",
+          "dur": "2.68 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [14056, 14058, 14604, 14602, 13286]\nHyDE: «خَرَجَ ثَلَاثَةُ نَفَرٍ يَمْشُونَ فَأَوَوْا إِلَى غَارٍ فَانْحَدَرَتْ صَخْرَةٌ فَسَدَّتْهُ عَلَيْهِمْ، فَقَال…",
+          "dur": "6.57 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "33.30 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 14056: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.114 ms",
+          "dur": "1.1 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 14058: LINKED_WITH_RECORDED_ISNAD | 3 أسانيد | 2.09 ms",
+          "dur": "2.1 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "تروي الأحاديث أن ثلاثة نفر (أو رهط ممن كان قبلكم) كانوا يتمشون فأخذهم المطر، فآووا إلى غار في جبل للمبيت، فانحطت على فم غارهم صخرة من الجبل فانطبقت عليهم وسدته. فقال بعضهم لبعض: \"انظروا أعمالاً عملتموها صالحة لله فادعوا الله تعالى بها لعل الله يفرجها عنكم\".\n\n\nفتوسل كل واحد منهم بعمل صالح خالص لله تعالى، وكانت أعمالهم كالتالي:\n\n\n\n\n\n\n\n\nالأول (البر بالوالدين): كان له والدان شيخان كبيران، وامرأة وصبية صغار يرعى عليهم، فكان إذا أراح عليهم حلب وبدأ بوالديه فسقاهما قبل بنيه (ولا يغبق قبلهما أهلاً ولا مالاً). وفي ذات يوم نأى به الشجر فلم يأتِ حتى أمسى، فوجد والديه قد ناما، فحلب كما كان يحلب وجاء بالحلاب فقام عند رؤوسهما، كره أن يوقظهما من نومهما وكره أن يسقي الصبية قبلهما، والصبية يتضاغون (يبكون من الجوع) عند قدميه، فلم يزل ذلك دأبه ودأبهم حتى طلع الفجر. فدعا الله أنه إن كان فعل ذلك ابتغاء وجهه أن يفرج لهم فرجة يرون منها السماء، ففرج الله منها فرجة رأوا منها السماء.\n\n\n\n\n\n\n\n\nالثاني (العفة عن الحرام خوفاً من الله): كانت له ابنة عم أحبها كأشد ما يحب الرجال النساء، فطلب إليها نفسها فامتنعت منه حتى يأتيها بمائة دينار (وفي الرواية الأخرى: حتى ألمت بها سنة من السنين فجاءته فأعطاها عشرين ومائة دينار) فتعِب حتى جمعها وجاءها بها، فلما وقع بين رجليها قالت له: \"يا عبد الله اتق الله ولا تفتح الخاتم إلا بحقه\"، فقام وتركها. فدعا الله أنه إن كان فعل ذلك ابتغاء وجهه أن يفرج لهم فرجة، ففرج الله لهم.\n\n\n\n\n\n\n\n\nالثالث (الأمانة وتنمية مال الأجير): استأجر أجيراً بـ \"فَرَق أرز\"، فلما قضى الأجير عمله طلب حقه، فعرض عليه فرقه فرغب عنه وتركه، فلم يزل الرجل يزرعه ويثمر أجره حتى كثرت منه الأموال وارتعجت. (وبعد دعائه وتوسله بهذا العمل انفرجت الصخرة) وخرجوا من الغار يمشون.\n\n\n\n\n\n\n\n\n(المصدر: صحيح مسلم، حديث رقم 14056)\n(المصدر: صحيح مسلم، حديث رقم 14058)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "+2 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 14056 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن إسحاق بن محمد بن عبد الرحمن",
+            "الطبقة 4\nأنس بن عياض الليثي - أبو ضمرة",
+            "الطبقة 3\nموسى بن عقبة",
+            "الطبقة 2\nنافع مولى ابن عمر",
+            "الصحابي\nعبد الله بن عمر بن الخطاب"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 14058 (من شيخ مسلم إلى الصحابي)\n+2 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعبد الله بن عبد الرحمن الدارمي",
+            "الطبقة 5\nالحكم بن نافع أبو اليمان الحمصي",
+            "الطبقة 4\nشعيب بن أبي حمزة",
+            "الطبقة 3\nابن شهاب الزهري‎, محمد بن مسلم",
+            "الطبقة 2\nسالم بن عبد الله بن عمر بن الخطاب",
+            "الصحابي\nعبد الله بن عمر بن الخطاب"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+2 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 14058 (3 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 14056 — كتاب الرقاق",
+        "keyboard_arrow_right\n\n[2] حديث رقم 14058 — كتاب الرقاق",
+        "keyboard_arrow_right\n\n[3] حديث رقم 14604 — كتاب الزهد والرقائق",
+        "keyboard_arrow_right\n\n[4] حديث رقم 14602 — كتاب الزهد والرقائق",
+        "keyboard_arrow_right\n\n[5] حديث رقم 13286 — كتاب الفضائل"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q11_mixed.png"
+    },
+    {
+      "id": "Q12",
+      "category": "mixed",
+      "question": "ما حكم سباب المسلم وقتاله وهل هما في منزلة واحدة من الإثم أم أحدهما أعظم كما ورد في صحيح مسلم؟",
+      "expected_ids": [
+        7404
+      ],
+      "notes": "سباب المسلم فسوق وقتاله كفر",
+      "ui_elapsed_ms": 18686.4,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "17.45 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "1"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.180",
+          "dur": "2.99 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [7404, 14353, 14350, 14351, 10962]\nHyDE: «سِبَابُ الْمُسْلِمِ فُسُوقٌ، وَقِتَالُهُ كُفْرٌ؛ لَيْسَا فِي الْإِثْمِ سَوَاءً، بَلْ قِتَالُهُ أَعْظَمُ جُرْم…",
+          "dur": "7.99 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "6.46 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7404: LINKED_WITH_RECORDED_ISNAD | 4 أسانيد | 2.909 ms",
+          "dur": "2.9 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "بناءً على ما ورد في الحديث، فإن سباب المسلم يُعد فُسوقًا، بينما قتاله يُعد كُفرًا، وذلك لقول رسول الله صلى الله عليه وسلم: «سِبَابُ الْمُسْلِمِ فُسُوقٌ وَقِتَالُهُ كُفْرٌ». وهذا يدل على أنهما ليسا في منزلة واحدة، حيث وصف السباب بالفسوق ووصف القتال بالكفر.\n\n\n(المصدر: صحيح مسلم، حديث رقم 7404)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+3 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 7404 (من شيخ مسلم إلى الصحابي)\n+3 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعون بن سلام",
+            "الطبقة 4\nمحمد بن طلحة بن مصرف",
+            "الطبقة 3\nزبيد بن الحارث اليامي",
+            "الطبقة 2\nشقيق بن سلمة الأسدي أبو وائل الكوفي",
+            "الصحابي\nعبد الله بن مسعود"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+3 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 7404 (4 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 7404 — كتاب الإيمان",
+        "keyboard_arrow_right\n\n[2] حديث رقم 14353 — كتاب الفتن وأشراط الساعة",
+        "keyboard_arrow_right\n\n[3] حديث رقم 14350 — كتاب الفتن وأشراط الساعة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 14351 — كتاب الفتن وأشراط الساعة",
+        "keyboard_arrow_right\n\n[5] حديث رقم 10962 — كتاب البيوع"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q12_mixed.png"
+    },
+    {
+      "id": "Q13",
+      "category": "typos",
+      "question": "هل تقبل صلاه بغير طهور او صدقه من قلول؟",
+      "expected_ids": [
+        7718
+      ],
+      "notes": "لا تقبل صلاة بغير طهور ولا صدقة من غلول",
+      "ui_elapsed_ms": 14172.4,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "13.20 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "1"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.023",
+          "dur": "2.56 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [7718, 7413, 7717, 7720, 9225]\nHyDE: «لا يَقْبَلُ اللهُ صَلاةً بِغَيْرِ طُهُورٍ، وَلا صَدَقَةً مِنْ غُلُولٍ؛ فَمَنْ صَلَّى غَيْرَ مُتَطَهِّرٍ لَمْ …",
+          "dur": "6.31 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "4.32 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.0 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 7718: LINKED_WITH_RECORDED_ISNAD | 3 أسانيد | 2.177 ms",
+          "dur": "2.2 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "لا، لا تقبل صلاة بغير طهور ولا صدقة من غلول، فقد قال رسول الله صلى الله عليه وسلم: «لاَ تُقْبَلُ صَلاَةٌ بِغَيْرِ طُهُورٍ وَلاَ صَدَقَةٌ مِنْ غُلُولٍ».\n\n\n(المصدر: صحيح مسلم، حديث رقم 7718)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+2 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 7718 (من شيخ مسلم إلى الصحابي)\n+2 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nسعيد بن منصور بن شعبة",
+            "الطبقة 4\nوضاح بن عبد الله اليشكري أبو عوانة",
+            "الطبقة 3\nسماك بن حرب بن أوس",
+            "الطبقة 2\nمصعب بن سعد بن أبى وقاص الزهرى",
+            "الصحابي\nعبد الله بن عمر بن الخطاب"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+2 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 7718 (3 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 7718 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[2] حديث رقم 7413 — كتاب الإيمان",
+        "keyboard_arrow_right\n\n[3] حديث رقم 7717 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 7720 — كتاب الطهارة",
+        "keyboard_arrow_right\n\n[5] حديث رقم 9225 — كتاب صلاة العيدين"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q13_typos.png"
+    },
+    {
+      "id": "Q14",
+      "category": "typos",
+      "question": "مافضصل ركعتي الضحي علي كل سلامي من الناس؟",
+      "expected_ids": [
+        8842
+      ],
+      "notes": "يجزئ من ذلك ركعتان يركعهما من الضحى",
+      "ui_elapsed_ms": 49401.4,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "48.62 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "1"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.051",
+          "dur": "2.70 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [8842, 9496, 8833, 8834, 8822]\nHyDE: «يُصْبِحُ عَلَى كُلِّ سُلاَمَى مِنْ أَحَدِكُمْ صَدَقَةٌ، فَكُلُّ تَسْبِيحَةٍ صَدَقَةٌ، وَكُلُّ تَحْمِيدَةٍ صَد…",
+          "dur": "5.95 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "39.96 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8842: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.089 ms",
+          "dur": "1.1 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "بناءً على الحديث النبوي، فإنه يصبح على كل سُلامَى من الإنسان صدقة (كتسبيحة، أو تحميدة، أو تهليلة، أو تكبيرة، أو أمر بالمعروف، أو نهي عن المنكر)، وفضل ركعتي الضحى أنهما تُجزئان وتكفيان عن تلك الصدقات كلها.\n\n\n(المصدر: صحيح مسلم، حديث رقم 8842)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 8842 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعبد الله بن محمد بن أسماء",
+            "الطبقة 6\nمهدي بن ميمون الأزدي المعولي",
+            "الطبقة 5\nواصل مولى أبي عيينة",
+            "الطبقة 4\nيحيى بن عقيل",
+            "الطبقة 3\nيحيى بن يعمر",
+            "الطبقة 2\nأبو الأسود الديلي/الدؤلي",
+            "الصحابي\nجندب بن جنادة أبو ذر الغفاري"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 8842 — كتاب صلاة المسافرين وقصرها",
+        "keyboard_arrow_right\n\n[2] حديث رقم 9496 — كتاب الزكاة",
+        "keyboard_arrow_right\n\n[3] حديث رقم 8833 — كتاب صلاة المسافرين وقصرها",
+        "keyboard_arrow_right\n\n[4] حديث رقم 8834 — كتاب صلاة المسافرين وقصرها",
+        "keyboard_arrow_right\n\n[5] حديث رقم 8822 — كتاب صلاة المسافرين وقصرها"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q14_typos.png"
+    },
+    {
+      "id": "Q15",
+      "category": "typos",
+      "question": "ماهو اجر من صام ستا من شوال بعد رمضن في صحييح مسلم؟",
+      "expected_ids": [
+        9919
+      ],
+      "notes": "من صام رمضان ثم أتبعه ستًا من شوال كان كصيام الدهر",
+      "ui_elapsed_ms": 14117.5,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "13.02 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "1"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.204",
+          "dur": "2.54 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [9919, 9868, 10044, 9890, 9872]\nHyDE: «مَنْ صَامَ رَمَضَانَ ثُمَّ أَتْبَعَهُ سِتًّا مِنْ شَوَّالٍ، كَانَ كَصِيَامِ الدَّهْرِ؛ فَإِنَّ الْحَسَنَةَ بِ…",
+          "dur": "5.75 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "4.71 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9919: LINKED_WITH_RECORDED_ISNAD | 3 أسانيد | 2.245 ms",
+          "dur": "2.2 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "أجر من صام رمضان ثم أتبعه بصيام ستة أيام من شوال هو أن يكون ذلك كصيام الدهر، استناداً لقول رسول الله صلى الله عليه وسلم: «مَنْ صَامَ رَمَضَانَ ثُمَّ أَتْبَعَهُ سِتًّا مِنْ شَوَّالٍ كَانَ كَصِيَامِ الدَّهْرِ».\n\n\n(المصدر: صحيح مسلم، حديث رقم 9919)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+2 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 9919 (من شيخ مسلم إلى الصحابي)\n+2 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعلي بن حجر بن إياس بن مقاتل",
+            "الطبقة 4\nإسماعيل بن جعفر بن أبي كثير الأنصاري",
+            "الطبقة 3\nسعد بن سعيد بن قيس بن عمرو الأنصاري",
+            "الطبقة 2\nعمر بن ثابت الأنصاري",
+            "الصحابي\nأبو أيوب الأنصاري خالد بن زيد"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+2 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 9919 (3 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 9919 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[2] حديث رقم 9868 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[3] حديث رقم 10044 — كتاب الحج",
+        "keyboard_arrow_right\n\n[4] حديث رقم 9890 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[5] حديث رقم 9872 — كتاب الصيام"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q15_typos.png"
+    },
+    {
+      "id": "Q16",
+      "category": "colloquial",
+      "question": "لو الواحد وهو صايم حد جه شتمه أو اتخانق معاه في الشارع يتصرف إزاي حسب السنة؟",
+      "expected_ids": [
+        9867
+      ],
+      "notes": "فليقل إني امرؤ صائم / إني صائم",
+      "ui_elapsed_ms": 17767.4,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "16.83 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.038",
+          "dur": "2.66 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [9864, 9867, 9906, 9782, 9787]\nHyDE: «إِذَا كَانَ يَوْمُ صَوْمِ أَحَدِكُمْ فَلَا يَرْفُثْ يَوْمَئِذٍ وَلَا يَسْخَبْ، فَإِنْ شَاتَمَهُ أَحَدٌ أَوْ ق…",
+          "dur": "6.76 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "7.40 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9864: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.089 ms",
+          "dur": "1.1 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9867: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.525 ms",
+          "dur": "1.5 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "إذا أصبح الإنسان صائمًا فلا يرفث ولا يجهل ولا يسخب، فإذا شاتمه أحد أو سابه أو قاتله، فليقل: \"إني صائم، إني صائم\"، أو ليقل: \"إني امرؤ صائم\".\n\n\n(المصدر: صحيح مسلم، حديث رقم 9864)\n(المصدر: صحيح مسلم، حديث رقم 9867)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 9864 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nزهير بن حرب بن شداد أبو خثيمة",
+            "الطبقة 4\nسفيان بن عيينة",
+            "الطبقة 3\nأبو الزناد",
+            "الطبقة 2\nعبد الرحمن بن هرمز الأعرج أبو داود",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 9867 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن رافع",
+            "الطبقة 5\nعبد الرزاق بن همام",
+            "الطبقة 4\nابن جريج",
+            "الطبقة 3\nعطاء بن أبي رباح",
+            "الطبقة 2\nذكوان أبو صالح السمان الزيات",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 9864 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[2] حديث رقم 9867 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[3] حديث رقم 9906 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[4] حديث رقم 9782 — كتاب الصيام",
+        "keyboard_arrow_right\n\n[5] حديث رقم 9787 — كتاب الصيام"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q16_colloquial.png"
+    },
+    {
+      "id": "Q17",
+      "category": "colloquial",
+      "question": "هو الحلفان الكتير في البيع بيزوّد البركة ولا بيمحقها في الكلام النبوي؟",
+      "expected_ids": [
+        11273
+      ],
+      "notes": "الحلف منفقة للسلعة ممحقة للبركة / للربح",
+      "ui_elapsed_ms": 17188.4,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "16.19 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.050",
+          "dur": "2.62 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [11274, 11273, 11006, 7539, 11008]\nHyDE: «إِيَّاكُمْ وَكَثْرَةَ الْحَلِفِ فِي الْبَيْعِ؛ فَإِنَّهُ يُنَفِّقُ السِّلْعَةَ، ثُمَّ يَمْحَقُ الْبَرَكَةَ، و…",
+          "dur": "6.31 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "7.24 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11274: LINKED_WITH_RECORDED_ISNAD | 3 أسانيد | 1.666 ms",
+          "dur": "1.7 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 11273: LINKED_WITH_RECORDED_ISNAD | 3 أسانيد | 2.33 ms",
+          "dur": "2.3 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "كثرة الحلف في البيع تمحق البركة والربح؛ فقد حذر النبي صلى الله عليه وسلم من كثرة الحلف في البيع، وبين أنه وإن كان يُنفق السلعة (يروجها) إلا أنه يمحق الربح بعد ذلك، حيث جاء في الحديث: «إِيَّاكُمْ وَكَثْرَةَ الْحَلِفِ فِي الْبَيْعِ فَإِنَّهُ يُنَفِّقُ ثُمَّ يَمْحَقُ»، وفي الحديث الآخر: «الْحَلِفُ مَنْفَقَةٌ لِلسِّلْعَةِ مَمْحَقَةٌ لِلرِّبْحِ».\n\n\n(المصدر: صحيح مسلم، حديث رقم 11274)\n(المصدر: صحيح مسلم، حديث رقم 11273)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "+2 طرق أخرى",
+        "source: SQLite sanad graph",
+        "+2 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 11274 (من شيخ مسلم إلى الصحابي)\n+2 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nإسحاق بن راهويه",
+            "الطبقة 4\nحماد بن أسامة - أبو أسامة",
+            "الطبقة 3\nالوليد بن كثير المخزومي",
+            "الطبقة 2\nمعبد بن كعب بن مالك السلمي الأنصاري",
+            "الصحابي\nأبو قتادة بن ربعي الأنصاري"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+2 طرق أخرى"
+        },
+        {
+          "header": "سند حديث رقم 11273 (من شيخ مسلم إلى الصحابي)\n+2 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nأحمد بن عمرو بن السرح أبو الطاهر",
+            "الطبقة 5\nعبد الله بن وهب بن مسلم القرشي",
+            "الطبقة 4\nيونس بن يزيد بن أبي النجاد",
+            "الطبقة 3\nابن شهاب الزهري‎, محمد بن مسلم",
+            "الطبقة 2\nسعيد بن المسيب بن حزن أبو محمد القرشي",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+2 طرق أخرى"
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 11274 (3 طرق مسجلة)",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 11273 (3 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 11274 — كتاب المساقاة",
+        "keyboard_arrow_right\n\n[2] حديث رقم 11273 — كتاب المساقاة",
+        "keyboard_arrow_right\n\n[3] حديث رقم 11006 — كتاب البيوع",
+        "keyboard_arrow_right\n\n[4] حديث رقم 7539 — كتاب الإيمان",
+        "keyboard_arrow_right\n\n[5] حديث رقم 11008 — كتاب البيوع"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q17_colloquial.png"
+    },
+    {
+      "id": "Q18",
+      "category": "very_short",
+      "question": "ساعة يوم الجمعة",
+      "expected_ids": [
+        9139,
+        9142
+      ],
+      "notes": "إن في الجمعة لساعة لا يوافقها مسلم قائم يصلي يسأل الله خيرًا إلا أعطاه إياه",
+      "ui_elapsed_ms": 17213.8,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "15.97 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "5"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.130",
+          "dur": "2.67 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [9142, 9138, 9139, 9144, 9143]\nHyDE: «فِي يَوْمِ الْجُمُعَةِ سَاعَةٌ، لاَ يُوَافِقُهَا عَبْدٌ مُسْلِمٌ، وَهُوَ قَائِمٌ يُصَلِّي، يَسْأَلُ اللهَ شَي…",
+          "dur": "6.09 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "7.19 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9142: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.214 ms",
+          "dur": "1.2 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9138: LINKED_WITH_RECORDED_ISNAD | 2 أسانيد | 1.799 ms",
+          "dur": "1.8 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9139: VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK | 0 أسانيد | 0.935 ms",
+          "dur": "0.9 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9143: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.789 ms",
+          "dur": "1.8 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9144: VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK | 0 أسانيد | 1.168 ms",
+          "dur": "1.2 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "بناءً على الأحاديث الواردة في السياق، فإن ما يتعلق بساعة يوم الجمعة يتلخص في الآتي:\n\n\n\n\n\n\nفضلها وحال الداعي فيها: هي ساعة في يوم الجمعة لا يوافقها عبد مسلم (وفي رواية: وهو قائم يصلي) يسأل الله فيها خيراً أو شيئاً إلا أعطاه الله إياه.\n(المصدر: صحيح مسلم، حديث رقم 9142)\n(المصدر: صحيح مسلم، حديث رقم 9138)\n(المصدر: صحيح مسلم، حديث رقم 9139)\n\n\n\n\n\n\n\n\nمدتها وصفتها: هي ساعة خفيفة وقليلة؛ حيث أشار النبي صلى الله عليه وسلم بيده يقللها ويزهدها، وورد في رواية أنها \"ساعة خفيفة\"، بينما لم ترد هذه اللفظة في رواية أخرى.\n(المصدر: صحيح مسلم، حديث رقم 9142)\n(المصدر: صحيح مسلم، حديث رقم 9138)\n(المصدر: صحيح مسلم، حديث رقم 9139)\n(المصدر: صحيح مسلم، حديث رقم 9143)\n\n\n\n\n\n\n\n\nوقتها: ورد أن وقتها هو ما بين أن يجلس الإمام إلى أن تُقضى الصلاة.\n(المصدر: صحيح مسلم، حديث رقم 9144)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "+1 طرق أخرى",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 9142 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nعبد الرحمن بن سلام",
+            "الطبقة 3\nالربيع بن مسلم الجمحي",
+            "الطبقة 2\nمحمد بن زياد القرشي",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 9138 (من شيخ مسلم إلى الصحابي)\n+1 طرق أخرى\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nقتيبة بن سعيد بن جميل",
+            "الطبقة 4\nمالك بن أنس بن مالك بن أبي عامر",
+            "الطبقة 3\nأبو الزناد",
+            "الطبقة 2\nعبد الرحمن بن هرمز الأعرج أبو داود",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": "+1 طرق أخرى"
+        },
+        {
+          "header": "سند حديث رقم 9139\nsource: SQLite sanad graph",
+          "chips": [],
+          "companionHighlighted": 0,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 9143 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن رافع",
+            "الطبقة 4\nعبد الرزاق بن همام",
+            "الطبقة 3\nمعمر بن راشد",
+            "الطبقة 2\nهمام بن منبه بن كامل",
+            "الصحابي\nأبو هريرة - عبد الرحمن بن صخر الدوسي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 9144\nsource: SQLite sanad graph",
+          "chips": [],
+          "companionHighlighted": 0,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\nعرض بقية طرق حديث رقم 9138 (2 طرق مسجلة)",
+        "keyboard_arrow_right\n\n[1] حديث رقم 9142 — كتاب الجمعة",
+        "keyboard_arrow_right\n\n[2] حديث رقم 9138 — كتاب الجمعة",
+        "keyboard_arrow_right\n\n[3] حديث رقم 9139 — كتاب الجمعة",
+        "keyboard_arrow_right\n\n[4] حديث رقم 9144 — كتاب الجمعة",
+        "keyboard_arrow_right\n\n[5] حديث رقم 9143 — كتاب الجمعة"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q18_very_short.png"
+    },
+    {
+      "id": "Q19",
+      "category": "very_short",
+      "question": "شفاعة القرآن لأصحابه",
+      "expected_ids": [
+        9043
+      ],
+      "notes": "اقرءوا القرآن فإنه يأتي يوم القيامة شفيعًا لأصحابه",
+      "ui_elapsed_ms": 17210.5,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "15.97 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "2"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.070",
+          "dur": "2.79 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [9043, 9045, 7658, 9031, 7659]\nHyDE: «اقْرَؤُوا الْقُرْآنَ؛ فَإِنَّهُ يَأْتِي يَوْمَ الْقِيَامَةِ شَفِيعًا لِأَصْحَابِهِ، تَقَدَّمُهُ الْبَقَرَةُ و…",
+          "dur": "6.34 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "6.81 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9043: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.259 ms",
+          "dur": "1.3 ms",
+          "sqliteBadge": true
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 9045: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.439 ms",
+          "dur": "1.4 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "أمر رسول الله صلى الله عليه وسلم بقراءة القرآن؛ لأنه يأتي يوم القيامة شفيعًا لأصحابه. كما أنه يُؤتى بالقرآن يوم القيامة وأهله الذين كانوا يعملون به، تتقدمه سورة البقرة وسورة آل عمران (الزهراوين)، وقد ضرب لهما رسول الله صلى الله عليه وسلم ثلاثة أمثال: فتأتيان يوم القيامة كأنهما غمامتان، أو كأنهما غيايتان (أو ظلتان سوداوان بينهما شرق)، أو كأنهما فرقان (أو حزقان) من طير صواف، تحاجان (تدافعان) عن أصحابهما.\n\n\n(المصدر: صحيح مسلم، حديث رقم 9043)\n(المصدر: صحيح مسلم، حديث رقم 9045)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 9043 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nالحسن بن علي الخلال الحلواني",
+            "الطبقة 5\nالربيع بن نافع أبو توبة الحلبي",
+            "الطبقة 4\nمعاوية بن سلام",
+            "الطبقة 3\nزيد بن سلام",
+            "الطبقة 2\nممطور أبو سلام الأسود الحبشي",
+            "الصحابي\nأبو أمامة الباهلي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        },
+        {
+          "header": "سند حديث رقم 9045 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nإسحاق بن منصور بن بهرام - الكوسج",
+            "الطبقة 6\nيزيد بن عبد ربه الزبيدي",
+            "الطبقة 5\nالوليد بن مسلم القرشي",
+            "الطبقة 4\nمحمد بن مهاجر",
+            "الطبقة 3\nالوليد بن عبد الرحمن الجرشي",
+            "الطبقة 2\nجبير بن نفير الحضرمي",
+            "الصحابي\nالنواس بن سمعان الكلابي"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 9043 — كتاب صلاة المسافرين وقصرها",
+        "keyboard_arrow_right\n\n[2] حديث رقم 9045 — كتاب صلاة المسافرين وقصرها",
+        "keyboard_arrow_right\n\n[3] حديث رقم 7658 — كتاب الإيمان",
+        "keyboard_arrow_right\n\n[4] حديث رقم 9031 — كتاب صلاة المسافرين وقصرها",
+        "keyboard_arrow_right\n\n[5] حديث رقم 7659 — كتاب الإيمان"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q19_very_short.png"
+    },
+    {
+      "id": "Q20",
+      "category": "very_long",
+      "question": "بينما كنت أصلي صلاة رباعية الظهر في المنزل أصابني شك قوي ولم أدرِ هل صليت ثلاث ركعات أم أربعًا ولم أستطع ترجيح أي الاحتمالين في قلبي، فما الذي ينبغي عليّ فعله داخل الصلاة قبل السلام لإزالة هذا الشك وجبر النقصان كما ورد في حديث صحيح مسلم؟",
+      "expected_ids": [
+        8449,
+        8451
+      ],
+      "notes": "فليطرح الشك وليبن على ما استيقن ثم يسجد سجدتين قبل أن يسلم",
+      "ui_elapsed_ms": 15711.8,
+      "progressive_seen": true,
+      "summary": {
+        "الزمن الكلي": "14.65 s",
+        "Pro": "1",
+        "Flash": "1",
+        "Embeddings": "2",
+        "Tools": "0",
+        "SQLite": "1"
+      },
+      "traces": [
+        {
+          "title": "🧭 توجيه المسار router",
+          "detail": "القرار: text | المصدر: classifier | احتمال السند: 0.124",
+          "dur": "2.63 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔎 استرجاع المتون retrieval",
+          "detail": "أعلى 5 أحاديث: [8449, 8451, 8442, 8460, 8462]\nHyDE: «إِذَا شَكَّ أَحَدُكُمْ فِي صَلَاتِهِ، فَلَمْ يَدْرِ كَمْ صَلَّى أthreads ثَلَاثًا أَمْ أَرْبَعًا، فَلْيَطْرَح…",
+          "dur": "6.75 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "✍️ صياغة الإجابة generation",
+          "detail": "النموذج: gemini-4-argon | عدد المحاولات: 1",
+          "dur": "5.26 s",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🛡️ التحقق والتدقيق validation",
+          "detail": "الحالة: valid_answer",
+          "dur": "0.1 ms",
+          "sqliteBadge": false
+        },
+        {
+          "title": "🔗 إرفاق السند الحتمي sanad",
+          "detail": "حديث 8449: LINKED_WITH_RECORDED_ISNAD | 1 أسانيد | 1.255 ms",
+          "dur": "1.3 ms",
+          "sqliteBadge": true
+        }
+      ],
+      "has_answer_card": true,
+      "is_refusal_card": false,
+      "answer_text": "إذا شككت في صلاتك فلم تدرِ كم صليت ثلاثًا أم أربعًا، فينبغي عليك أن تطرح الشك وتبني على ما استيقنت، ثم تسجد سجدتين قبل أن تسلم؛ فإن كنت قد صليت خمسًا شفعن لك صلاتك، وإن كنت قد صليت إتمامًا لأربع ركعات كانت هاتان السجدتان ترغيمًا للشيطان.\n\n\n(المصدر: صحيح مسلم، حديث رقم 8449)",
+      "pills": [
+        "إجابة موثّقة من صحيح مسلم",
+        "source: SQLite sanad graph",
+        "source: SQLite sanad graph"
+      ],
+      "sanad_cards": [
+        {
+          "header": "سند حديث رقم 8449 (من شيخ مسلم إلى الصحابي)\nsource: SQLite sanad graph",
+          "chips": [
+            "شيخ مسلم\nمحمد بن أحمد بن أبي خلف",
+            "الطبقة 5\nموسى بن داود الضبي أبو عبد الله",
+            "الطبقة 4\nسليمان بن بلال التيمي",
+            "الطبقة 3\nزيد بن أسلم",
+            "الطبقة 2\nعطاء بن يسار أبو محمد مولى ميمونة",
+            "الصحابي\nأبو سعيد سعد بن مالك بن سنان الخدري"
+          ],
+          "companionHighlighted": 1,
+          "extraBadge": null
+        }
+      ],
+      "error_card": null,
+      "expanders": [
+        "keyboard_arrow_right\n\nكيف يعمل مُسنَد؟",
+        "keyboard_arrow_right\n\n[1] حديث رقم 8449 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[2] حديث رقم 8451 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[3] حديث رقم 8442 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[4] حديث رقم 8460 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ",
+        "keyboard_arrow_right\n\n[5] حديث رقم 8462 — كتاب الْمَسَاجِدِ وَمَوَاضِعِ الصَّلاَةِ"
+      ],
+      "rtl_ok": true,
+      "desktop_overflow_px": 0,
+      "mobile_overflow_px": 0,
+      "replay_banner": null,
+      "console_errors": [],
+      "page_errors": [],
+      "screenshot_name": "Q20_very_long.png"
+    }
+  ]
+}

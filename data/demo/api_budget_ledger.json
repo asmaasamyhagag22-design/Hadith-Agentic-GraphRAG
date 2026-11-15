@@ -4,9 +4,9 @@
     "flash": 40
   },
   "used": {
-    "pro": 17,
-    "flash": 23,
-    "embed": 46
+    "pro": 40,
+    "flash": 39,
+    "embed": 103
   },
   "runs": [
     {
@@ -29,6 +29,20 @@
       "pro": 0,
       "flash": 15,
       "embed": 30
+    },
+    {
+      "timestamp": "2026-11-15T01:08:00Z",
+      "step": "Step 5: pre-flight Router v3 embedding verification (0 Pro/Flash)",
+      "pro": 0,
+      "flash": 0,
+      "embed": 24
+    },
+    {
+      "timestamp": "2026-11-15T01:21:47Z",
+      "step": "Step 5: 20 new natural questions live via Playwright",
+      "pro": 23,
+      "flash": 16,
+      "embed": 33
     }
   ]
 }

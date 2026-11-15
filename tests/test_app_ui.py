@@ -240,3 +240,53 @@ def test_streamlit_app_example_and_error_handling(
     err_markdown = "\n".join(m.value for m in at.markdown)
     assert "تعذّر إتمام البحث حاليًا" in err_markdown
     assert any("Error during live query execution" in rec.message for rec in caplog.records)
+
+
+def test_step5_ui_fixes_markdown_lists_status_localization_and_bidi():
+    from app.components import format_answer_body_html, _CSS
+
+    raw_answer = (
+        "السلسلة:\n\n"
+        "1. **قتيبة بن سعيد**\n"
+        "2. مالك بن أنس <script>alert(1)</script>\n\n"
+        "- نقطة فرعية\n\n"
+        "(المصدر: صحيح مسلم، حديث رقم 7285)"
+    )
+    rendered = format_answer_body_html(raw_answer)
+    assert '<ol class="musnad-answer-list">' in rendered
+    assert "<strong>قتيبة بن سعيد</strong>" in rendered
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in rendered
+    assert "<script>" not in rendered
+    assert 'class="musnad-answer-para musnad-answer-citation"' in rendered
+
+    unlinked_html = render_sanad_chain_html(
+        {
+            "hadith_id": 9139,
+            "status": "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK",
+            "isnad_count": 0,
+            "isnads": [],
+        }
+    )
+    assert "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK" not in unlinked_html
+    assert "الحديث موثق محليًا ولا يوجد ربط مقبول بسند المسند بعد" in unlinked_html
+
+    trace_html = render_trace_panel_html(
+        [
+            {
+                "stage": "retrieval",
+                "duration_ms": 120.0,
+                "data": {"top5": [{"hadith_id": 9142}, {"hadith_id": 9138}], "hyde_text": "نص", "legacy_fallback": False},
+            },
+            {
+                "stage": "sanad",
+                "duration_ms": 1.2,
+                "data": {"hadith_id": 9142, "status": "LINKED_WITH_RECORDED_ISNAD", "isnad_count": 1, "ms": 1.2},
+            },
+        ],
+        summary=None,
+        in_progress=False,
+    )
+    assert '<code dir="ltr">[9142, 9138]</code>' in trace_html
+    assert "إسناد واحد" in trace_html
+    assert '[data-testid="stSidebar"][data-collapsed="true"]' in _CSS
+    assert '[data-testid="stAppViewContainer"]' in _CSS
