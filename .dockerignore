@@ -1,0 +1,33 @@
+# Deny-by-default build context so no secrets, git metadata, tests, evals,
+# or heavy legacy models/data ever leak into the Docker build context.
+*
+
+# Dependency manifests for Stage 1 cloud install
+!pyproject.toml
+!uv.lock
+
+# Application & inference modules
+!app/
+!app/*.py
+!src/
+!src/*.py
+!src/router_weights.npz
+
+# Minimal cloud runtime data (no raw texts, no E5/BM25/expansion vectors)
+!data/
+!data/demo/
+!data/demo/recorded_runs.json
+!data/processed/
+!data/processed/vectors_matn_gemini001_3072.npy
+!data/processed/chunk_ids_matn.json
+!data/processed/muslim_chunks.json
+!data/processed/sanad_graph.sqlite
+
+# Defense-in-depth exclusions inside allowlisted trees
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.env
+.env.*
+**/*service-account*.json
+**/*.sqlite-journal

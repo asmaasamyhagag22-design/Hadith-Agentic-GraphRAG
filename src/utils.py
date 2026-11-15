@@ -1,7 +1,5 @@
 import re
 
-from sentence_transformers import SentenceTransformer
-
 MODEL_NAME = "intfloat/multilingual-e5-base"
 MAX_TOKENS = 450
 
@@ -17,6 +15,8 @@ def get_model():
     global _model
 
     if _model is None:
+        from sentence_transformers import SentenceTransformer
+
         _model = SentenceTransformer(MODEL_NAME)
 
     return _model

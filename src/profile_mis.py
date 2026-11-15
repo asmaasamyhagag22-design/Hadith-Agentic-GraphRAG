@@ -22,8 +22,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import openpyxl
-
 from config import MIS_DIR, MUSLIM_JSON_PATH, PROCESSED_DIR
 from utils import split_isnad_matn, strip_diacritics
 
@@ -120,6 +118,7 @@ def file_sha256(path):
 
 def read_sheet(path):
     """Return (columns, rows) after fully parsing the workbook's active sheet."""
+    import openpyxl
 
     workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
     sheet = workbook.active

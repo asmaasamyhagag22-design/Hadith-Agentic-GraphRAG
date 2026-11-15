@@ -5,7 +5,6 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import faiss
 import numpy as np
 
 from config import (
@@ -85,6 +84,8 @@ class Retriever:
 
         with open(ids_path, "r", encoding="utf-8") as f:
             chunk_ids = [str(cid) for cid in json.load(f)]
+
+        import faiss
 
         index = faiss.IndexFlatIP(embeddings.shape[1])
         index.add(embeddings)

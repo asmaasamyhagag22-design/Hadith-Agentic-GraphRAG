@@ -24,5 +24,10 @@ API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `40 Pro`, `39 Flash`, 
   - Fixed 4 visual UI bugs caught from screenshots in `app/components.py` (collapsed sidebar RTL transform overlap, markdown-in-HTML numbered list border clipping & vertical gaps + bold/code rendering, Arabic status localization for unlinked hadiths, and trace `[ids]` bidi/plural grammar) + added unit test coverage in `tests/test_app_ui.py` (4/4).
   - Recorded all 20 results + 6 open quality/validator/latency findings (untouched per rules) in `docs/demo_findings.md` and `data/demo/step5_selftest_results.json`.
   - Verified: `check_docs` 5/5, CI subset `308 passed, 26 deselected`, full `pytest` `334 passed`.
-- [in_progress] **Step 6 — Docker, AWS CDK (`infra/`), Usage Guard, Runbook & README**
-- [pending] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**
+- [done] **Step 6 — Docker, AWS CDK (`infra/`), Usage Guard, Runbook & README**:
+  - Cloud runtime profile (`pyproject.toml` `[dependency-groups] cloud`, lazy heavy imports in `src/`) with `MUSNAD_CLOUD=1` disabling legacy fallback so API failures gracefully fall back to Replay (`src/pipeline.py`).
+  - Multi-stage non-root `Dockerfile`, `.dockerignore`, `docker-compose.yml`: built `musnad-demo:latest` (`1112945584` bytes / `1.11GB` unpacked / `299MB` compressed, `uid=999(musnad)`), verified both Replay (`MUSNAD_DEMO_REPLAY=1`) and Cloud fallback (`MUSNAD_CLOUD=1`) modes via Docker + Playwright.
+  - AWS CDK stack in `infra/` (`musnad_stack.py`, `app.py`, `cdk.json`): 2-AZ public VPC (`0` NAT gateways), ECR, ECS Fargate (`512/1024` configurable), ALB (sticky sessions, `/_stcore/health`, optional HTTPS/redirect), 14-day CloudWatch LogGroup, Secrets Manager, DynamoDB on-demand TTL table, least-privilege TaskRole, AWS Budgets alarm (`cdk.out/MusnadDemoStack.template.json` synthesized).
+  - Atomic usage guard (`app/usage_guard.py` + `app/streamlit_app.py`) enforcing per-session, per-IP hourly, and global daily (`MUSNAD_DAILY_CAP`, default `200`) limits in DynamoDB or in-memory local backend.
+  - Added `docs/deploy_aws.md` (GCP `Vertex AI User` SA + billing alert + ordered AWS Console/Terminal runbook), `README.md` (`## Live demo` + `### Deployment`), and 2x `docs/assets/demo-screenshot.png`.
+- [in_progress] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**

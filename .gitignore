@@ -20,3 +20,10 @@ data/database/
 # Third-party datasets, re-downloadable and under their own licences
 # (MIS is CC BY 4.0; Itqan's data licence is not yet established)
 data/raw/external/
+
+# Secrets, runtime SQLite journals, and CDK outputs
+*service-account*.json
+*.sqlite-journal
+.cdk.staging/
+cdk.out/
+cdk.context.json

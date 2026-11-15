@@ -39,6 +39,14 @@ from app.state import (
     resolve_use_agent_override,
     warm_up_resources,
 )
+from dataclasses import replace
+
+from app.usage_guard import (
+    UsageDecision,
+    acquire_usage_slot,
+    get_streamlit_client_ip,
+    peek_usage_limits,
+)
 from src.answer import REFUSAL
 
 
@@ -99,6 +107,15 @@ def _render_sidebar(
         st.divider()
         st.subheader("حالة المنظومة")
         creds_ok, creds_source = has_live_credentials(config)
+        usage_status = st.session_state.get("usage_status")
+        usage_line = ""
+        if isinstance(usage_status, UsageDecision):
+            usage_line = (
+                f"\n- **حدود الاستخدام الحي:** "
+                f"الجلسة ({usage_status.session_count}/{config.session_limit}) • "
+                f"الساعة ({usage_status.ip_hourly_count}/{config.ip_hourly_limit}) • "
+                f"اليومي ({usage_status.daily_count}/{config.daily_cap})"
+            )
         st.markdown(
             f"- **وضع التشغيل:** {'عرض مسجّل (Replay)' if is_replay else 'مباشر (Live)'}\n"
             f"- **الأوزان (Router v3):** {'جاهزة' if warm_status.get('router_ready') else 'غير متوفرة'}\n"
@@ -106,6 +123,7 @@ def _render_sidebar(
             f"({warm_status.get('hadith_count', 0)} حديث)\n"
             f"- **فهرس المتون:** {'جاهز' if warm_status.get('pipeline_ready') else 'وضع مسجّل / غير محمّل'}\n"
             f"- **الاعتمادات الحية:** {'متوفرة (' + creds_source + ')' if creds_ok else 'غير متوفرة'}"
+            f"{usage_line}"
         )
         if is_replay and replay_reason:
             st.info(f"Recorded run — replayed: {replay_reason}")
@@ -131,7 +149,19 @@ def main() -> None:
     render_hero(config.app_title, config.app_subtitle)
     render_how_it_works()
 
-    is_replay, base_replay_reason = resolve_replay_mode(config)
+    session_live_count = int(st.session_state.get("live_query_count", 0))
+    client_ip = get_streamlit_client_ip()
+    usage_peek = peek_usage_limits(
+        config,
+        session_count=session_live_count,
+        client_ip=client_ip,
+    )
+    st.session_state["usage_status"] = usage_peek
+    usage_capped_reason = usage_peek.banner_reason if not usage_peek.allowed else None
+    is_replay, base_replay_reason = resolve_replay_mode(
+        config,
+        usage_capped_reason=usage_capped_reason,
+    )
 
     # Warm-up cached resources cleanly on first load
     selected_retrieval = (
@@ -271,8 +301,25 @@ def main() -> None:
                     unsafe_allow_html=True,
                 )
 
-            if is_replay:
-                _run_replay_flow(base_replay_reason or "عرض مسجّل.")
+            usage_blocked_reason: str | None = None
+            decision: UsageDecision | None = None
+            if not is_replay and pipeline is not None:
+                decision = acquire_usage_slot(
+                    config,
+                    session_count=session_live_count,
+                    client_ip=client_ip,
+                )
+                st.session_state["usage_status"] = decision
+                if not decision.allowed:
+                    usage_blocked_reason = (
+                        decision.banner_reason
+                        or "تم بلوغ حد الاستخدام الحي، لذا تم التحويل تلقائيًا إلى العرض المسجّل."
+                    )
+
+            if is_replay or usage_blocked_reason is not None:
+                _run_replay_flow(
+                    usage_blocked_reason or base_replay_reason or "عرض مسجّل."
+                )
             elif pipeline is None:
                 err = warm_status.get("error") or RuntimeError("Retrieval pipeline is not initialized.")
                 logger.error("Pipeline unavailable for question execution: %s", err)
@@ -282,6 +329,12 @@ def main() -> None:
                 st.session_state["last_error"] = (friendly, details)
                 render_error_card(friendly, details)
             else:
+                st.session_state["live_query_count"] = session_live_count + 1
+                if decision is not None:
+                    st.session_state["usage_status"] = replace(
+                        decision,
+                        session_count=session_live_count + 1,
+                    )
                 col_answer, col_trace = st.columns([3, 2], gap="large")
                 with col_answer:
                     answer_slot = st.empty()

@@ -17,8 +17,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from sentence_transformers import CrossEncoder
-
 from experiment_variants import variant_text
 from utils import strip_diacritics
 
@@ -56,6 +54,8 @@ def get_reranker(model_name=DEFAULT_MODEL):
         # موديلات Jina وGTE معماريتها متعرّفة في الريبو بتاعها
         if model_name in (JINA, GTE):
             kwargs["trust_remote_code"] = True
+
+        from sentence_transformers import CrossEncoder
 
         _models[model_name] = CrossEncoder(model_name, **kwargs)
 

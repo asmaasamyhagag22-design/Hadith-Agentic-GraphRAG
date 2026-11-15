@@ -27,8 +27,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import openpyxl
-
 from config import MUSLIM_JSON_PATH, PROCESSED_DIR
 from profile_mis import CONTENT, EDGES, NODES
 
@@ -183,6 +181,8 @@ def text(value):
 
 
 def read_sheet(path):
+    import openpyxl
+
     workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
     try:
         worksheet = workbook[workbook.sheetnames[0]]

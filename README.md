@@ -11,6 +11,24 @@ Grounded Arabic question answering over Sahih Muslim, combining dense semantic m
 
 ---
 
+## Live demo
+
+- **Hosted URL:** _TBD — fill in `ServiceUrl` from [`docs/deploy_aws.md`](docs/deploy_aws.md) after `cdk deploy`_
+- **Run locally (live or replay):**
+  ```bash
+  uv run streamlit run app/streamlit_app.py            # Live mode (uses Vertex AI ADC / .env)
+  MUSNAD_DEMO_REPLAY=1 uv run streamlit run app/streamlit_app.py  # Offline recorded replay
+  ```
+- **Usage limits:** Public live queries are rate-limited (`10` per session, `20` per IP per hour, and `200` global daily queries via atomic DynamoDB TTL counters in cloud deployments, or in-memory counters locally). Once any cap is hit—or when Vertex AI credentials are unavailable—the UI transitions automatically to offline Replay mode (`data/demo/recorded_runs.json`) and keeps full step traces intact.
+
+![Musnad Streamlit UI showing a grounded chain answer with narrator chips and live execution trace](docs/assets/demo-screenshot.png)
+
+### Deployment
+
+All AWS infrastructure is defined as Python AWS CDK in [`infra/`](infra/): a 2-AZ public-only VPC (no NAT gateway), **ECR** repository, **ECS Fargate** service (`0.5 vCPU` / `1 GB`, configurable), **Application Load Balancer** with sticky sessions and `/_stcore/health` checks (HTTP by default, optional HTTPS 443 + redirect via ACM certificate), **Secrets Manager** secret holding a least-privilege GCP `Vertex AI User` service account key, **DynamoDB** on-demand usage-counter table with TTL, **CloudWatch** LogGroup (`14-day` retention), least-privilege task IAM role, and an **AWS Budgets** monthly alert. The slim cloud image (`Dockerfile`, `.dockerignore`, `docker-compose.yml`) installs the `cloud` dependency profile (`MUSNAD_CLOUD=1`) without `torch` or local legacy models. See the complete step-by-step deployment and teardown runbook in [`docs/deploy_aws.md`](docs/deploy_aws.md).
+
+---
+
 ## Demo
 
 Output captured live from `uv run python -m src.answer` in default `auto` mode (`data/processed/auto_smoke_cli.txt`): one **text** question routed to single-turn RAG with its attached SQLite sanad chain, and one **chain** question routed to the tool-calling agent.
@@ -285,23 +303,34 @@ uv run pytest
 ```text
 .github/workflows/
 └── tests.yml                  # CI: uv sync, pytest (clean-checkout markers), check_docs
-docs/assets/
-├── musnad-architecture-light.png
-└── musnad-architecture-dark.png
+app/                           # Arabic RTL Streamlit app, trace UI, replay handler, DynamoDB/local usage guard
+infra/                         # Python AWS CDK stack (Fargate, ALB, ECR, Secrets Manager, DynamoDB, CloudWatch, Budgets)
+Dockerfile                     # Multi-stage slim cloud image (MUSNAD_CLOUD=1, non-root user, healthcheck)
+docker-compose.yml             # Local container runner
+data/demo/
+└── recorded_runs.json         # 10 real recorded runs with full traces for offline / capped replay
+docs/
+├── deploy_aws.md              # Step-by-step AWS + GCP deployment, monitoring, and teardown runbook
+├── demo_findings.md           # 20-question live Playwright self-test log and open pipeline findings
+└── assets/
+    ├── demo-screenshot.png
+    ├── musnad-architecture-light.png
+    └── musnad-architecture-dark.png
 src/
 ├── config.py                  # project-root-relative paths for raw and processed artifacts
 ├── ingest.py, utils.py        # corpus chunking, Arabic normalisation, isnad/matn split
 ├── embed.py, lexical.py       # e5 dense embeddings, Arabic BM25, Reciprocal Rank Fusion
-├── retrieve.py, rerank.py     # Retriever, HybridRetriever, UpgradedRetriever (with query_vec_cache & legacy fallback)
+├── retrieve.py, rerank.py     # Retriever, HybridRetriever, UpgradedRetriever (parallel HyDE, cache, fallback)
 ├── router.py, router_weights.npz  # v2 regex fast path + v3 logistic-regression intent classifier
 ├── pipeline.py                # unified factory resolving upgraded|legacy & MUSNAD_AGENT=auto|on|off
+├── trace.py                   # observational per-stage execution trace collector
 ├── agent.py, sanad_names.py   # gemini-4-argon tool agent (search_hadith + get_isnad) & narrator validator
 ├── answer.py                  # single-turn generation, citation validator, SQLite attach_sanad, CLI
 ├── evaluate.py, answer_eval.py, evaluate_router.py, chain_eval.py, validate_golden.py, smoke_test.py, smoke_auto_cli.py
 ├── build_sanad_graph.py, sanad_graph.py, sanad_context.py
 ├── check_docs.py              # verifies README tables, prose figures, and dataset hashes against EXPERIMENTS.md
 └── experiment_*.py, audit_*.py, build_*.py, calibrate_*.py, train_router.py
-tests/                         # unit, graph-fidelity, linkage, router, agent, sanad-attachment, and docs-integrity tests
+tests/                         # unit, graph-fidelity, linkage, router, agent, sanad-attachment, UI, replay, guard, CDK & docs tests
 EXPERIMENTS.md                 # canonical metrics registry, experiment logs, and dataset hashes
 SANAD_GRAPH_READINESS.md       # linkage and narrator-identity readiness audit
 ```

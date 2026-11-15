@@ -1,0 +1,34 @@
+services:
+  musnad:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: musnad-demo:latest
+    ports:
+      - "8501:8501"
+    environment:
+      MUSNAD_CLOUD: "1"
+      MUSNAD_RETRIEVAL_PIPELINE: "upgraded"
+      MUSNAD_DEMO_REPLAY: "${MUSNAD_DEMO_REPLAY:-0}"
+      MUSNAD_REPLAY_SPEED: "${MUSNAD_REPLAY_SPEED:-1.0}"
+      MUSNAD_DAILY_CAP: "${MUSNAD_DAILY_CAP:-200}"
+      MUSNAD_SESSION_LIMIT: "${MUSNAD_SESSION_LIMIT:-10}"
+      MUSNAD_IP_HOURLY_LIMIT: "${MUSNAD_IP_HOURLY_LIMIT:-20}"
+      MUSNAD_USAGE_TABLE: "${MUSNAD_USAGE_TABLE:-}"
+      GOOGLE_CLOUD_PROJECT: "${GOOGLE_CLOUD_PROJECT:-}"
+      GOOGLE_CLOUD_LOCATION: "${GOOGLE_CLOUD_LOCATION:-us-central1}"
+      GCP_SERVICE_ACCOUNT_JSON: "${GCP_SERVICE_ACCOUNT_JSON:-}"
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=4).status == 200 else 1)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    restart: unless-stopped

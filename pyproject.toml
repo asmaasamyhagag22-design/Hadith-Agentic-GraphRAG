@@ -19,10 +19,21 @@ dependencies = [
     # query path does not go through — see README
     "chromadb",
     "streamlit>=1.42.0",
+    "boto3>=1.44.3",
 ]
 
 [dependency-groups]
+cloud = [
+    "numpy>=2.0.0",
+    "google-genai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.42.0",
+    "boto3>=1.44.3",
+]
 dev = [
+    "aws-cdk-lib>=2.277.0",
+    "constructs>=10.8.1",
+    "moto[dynamodb]>=5.2.5",
     "playwright>=1.65.2",
     "pytest>=9.2.0",
 ]

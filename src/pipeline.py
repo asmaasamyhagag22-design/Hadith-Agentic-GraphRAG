@@ -47,6 +47,11 @@ UPGRADED_WEIGHTS = (1.0, 0.0, 0.0, 0.0)
 UPGRADED_HYDE_ALPHA = 0.7
 
 
+def _is_cloud_mode():
+    """Return True when MUSNAD_CLOUD enables slim cloud runtime (no legacy fallback)."""
+    return os.environ.get("MUSNAD_CLOUD", "").strip().lower() in ("1", "true", "yes")
+
+
 def resolve_pipeline_mode(mode=None):
     """يحدد وضع المسار الفعّال (`upgraded` افتراضيًا، أو `legacy`)."""
     raw = mode if mode is not None else os.environ.get(
@@ -254,6 +259,12 @@ def build_pipeline(
     """
 
     resolved_mode = resolve_pipeline_mode(mode)
+    cloud_mode = _is_cloud_mode()
+
+    if cloud_mode and resolved_mode == "legacy":
+        raise RuntimeError(
+            "Legacy pipeline is disabled in cloud mode (MUSNAD_CLOUD=1)."
+        )
 
     if chunk_lookup is None:
         chunk_lookup = load_chunk_lookup(chunks_path)
@@ -296,7 +307,11 @@ def build_pipeline(
         rrf_k=rrf_k,
         api_timeout_ms=api_timeout_ms,
         fallback_retriever=fallback_retriever,
-        fallback_factory=None if fallback_retriever is not None else _legacy_factory,
+        fallback_factory=(
+            None
+            if (fallback_retriever is not None or cloud_mode)
+            else _legacy_factory
+        ),
     )
     pipeline.default_k = DEFAULT_K
     pipeline.mode = "upgraded"

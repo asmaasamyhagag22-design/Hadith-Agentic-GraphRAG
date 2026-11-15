@@ -8,8 +8,6 @@
 
 import re
 
-from rank_bm25 import BM25Okapi
-
 from utils import strip_diacritics
 
 # أي حاجة مش حرف عربي أو رقم بتبقى فاصل: علامات الترقيم،
@@ -58,6 +56,8 @@ class BM25Index:
                 f"IDs/texts mismatch: {len(chunk_ids)} ids "
                 f"vs {len(texts)} texts."
             )
+
+        from rank_bm25 import BM25Okapi
 
         self.chunk_ids = list(chunk_ids)
         self.bm25 = BM25Okapi([tokenize(text) for text in texts])
