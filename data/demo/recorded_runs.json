@@ -1,0 +1,4129 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-15T00:49:53.268469+00:00",
+  "pipeline_mode": "upgraded",
+  "api_calls_used": {
+    "pro_calls": 16,
+    "flash_calls": 7,
+    "embed_calls": 14
+  },
+  "runs": [
+    {
+      "id": "run_01_text_ramadan",
+      "category": "text",
+      "question": "ما فضل قيام شهر رمضان إيمانًا واحتسابًا؟",
+      "result": {
+        "answer": "فضل قيام شهر رمضان إيمانًا واحتسابًا هو أنه يُغفر لمن قامه ما تقدم من ذنبه، كما قال رسول الله صلى الله عليه وسلم: «مَنْ قَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ».\n\n(المصدر: صحيح مسلم، حديث رقم 8948)\n(المصدر: صحيح مسلم، حديث رقم 8949)",
+        "raw": "فضل قيام شهر رمضان إيمانًا واحتسابًا هو أنه يُغفر لمن قامه ما تقدم من ذنبه، كما قال رسول الله صلى الله عليه وسلم: «مَنْ قَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ».\n\n(المصدر: صحيح مسلم، حديث رقم 8948)\n(المصدر: صحيح مسلم، حديث رقم 8949)",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "8950_0",
+            "hadith_id": 8950,
+            "text": "وَحَدَّثَنِي زُهَيْرُ بْنُ حَرْبٍ، حَدَّثَنَا مُعَاذُ بْنُ هِشَامٍ، حَدَّثَنِي أَبِي، عَنْ يَحْيَى بْنِ أَبِي كَثِيرٍ، قَالَ حَدَّثَنَا أَبُو سَلَمَةَ بْنُ عَبْدِ الرَّحْمَنِ، أَنَّ أَبَا هُرَيْرَةَ، حَدَّثَهُمْ أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ وَمَنْ قَامَ لَيْلَةَ الْقَدْرِ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 8950,
+              "hadith_number": 8950,
+              "id_in_book": 1673,
+              "chapter_id": 6,
+              "chapter_arabic": "كتاب صلاة المسافرين وقصرها",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "8948_0",
+            "hadith_id": 8948,
+            "text": "حَدَّثَنَا يَحْيَى بْنُ يَحْيَى، قَالَ قَرَأْتُ عَلَى مَالِكٍ عَنِ ابْنِ شِهَابٍ، عَنْ حُمَيْدِ بْنِ عَبْدِ الرَّحْمَنِ، عَنْ أَبِي هُرَيْرَةَ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ مَنْ قَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 8948,
+              "hadith_number": 8948,
+              "id_in_book": 1671,
+              "chapter_id": 6,
+              "chapter_arabic": "كتاب صلاة المسافرين وقصرها",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "8949_0",
+            "hadith_id": 8949,
+            "text": "وَحَدَّثَنَا عَبْدُ بْنُ حُمَيْدٍ، أَخْبَرَنَا عَبْدُ الرَّزَّاقِ، أَخْبَرَنَا مَعْمَرٌ، عَنِ الزُّهْرِيِّ، عَنْ أَبِي سَلَمَةَ، عَنْ أَبِي هُرَيْرَةَ، قَالَ كَانَ رَسُولُ اللَّهِ صلى الله عليه وسلم يُرَغِّبُ فِي قِيَامِ رَمَضَانَ مِنْ غَيْرِ أَنْ يَأْمُرَهُمْ فِيهِ بِعَزِيمَةٍ فَيَقُولُ ‏\n\"‏ مَنْ قَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ ‏\"‏ ‏.‏ فَتُوُفِّيَ رَسُولُ اللَّهِ صلى الله عليه وسلم وَالأَمْرُ عَلَى ذَلِكَ ثُمَّ كَانَ الأَمْرُ عَلَى ذَلِكَ فِي خِلاَفَةِ أَبِي بَكْرٍ وَصَدْرًا مِنْ خِلاَفَةِ عُمَرَ عَلَى ذَلِكَ ‏.‏",
+            "metadata": {
+              "parent_id": 8949,
+              "hadith_number": 8949,
+              "id_in_book": 1672,
+              "chapter_id": 6,
+              "chapter_arabic": "كتاب صلاة المسافرين وقصرها",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "8951_0",
+            "hadith_id": 8951,
+            "text": "حَدَّثَنِي مُحَمَّدُ بْنُ رَافِعٍ، حَدَّثَنَا شَبَابَةُ، حَدَّثَنِي وَرْقَاءُ، عَنْ أَبِي الزِّنَادِ، عَنِ الأَعْرَجِ، عَنْ أَبِي هُرَيْرَةَ، عَنِ النَّبِيِّ صلى الله عليه وسلم قَالَ ‏\n\"‏ مَنْ يَقُمْ لَيْلَةَ الْقَدْرِ فَيُوَافِقُهَا - أُرَاهُ قَالَ - إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 8951,
+              "hadith_number": 8951,
+              "id_in_book": 1674,
+              "chapter_id": 6,
+              "chapter_arabic": "كتاب صلاة المسافرين وقصرها",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "9868_0",
+            "hadith_id": 9868,
+            "text": "وَحَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، حَدَّثَنَا أَبُو مُعَاوِيَةَ، وَوَكِيعٌ، عَنِ الأَعْمَشِ، ح وَحَدَّثَنَا زُهَيْرُ بْنُ حَرْبٍ، حَدَّثَنَا جَرِيرٌ، عَنِ الأَعْمَشِ، ح وَحَدَّثَنَا أَبُو سَعِيدٍ الأَشَجُّ، - وَاللَّفْظُ لَهُ - حَدَّثَنَا وَكِيعٌ، حَدَّثَنَا الأَعْمَشُ، عَنْ أَبِي صَالِحٍ، عَنْ أَبِي هُرَيْرَةَ، - رضى الله عنه - قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\n\"‏ كُلُّ عَمَلِ ابْنِ آدَمَ يُضَاعَفُ الْحَسَنَةُ عَشْرُ أَمْثَالِهَا إِلَى سَبْعِمِائَةِ ضِعْفٍ قَالَ اللَّهُ عَزَّ وَجَلَّ إِلاَّ الصَّوْمَ فَإِنَّهُ لِي وَأَنَا أَجْزِي بِهِ يَدَعُ شَهْوَتَهُ وَطَعَامَهُ مِنْ أَجْلِي لِلصَّائِمِ فَرْحَتَانِ فَرْحَةٌ عِنْدَ فِطْرِهِ وَفَرْحَةٌ عِنْدَ لِقَاءِ رَبِّهِ ‏.‏ وَلَخُلُوفُ فِيهِ أَطْيَبُ عِنْدَ اللَّهِ مِنْ رِيحِ الْمِسْكِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 9868,
+              "hadith_number": 9868,
+              "id_in_book": 2591,
+              "chapter_id": 13,
+              "chapter_arabic": "كتاب الصيام",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 8948,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 1,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "حميد بن عبد الرحمن بن عوف الزهرى"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "ابن شهاب الزهري‎, محمد بن مسلم"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "مالك بن أنس بن مالك بن أبي عامر"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "يحيى بن يحيى بن بكير"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 8949,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 1,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "أبو سلمة بن عبد الرحمن بن عوف"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "ابن شهاب الزهري‎, محمد بن مسلم"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "معمر بن راشد"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبد الرزاق بن همام"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "عبد بن حميد بن نصر"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false
+      },
+      "trace": {
+        "started_at": 1794703609.8030279,
+        "total_duration_ms": 16903.935,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703613.6071804,
+            "duration_ms": 3804.055,
+            "offset_ms": 3804.15,
+            "data": {
+              "decision": "text",
+              "source": "classifier",
+              "probability": 0.03833951529855123,
+              "path": "v3_logreg",
+              "matched_rule": null,
+              "mode": "auto",
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703619.9567463,
+            "duration_ms": 6349.455,
+            "offset_ms": 10153.716,
+            "data": {
+              "hyde_text": "«مَنْ قَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا، غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ، وَمَنْ قَامَهُ ابْتِغَاءَ وَجْهِ اللهِ، كُتِبَ لَهُ قِيَامُ لَيْلَةٍ، وَحُطَّتْ عَنْهُ خَطَايَاهُ كَيَوْمِ وَلَدَتْهُ أُمُّهُ».",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 8950,
+                  "chapter": "كتاب صلاة المسافرين وقصرها"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 8948,
+                  "chapter": "كتاب صلاة المسافرين وقصرها"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 8949,
+                  "chapter": "كتاب صلاة المسافرين وقصرها"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 8951,
+                  "chapter": "كتاب صلاة المسافرين وقصرها"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 9868,
+                  "chapter": "كتاب الصيام"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703626.704836,
+            "duration_ms": 6744.653,
+            "offset_ms": 16901.806,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 1,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703626.704883,
+            "duration_ms": 0.077,
+            "offset_ms": 16901.853,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703626.7063856,
+            "duration_ms": 1.112,
+            "offset_ms": 16903.355,
+            "data": {
+              "hadith_id": 8948,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 1,
+              "ms": 1.112,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703626.706858,
+            "duration_ms": 0.444,
+            "offset_ms": 16903.828,
+            "data": {
+              "hadith_id": 8949,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 1,
+              "ms": 0.444,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 16903.935,
+          "event_count": 6,
+          "stages": [
+            "router",
+            "retrieval",
+            "generation",
+            "validation",
+            "sanad",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 1,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 0,
+            "sqlite_queries": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "run_02_text_rights",
+      "category": "text",
+      "question": "ما حق المسلم على المسلم في صحيح مسلم؟",
+      "result": {
+        "answer": "بناءً على الأحاديث الواردة في السياق، فإن حق المسلم على المسلم ورد في روايتين:\n\n**الأولى: أن حق المسلم على المسلم ستّ خصال، وهي:**\n1. إذا لقيته فسلّم عليه.\n2. وإذا دعاك فأجبه.\n3. وإذا استنصحك فانصح له.\n4. وإذا عطس فحمد الله فسمّته.\n5. وإذا مرض فعده.\n6. وإذا مات فاتّبعه.\n(المصدر: صحيح مسلم، حديث رقم 12782)\n\n**الثانية: أن حق المسلم على المسلم خمس خصال تجب للمسلم على أخيه، وهي:**\n1. ردّ السلام.\n2. وتشميت العاطس.\n3. وإجابة الدعوة.\n4. وعيادة المريض.\n5. واتّباع الجنائز.\n(المصدر: صحيح مسلم، حديث رقم 12781)",
+        "raw": "بناءً على الأحاديث الواردة في السياق، فإن حق المسلم على المسلم ورد في روايتين:\n\n**الأولى: أن حق المسلم على المسلم ستّ خصال، وهي:**\n1. إذا لقيته فسلّم عليه.\n2. وإذا دعاك فأجبه.\n3. وإذا استنصحك فانصح له.\n4. وإذا عطس فحمد الله فسمّته.\n5. وإذا مرض فعده.\n6. وإذا مات فاتّبعه.\n(المصدر: صحيح مسلم، حديث رقم 12782)\n\n**الثانية: أن حق المسلم على المسلم خمس خصال تجب للمسلم على أخيه، وهي:**\n1. ردّ السلام.\n2. وتشميت العاطس.\n3. وإجابة الدعوة.\n4. وعيادة المريض.\n5. واتّباع الجنائز.\n(المصدر: صحيح مسلم، حديث رقم 12781)",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "12782_0",
+            "hadith_id": 12782,
+            "text": "حَدَّثَنَا يَحْيَى بْنُ أَيُّوبَ، وَقُتَيْبَةُ، وَابْنُ، حُجْرٍ قَالُوا حَدَّثَنَا إِسْمَاعِيلُ، - وَهُوَ ابْنُ\n جَعْفَرٍ - عَنِ الْعَلاَءِ، عَنْ أَبِيهِ، عَنْ أَبِي هُرَيْرَةَ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ\n ‏\"‏ حَقُّ الْمُسْلِمِ عَلَى الْمُسْلِمِ سِتٌّ ‏\"‏ ‏.‏ قِيلَ مَا هُنَّ يَا رَسُولَ اللَّهِ قَالَ ‏\"‏ إِذَا لَقِيتَهُ فَسَلِّمْ عَلَيْهِ\n وَإِذَا دَعَاكَ فَأَجِبْهُ وَإِذَا اسْتَنْصَحَكَ فَانْصَحْ لَهُ وَإِذَا عَطَسَ فَحَمِدَ اللَّهَ فَسَمِّتْهُ وَإِذَا مَرِضَ\n فَعُدْهُ وَإِذَا مَاتَ فَاتَّبِعْهُ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 12782,
+              "hadith_number": 12782,
+              "id_in_book": 5505,
+              "chapter_id": 39,
+              "chapter_arabic": "كتاب السلام",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "12781_0",
+            "hadith_id": 12781,
+            "text": "حَدَّثَنِي حَرْمَلَةُ بْنُ يَحْيَى، أَخْبَرَنَا ابْنُ وَهْبٍ، أَخْبَرَنِي يُونُسُ، عَنِ ابْنِ شِهَابٍ، عَنِ \n ابْنِ الْمُسَيَّبِ، أَنَّ أَبَا هُرَيْرَةَ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\"‏ حَقُّ الْمُسْلِمِ عَلَى\n الْمُسْلِمِ خَمْسٌ ‏\"‏ ‏.‏ ح \n وَحَدَّثَنَا عَبْدُ بْنُ حُمَيْدٍ، أَخْبَرَنَا عَبْدُ الرَّزَّاقِ، أَخْبَرَنَا مَعْمَرٌ، عَنِ الزُّهْرِيِّ، عَنِ ابْنِ،\n الْمُسَيَّبِ عَنْ أَبِي هُرَيْرَةَ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\"‏ خَمْسٌ تَجِبُ لِلْمُسْلِمِ\n عَلَى أَخِيهِ رَدُّ السَّلاَمِ وَتَشْمِيتُ الْعَاطِسِ وَإِجَابَةُ الدَّعْوَةِ وَعِيَادَةُ الْمَرِيضِ وَاتِّبَاعُ الْجَنَائِزِ\n ‏\"‏ ‏.‏ قَالَ عَبْدُ الرَّزَّاقِ كَانَ مَعْمَرٌ يُرْسِلُ هَذَا الْحَدِيثَ عَنِ الزُّهْرِيِّ وَأَسْنَدَهُ مَرَّةً عَنِ ابْنِ\n الْمُسَيَّبِ عَنْ أَبِي هُرَيْرَةَ ‏.‏",
+            "metadata": {
+              "parent_id": 12781,
+              "hadith_number": 12781,
+              "id_in_book": 5504,
+              "chapter_id": 39,
+              "chapter_arabic": "كتاب السلام",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "13693_0",
+            "hadith_id": 13693,
+            "text": "حَدَّثَنَا قُتَيْبَةُ بْنُ سَعِيدٍ، حَدَّثَنَا لَيْثٌ، عَنْ عُقَيْلٍ، عَنِ الزُّهْرِيِّ، عَنْ سَالِمٍ، عَنْ أَبِيهِ،\n أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ الْمُسْلِمُ أَخُو الْمُسْلِمِ لاَ يَظْلِمُهُ وَلاَ يُسْلِمُهُ مَنْ\n كَانَ فِي حَاجَةِ أَخِيهِ كَانَ اللَّهُ فِي حَاجَتِهِ وَمَنْ فَرَّجَ عَنْ مُسْلِمٍ كُرْبَةً فَرَّجَ اللَّهُ عَنْهُ بِهَا\n كُرْبَةً مِنْ كُرَبِ يَوْمِ الْقِيَامَةِ وَمَنْ سَتَرَ مُسْلِمًا سَتَرَهُ اللَّهُ يَوْمَ الْقِيَامَةِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 13693,
+              "hadith_number": 13693,
+              "id_in_book": 6416,
+              "chapter_id": 45,
+              "chapter_arabic": "كتاب البر والصلة والآداب",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "13657_0",
+            "hadith_id": 13657,
+            "text": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ بْنِ قَعْنَبٍ، حَدَّثَنَا دَاوُدُ، - يَعْنِي ابْنَ قَيْسٍ - عَنْ أَبِي،\n سَعِيدٍ مَوْلَى عَامِرِ بْنِ كُرَيْزٍ عَنْ أَبِي هُرَيْرَةَ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم\n ‏\"‏ لاَ تَحَاسَدُوا وَلاَ تَنَاجَشُوا وَلاَ تَبَاغَضُوا وَلاَ تَدَابَرُوا وَلاَ يَبِعْ بَعْضُكُمْ عَلَى بَيْعِ بَعْضٍ\n وَكُونُوا عِبَادَ اللَّهِ إِخْوَانًا ‏.‏ الْمُسْلِمُ أَخُو الْمُسْلِمِ لاَ يَظْلِمُهُ وَلاَ يَخْذُلُهُ وَلاَ يَحْقِرُهُ ‏.‏ التَّقْوَى\n هَا هُنَا ‏\"‏ ‏.‏ وَيُشِيرُ إِلَى صَدْرِهِ ثَلاَثَ مَرَّاتٍ ‏\"‏ بِحَسْبِ امْرِئٍ مِنَ الشَّرِّ أَنْ يَحْقِرَ أَخَاهُ الْمُسْلِمَ\n كُلُّ الْمُسْلِمِ عَلَى الْمُسْلِمِ حَرَامٌ دَمُهُ وَمَالُهُ وَعِرْضُهُ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 13657,
+              "hadith_number": 13657,
+              "id_in_book": 6380,
+              "chapter_id": 45,
+              "chapter_arabic": "كتاب البر والصلة والآداب",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "10962_0",
+            "hadith_id": 10962,
+            "text": "حَدَّثَنَا يَحْيَى بْنُ أَيُّوبَ، وَقُتَيْبَةُ بْنُ سَعِيدٍ، وَابْنُ، حُجْرٍ قَالُوا حَدَّثَنَا إِسْمَاعِيلُ، - وَهُوَ ابْنُ جَعْفَرٍ - عَنِ الْعَلاَءِ، عَنْ أَبِيهِ، عَنْ أَبِي هُرَيْرَةَ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ لاَ يَسُمِ الْمُسْلِمُ عَلَى سَوْمِ أَخِيهِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 10962,
+              "hadith_number": 10962,
+              "id_in_book": 3685,
+              "chapter_id": 21,
+              "chapter_arabic": "كتاب البيوع",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 12782,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 3,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الرحمن بن يعقوب الجهني"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "العلاء بن عبد الرحمن"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "إسماعيل بن جعفر بن أبي كثير الأنصاري"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "علي بن حجر بن إياس بن مقاتل"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الرحمن بن يعقوب الجهني"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "العلاء بن عبد الرحمن"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "إسماعيل بن جعفر بن أبي كثير الأنصاري"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "قتيبة بن سعيد بن جميل"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الرحمن بن يعقوب الجهني"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "العلاء بن عبد الرحمن"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "إسماعيل بن جعفر بن أبي كثير الأنصاري"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "يحيى بن أيوب المقابري"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 12781,
+            "status": "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK",
+            "isnad_count": 0,
+            "isnads": []
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false
+      },
+      "trace": {
+        "started_at": 1794703626.707091,
+        "total_duration_ms": 16440.325,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703629.3037343,
+            "duration_ms": 2596.575,
+            "offset_ms": 2596.643,
+            "data": {
+              "decision": "text",
+              "source": "classifier",
+              "probability": 0.4256358878937512,
+              "path": "v3_logreg",
+              "matched_rule": null,
+              "mode": "auto",
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703635.736929,
+            "duration_ms": 6433.126,
+            "offset_ms": 9029.838,
+            "data": {
+              "hyde_text": "«حَقُّ الْمُسْلِمِ عَلَى الْمُسْلِمِ سِتٌّ: إِذَا لَقِيتَهُ فَسَلِّمْ عَلَيْهِ، وَإِذَا دَعَاكَ فَأَجِبْهُ، وَإِذَا اسْتَنْصَحَكَ فَانْصَحْ لَهُ، وَإِذَا عَطَسَ فَحَمِدَ اللهَ فَشَمِّتْهُ، وَإِذَا مَرِضَ فَعُدْهُ، وَإِذَا مَاتَ فَاتَّبِعْهُ».",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 12782,
+                  "chapter": "كتاب السلام"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 12781,
+                  "chapter": "كتاب السلام"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 13693,
+                  "chapter": "كتاب البر والصلة والآداب"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 13657,
+                  "chapter": "كتاب البر والصلة والآداب"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 10962,
+                  "chapter": "كتاب البيوع"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703643.1451533,
+            "duration_ms": 7404.375,
+            "offset_ms": 16438.062,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 1,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703643.1451867,
+            "duration_ms": 0.09,
+            "offset_ms": 16438.095,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703643.1471272,
+            "duration_ms": 1.557,
+            "offset_ms": 16440.036,
+            "data": {
+              "hadith_id": 12782,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 3,
+              "ms": 1.557,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703643.1472952,
+            "duration_ms": 0.146,
+            "offset_ms": 16440.204,
+            "data": {
+              "hadith_id": 12781,
+              "status": "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK",
+              "isnad_count": 0,
+              "ms": 0.146,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 16440.325,
+          "event_count": 6,
+          "stages": [
+            "router",
+            "retrieval",
+            "generation",
+            "validation",
+            "sanad",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 1,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 0,
+            "sqlite_queries": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "run_03_chain_id_7306",
+      "category": "chain",
+      "question": "ما أسانيد حديث رقم 7306 ومن الصحابي الذي رواه؟",
+      "result": {
+        "answer": "المصادر المتاحة لا تجيب عن هذا السؤال",
+        "raw": "لحديث رقم 7306 في «كتاب الإيمان» أربعة أسانيد مسجلة في قاعدة البيانات، والصحابي في بداية السند هو **عبد الله بن العباس بن عبد المطلب الحبر** (في الإسناد الأول)، و**معاذ بن جبل بن عمرو بن أوس** وعنه **عبد الله بن العباس بن عبد المطلب الحبر** (في الأسانيد الثاني والثالث والرابع).\n\nوفيما يلي تفصيل الأسانيد الأربعة مرتبةً من الصحابي إلى شيخ الإمام مسلم:\n\n1. **الإسناد الأول:**\n   عبد الله بن العباس بن عبد المطلب الحبر ← نافذ أبو معبد مولى بن عباس ← يحيى بن عبد الله بن محمد ← زكريا بن إسحاق المكي ← وكيع بن الجراح ← أبو بكر بن أبي شيبة.\n\n2. **الإسناد الثاني:**\n   معاذ بن جبل بن عمرو بن أوس ← عبد الله بن العباس بن عبد المطلب الحبر ← نافذ أبو معبد مولى بن عباس ← يحيى بن عبد الله بن محمد ← زكريا بن إسحاق المكي ← وكيع بن الجراح ← إسحاق بن راهويه.\n\n3. **الإسناد الثالث:**\n   معاذ بن جبل بن عمرو بن أوس ← عبد الله بن العباس بن عبد المطلب الحبر ← نافذ أبو معبد مولى بن عباس ← يحيى بن عبد الله بن محمد ← زكريا بن إسحاق المكي ← وكيع بن الجراح ← أبو بكر بن أبي شيبة.\n\n4. **الإسناد الرابع:**\n   معاذ بن جبل بن عمرو بن أوس ← عبد الله بن العباس بن عبد المطلب الحبر ← نافذ أبو معبد مولى بن عباس ← يحيى بن عبد الله بن محمد ← زكريا بن إسحاق المكي ← وكيع بن الجراح ← محمد بن العلاء - أبو كريب.\n\n(المصدر: صحيح مسلم، حديث رقم 7306)",
+        "chunks": [
+          {
+            "hadith_id": 7306,
+            "text": "حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، وَأَبُو كُرَيْبٍ وَإِسْحَاقُ بْنُ إِبْرَاهِيمَ جَمِيعًا عَنْ وَكِيعٍ، - قَالَ أَبُو بَكْرٍ حَدَّثَنَا وَكِيعٌ، - عَنْ زَكَرِيَّاءَ بْنِ إِسْحَاقَ، قَالَ حَدَّثَنِي يَحْيَى بْنُ عَبْدِ اللَّهِ بْنِ صَيْفِيٍّ، عَنْ أَبِي مَعْبَدٍ، عَنِ ابْنِ عَبَّاسٍ، عَنْ مُعَاذِ بْنِ جَبَلٍ، - قَالَ أَبُو بَكْرٍ رُبَّمَا قَالَ وَكِيعٌ عَنِ ابْنِ عَبَّاسٍ، أَنَّ مُعَاذًا، - قَالَ بَعَثَنِي رَسُولُ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ إِنَّكَ تَأْتِي قَوْمًا مِنْ أَهْلِ الْكِتَابِ ‏.‏ فَادْعُهُمْ إِلَى شَهَادَةِ أَنْ لاَ إِلَهَ إِلاَّ اللَّهُ وَأَنِّي رَسُولُ اللَّهِ فَإِنْ هُمْ أَطَاعُوا لِذَلِكَ فَأَعْلِمْهُمْ أَنَّ اللَّهَ افْتَرَضَ عَلَيْهِمْ خَمْسَ صَلَوَاتٍ فِي كُلِّ يَوْمٍ وَلَيْلَةٍ فَإِنْ هُمْ أَطَاعُوا لِذَلِكَ فَأَعْلِمْهُمْ أَنَّ اللَّهَ افْتَرَضَ عَلَيْهِمْ صَدَقَةً تُؤْخَذُ مِنْ أَغْنِيَائِهِمْ فَتُرَدُّ فِي فُقَرَائِهِمْ فَإِنْ هُمْ أَطَاعُوا لِذَلِكَ فَإِيَّاكَ وَكَرَائِمَ أَمْوَالِهِمْ وَاتَّقِ دَعْوَةَ الْمَظْلُومِ فَإِنَّهُ لَيْسَ بَيْنَهَا وَبَيْنَ اللَّهِ حِجَابٌ ‏\"‏ ‏.‏",
+            "metadata": {
+              "chapter_arabic": "كتاب الإيمان"
+            },
+            "rank": 1
+          }
+        ],
+        "sanad": [],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": true,
+        "mixed_refusal_attempt": false,
+        "disallowed_narrators_attempt": [],
+        "final_disallowed_narrators": [],
+        "regenerated": true,
+        "rewritten": null,
+        "retried": false,
+        "tool_calls": [
+          {
+            "name": "get_isnad",
+            "args": {
+              "hadith_id": 7306
+            },
+            "result": {
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "detail": null,
+              "requested_local_id": 7306,
+              "local_hadith": {
+                "local_id": 7306,
+                "id_in_book": 29,
+                "book_id": 2,
+                "chapter_id": 1,
+                "chapter_ar": "كتاب الإيمان",
+                "chapter_en": "The Book of Faith"
+              },
+              "linkage": {
+                "mis_book_no": "2",
+                "mis_hadith_no": "130",
+                "link_status": "ACCEPTED_LINK_V1",
+                "link_relation": "LINKS_TO_MIS_RECORD",
+                "linkage_version": "mis_linkage_accepted_v1",
+                "linkage_artifact_sha256": "9c3a48e7a0af4f0df1cd9250f49a90f343228b614587196fcf2fa6fbfa572c77",
+                "candidate_status": "unique",
+                "similarity": 1.0,
+                "quick_similarity": 1.0
+              },
+              "mis_hadith": {
+                "book_no": "2",
+                "hadith_no": "130",
+                "chapter_no": "2",
+                "unit_no": "9",
+                "declared_sanad_count": 4,
+                "recorded_in": "MIS"
+              },
+              "isnads": [
+                {
+                  "sanad_no": "1",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "17",
+                      "label": "ibn Abbas (0)",
+                      "name_ar": "عبد الله بن عباس بن عبد المطلب الهاشمى",
+                      "name_ar_mapped": "عبد الله بن العباس بن عبد المطلب  الحبر",
+                      "name_en_mapped": "ibn Abbas (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "13127",
+                      "label": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "name_ar": "نافذ أبو معبد مولى ابن عباس",
+                      "name_ar_mapped": "نافذ أبو معبد مولى بن عباس",
+                      "name_en_mapped": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11448",
+                      "label": "Yahya bin Abdullah bin Muhammad (6)",
+                      "name_ar": "يحيى بن عبد الله بن محمد بن صيفى المكى",
+                      "name_ar_mapped": "يحيى بن عبد الله بن محمد",
+                      "name_en_mapped": "Yahya bin Abdullah bin Muhammad (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "11244",
+                      "label": "Zakaria bin Ishaq al-Makki (6)",
+                      "name_ar": "زكريا بن إسحاق المكى",
+                      "name_ar_mapped": "زكريا بن إسحاق المكي",
+                      "name_en_mapped": "Zakaria bin Ishaq al-Makki (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20032",
+                      "label": "Waki bin al-Jarrah (9)",
+                      "name_ar": "وكيع بن الجراح بن مليح الرؤاسى",
+                      "name_ar_mapped": "وكيع بن الجراح",
+                      "name_en_mapped": "Waki bin al-Jarrah (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30201",
+                      "label": "Abu Bakr bin Abi Shayba (10)",
+                      "name_ar": "عبد الله بن محمد أبو بكر بن أبى شيبة",
+                      "name_ar_mapped": "أبو بكر بن أبي شيبة",
+                      "name_en_mapped": "Abu Bakr bin Abi Shayba (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "2",
+                  "narrator_count": 7,
+                  "step_count": 6,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "32",
+                      "label": "Muadh ibn Jabal (0)",
+                      "name_ar": "معاذ بن جبل بن عمرو الأنصارى الخزرجى",
+                      "name_ar_mapped": "معاذ بن جبل بن عمرو بن أوس",
+                      "name_en_mapped": "Muadh ibn Jabal (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "17",
+                      "label": "ibn Abbas (0)",
+                      "name_ar": "عبد الله بن عباس بن عبد المطلب الهاشمى",
+                      "name_ar_mapped": "عبد الله بن العباس بن عبد المطلب  الحبر",
+                      "name_en_mapped": "ibn Abbas (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "13127",
+                      "label": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "name_ar": "نافذ أبو معبد مولى ابن عباس",
+                      "name_ar_mapped": "نافذ أبو معبد مولى بن عباس",
+                      "name_en_mapped": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "11448",
+                      "label": "Yahya bin Abdullah bin Muhammad (6)",
+                      "name_ar": "يحيى بن عبد الله بن محمد بن صيفى المكى",
+                      "name_ar_mapped": "يحيى بن عبد الله بن محمد",
+                      "name_en_mapped": "Yahya bin Abdullah bin Muhammad (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "11244",
+                      "label": "Zakaria bin Ishaq al-Makki (6)",
+                      "name_ar": "زكريا بن إسحاق المكى",
+                      "name_ar_mapped": "زكريا بن إسحاق المكي",
+                      "name_en_mapped": "Zakaria bin Ishaq al-Makki (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "20032",
+                      "label": "Waki bin al-Jarrah (9)",
+                      "name_ar": "وكيع بن الجراح بن مليح الرؤاسى",
+                      "name_ar_mapped": "وكيع بن الجراح",
+                      "name_en_mapped": "Waki bin al-Jarrah (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 7,
+                      "narrator_id": "30021",
+                      "label": "Ishaq bin Rahwaya (11)",
+                      "name_ar": "إسحاق بن إبراهيم ابن راهويه الحنظلى",
+                      "name_ar_mapped": "إسحاق بن راهويه",
+                      "name_en_mapped": "Ishaq bin Rahwaya (11)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "3",
+                  "narrator_count": 7,
+                  "step_count": 6,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "32",
+                      "label": "Muadh ibn Jabal (0)",
+                      "name_ar": "معاذ بن جبل بن عمرو الأنصارى الخزرجى",
+                      "name_ar_mapped": "معاذ بن جبل بن عمرو بن أوس",
+                      "name_en_mapped": "Muadh ibn Jabal (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "17",
+                      "label": "ibn Abbas (0)",
+                      "name_ar": "عبد الله بن عباس بن عبد المطلب الهاشمى",
+                      "name_ar_mapped": "عبد الله بن العباس بن عبد المطلب  الحبر",
+                      "name_en_mapped": "ibn Abbas (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "13127",
+                      "label": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "name_ar": "نافذ أبو معبد مولى ابن عباس",
+                      "name_ar_mapped": "نافذ أبو معبد مولى بن عباس",
+                      "name_en_mapped": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "11448",
+                      "label": "Yahya bin Abdullah bin Muhammad (6)",
+                      "name_ar": "يحيى بن عبد الله بن محمد بن صيفى المكى",
+                      "name_ar_mapped": "يحيى بن عبد الله بن محمد",
+                      "name_en_mapped": "Yahya bin Abdullah bin Muhammad (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "11244",
+                      "label": "Zakaria bin Ishaq al-Makki (6)",
+                      "name_ar": "زكريا بن إسحاق المكى",
+                      "name_ar_mapped": "زكريا بن إسحاق المكي",
+                      "name_en_mapped": "Zakaria bin Ishaq al-Makki (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "20032",
+                      "label": "Waki bin al-Jarrah (9)",
+                      "name_ar": "وكيع بن الجراح بن مليح الرؤاسى",
+                      "name_ar_mapped": "وكيع بن الجراح",
+                      "name_en_mapped": "Waki bin al-Jarrah (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 7,
+                      "narrator_id": "30201",
+                      "label": "Abu Bakr bin Abi Shayba (10)",
+                      "name_ar": "عبد الله بن محمد أبو بكر بن أبى شيبة",
+                      "name_ar_mapped": "أبو بكر بن أبي شيبة",
+                      "name_en_mapped": "Abu Bakr bin Abi Shayba (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "4",
+                  "narrator_count": 7,
+                  "step_count": 6,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "32",
+                      "label": "Muadh ibn Jabal (0)",
+                      "name_ar": "معاذ بن جبل بن عمرو الأنصارى الخزرجى",
+                      "name_ar_mapped": "معاذ بن جبل بن عمرو بن أوس",
+                      "name_en_mapped": "Muadh ibn Jabal (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "17",
+                      "label": "ibn Abbas (0)",
+                      "name_ar": "عبد الله بن عباس بن عبد المطلب الهاشمى",
+                      "name_ar_mapped": "عبد الله بن العباس بن عبد المطلب  الحبر",
+                      "name_en_mapped": "ibn Abbas (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "13127",
+                      "label": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "name_ar": "نافذ أبو معبد مولى ابن عباس",
+                      "name_ar_mapped": "نافذ أبو معبد مولى بن عباس",
+                      "name_en_mapped": "Nafid, Abu Mabad, Client Of Ibn Abbas (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "11448",
+                      "label": "Yahya bin Abdullah bin Muhammad (6)",
+                      "name_ar": "يحيى بن عبد الله بن محمد بن صيفى المكى",
+                      "name_ar_mapped": "يحيى بن عبد الله بن محمد",
+                      "name_en_mapped": "Yahya bin Abdullah bin Muhammad (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "11244",
+                      "label": "Zakaria bin Ishaq al-Makki (6)",
+                      "name_ar": "زكريا بن إسحاق المكى",
+                      "name_ar_mapped": "زكريا بن إسحاق المكي",
+                      "name_en_mapped": "Zakaria bin Ishaq al-Makki (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "20032",
+                      "label": "Waki bin al-Jarrah (9)",
+                      "name_ar": "وكيع بن الجراح بن مليح الرؤاسى",
+                      "name_ar_mapped": "وكيع بن الجراح",
+                      "name_en_mapped": "Waki bin al-Jarrah (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 7,
+                      "narrator_id": "30216",
+                      "label": "Abu Karayb, Muhammad bin al-Ala (10)",
+                      "name_ar": "محمد بن العلاء أبو كريب الهمدانى",
+                      "name_ar_mapped": "محمد بن العلاء - أبو كريب",
+                      "name_en_mapped": "Abu Karayb, Muhammad bin al-Ala (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                }
+              ],
+              "isnad_count": 4,
+              "declared_sanad_count": 4,
+              "basis": "as recorded in MIS for the record joined by the accepted local<->MIS linkage; MIS narrator identities, not adjudicated historical persons"
+            }
+          }
+        ],
+        "tool_hadith_ids": [
+          7306
+        ],
+        "agent_used": true,
+        "agent_fallback": false,
+        "fallback_reason": null,
+        "pro_calls_used": 3
+      },
+      "trace": {
+        "started_at": 1794703643.1475244,
+        "total_duration_ms": 16082.495,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703643.1476767,
+            "duration_ms": 0.09,
+            "offset_ms": 0.153,
+            "data": {
+              "decision": "chain",
+              "source": "regex",
+              "probability": 1.0,
+              "path": "v2_fast_path",
+              "matched_rule": "explicit_isnad_or_sanad_term",
+              "mode": "auto",
+              "embed_calls": 0
+            }
+          },
+          {
+            "stage": "agent",
+            "timestamp": 1794703647.5780168,
+            "duration_ms": 3.491,
+            "offset_ms": 4430.493,
+            "data": {
+              "name": "get_isnad",
+              "arguments": {
+                "hadith_id": 7306
+              },
+              "returned_ids": [
+                7306
+              ],
+              "agent_fallback": false,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 4,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703659.229894,
+            "duration_ms": 14855.751,
+            "offset_ms": 16082.37,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 2,
+              "pro_calls": 3,
+              "regenerated": true
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703659.2299361,
+            "duration_ms": 40.988,
+            "offset_ms": 16082.412,
+            "data": {
+              "status": "valid_refusal",
+              "retry_reason": "out_of_context_citation",
+              "refusal_reason": "validation_failed_after_retry"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 16082.495,
+          "event_count": 4,
+          "stages": [
+            "router",
+            "agent",
+            "generation",
+            "validation"
+          ],
+          "call_counts": {
+            "pro_calls": 3,
+            "flash_calls": 0,
+            "embed_calls": 0,
+            "tool_calls": 1,
+            "sqlite_queries": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "run_04_chain_membership_7290",
+      "category": "chain",
+      "question": "هل ورد أنس بن مالك في سند حديث رقم 7290؟",
+      "result": {
+        "answer": "لا، لم يرد الراوي المذكور في أسانيد هذا الحديث (المصدر: صحيح مسلم، حديث رقم 7290).",
+        "raw": "لا، لم يرد الراوي المذكور في أسانيد هذا الحديث (المصدر: صحيح مسلم، حديث رقم 7290).",
+        "chunks": [
+          {
+            "hadith_id": 7290,
+            "text": "وَحَدَّثَنِي مُحَمَّدُ بْنُ حَاتِمٍ، وَعَبْدُ الرَّحْمَنِ بْنُ بِشْرٍ، قَالاَ حَدَّثَنَا بَهْزٌ، حَدَّثَنَا شُعْبَةُ، حَدَّثَنَا مُحَمَّدُ بْنُ عُثْمَانَ بْنِ عَبْدِ اللَّهِ بْنِ مَوْهَبٍ، وَأَبُوهُ، عُثْمَانُ أَنَّهُمَا سَمِعَا مُوسَى بْنَ طَلْحَةَ، يُحَدِّثُ عَنْ أَبِي أَيُّوبَ، عَنِ النَّبِيِّ صلى الله عليه وسلم بِمِثْلِ هَذَا الْحَدِيثِ ‏.‏",
+            "metadata": {
+              "chapter_arabic": "كتاب الإيمان"
+            },
+            "rank": 1
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 7290,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 4,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "عثمان بن عبد الله بن موهب التيمي الأعرج"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "عبد الرحمن بن بشر بن الحكم"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "محمد بن عثمان بن عبد الله بن موهب"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "عبد الرحمن بن بشر بن الحكم"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "عثمان بن عبد الله بن موهب التيمي الأعرج"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "محمد بن حاتم البغدادي - السمين"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "محمد بن عثمان بن عبد الله بن موهب"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "محمد بن حاتم البغدادي - السمين"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "disallowed_narrators_attempt": [],
+        "final_disallowed_narrators": [],
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false,
+        "tool_calls": [
+          {
+            "name": "get_isnad",
+            "args": {
+              "hadith_id": 7290
+            },
+            "result": {
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "detail": null,
+              "requested_local_id": 7290,
+              "local_hadith": {
+                "local_id": 7290,
+                "id_in_book": 13,
+                "book_id": 2,
+                "chapter_id": 1,
+                "chapter_ar": "كتاب الإيمان",
+                "chapter_en": "The Book of Faith"
+              },
+              "linkage": {
+                "mis_book_no": "2",
+                "mis_hadith_no": "114",
+                "link_status": "ACCEPTED_LINK_V1",
+                "link_relation": "LINKS_TO_MIS_RECORD",
+                "linkage_version": "mis_linkage_accepted_v1",
+                "linkage_artifact_sha256": "9c3a48e7a0af4f0df1cd9250f49a90f343228b614587196fcf2fa6fbfa572c77",
+                "candidate_status": "unique",
+                "similarity": 1.0,
+                "quick_similarity": 1.0
+              },
+              "mis_hadith": {
+                "book_no": "2",
+                "hadith_no": "114",
+                "chapter_no": "2",
+                "unit_no": "6",
+                "declared_sanad_count": 4,
+                "recorded_in": "MIS"
+              },
+              "isnads": [
+                {
+                  "sanad_no": "1",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "33",
+                      "label": "Abu Ayyub al-Ansari (0)",
+                      "name_ar": "خالد بن زيد أبو أيوب الأنصارى",
+                      "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد",
+                      "name_en_mapped": "Abu Ayyub al-Ansari (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "579",
+                      "label": "Musa ibn Talha (2)",
+                      "name_ar": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_en_mapped": "Musa ibn Talha (2)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11524",
+                      "label": "Uthman bin Abdullah bin Muhab (4)",
+                      "name_ar": "عثمان بن عبد الله بن موهب التيمى الأعرج",
+                      "name_ar_mapped": "عثمان بن عبد الله بن موهب التيمي الأعرج",
+                      "name_en_mapped": "Uthman bin Abdullah bin Muhab (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20020",
+                      "label": "Shubah bin al-Hajjaj (7)",
+                      "name_ar": "شعبة بن الحجاج العتكى",
+                      "name_ar_mapped": "شعبة بن الحجاج",
+                      "name_en_mapped": "Shubah bin al-Hajjaj (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20214",
+                      "label": "Bahz bin Asad al-Ami (9)",
+                      "name_ar": "بهز بن أسد أبو الأسود العمى البصرى",
+                      "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري",
+                      "name_en_mapped": "Bahz bin Asad al-Ami (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30356",
+                      "label": "Abdur Rahman bin Bashr (10)",
+                      "name_ar": "عبد الرحمن بن بشر بن الحكم النيسابورى",
+                      "name_ar_mapped": "عبد الرحمن بن بشر بن الحكم",
+                      "name_en_mapped": "Abdur Rahman bin Bashr (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "2",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "33",
+                      "label": "Abu Ayyub al-Ansari (0)",
+                      "name_ar": "خالد بن زيد أبو أيوب الأنصارى",
+                      "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد",
+                      "name_en_mapped": "Abu Ayyub al-Ansari (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "579",
+                      "label": "Musa ibn Talha (2)",
+                      "name_ar": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_en_mapped": "Musa ibn Talha (2)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11721",
+                      "label": "Muhammad bin Uthman bin Abdullah",
+                      "name_ar": "محمد بن عثمان بن عبد الله بن موهب التيمى",
+                      "name_ar_mapped": "محمد بن عثمان بن عبد الله بن موهب",
+                      "name_en_mapped": "Muhammad bin Uthman bin Abdullah",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20020",
+                      "label": "Shubah bin al-Hajjaj (7)",
+                      "name_ar": "شعبة بن الحجاج العتكى",
+                      "name_ar_mapped": "شعبة بن الحجاج",
+                      "name_en_mapped": "Shubah bin al-Hajjaj (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20214",
+                      "label": "Bahz bin Asad al-Ami (9)",
+                      "name_ar": "بهز بن أسد أبو الأسود العمى البصرى",
+                      "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري",
+                      "name_en_mapped": "Bahz bin Asad al-Ami (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30356",
+                      "label": "Abdur Rahman bin Bashr (10)",
+                      "name_ar": "عبد الرحمن بن بشر بن الحكم النيسابورى",
+                      "name_ar_mapped": "عبد الرحمن بن بشر بن الحكم",
+                      "name_en_mapped": "Abdur Rahman bin Bashr (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "3",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "33",
+                      "label": "Abu Ayyub al-Ansari (0)",
+                      "name_ar": "خالد بن زيد أبو أيوب الأنصارى",
+                      "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد",
+                      "name_en_mapped": "Abu Ayyub al-Ansari (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "579",
+                      "label": "Musa ibn Talha (2)",
+                      "name_ar": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_en_mapped": "Musa ibn Talha (2)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11524",
+                      "label": "Uthman bin Abdullah bin Muhab (4)",
+                      "name_ar": "عثمان بن عبد الله بن موهب التيمى الأعرج",
+                      "name_ar_mapped": "عثمان بن عبد الله بن موهب التيمي الأعرج",
+                      "name_en_mapped": "Uthman bin Abdullah bin Muhab (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20020",
+                      "label": "Shubah bin al-Hajjaj (7)",
+                      "name_ar": "شعبة بن الحجاج العتكى",
+                      "name_ar_mapped": "شعبة بن الحجاج",
+                      "name_en_mapped": "Shubah bin al-Hajjaj (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20214",
+                      "label": "Bahz bin Asad al-Ami (9)",
+                      "name_ar": "بهز بن أسد أبو الأسود العمى البصرى",
+                      "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري",
+                      "name_en_mapped": "Bahz bin Asad al-Ami (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30514",
+                      "label": "Muhammad bin Hatim Al-Samayn",
+                      "name_ar": "محمد بن حاتم بن ميمون البغدادى السمين",
+                      "name_ar_mapped": "محمد بن حاتم البغدادي - السمين",
+                      "name_en_mapped": "Muhammad bin Hatim Al-Samayn",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "4",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "33",
+                      "label": "Abu Ayyub al-Ansari (0)",
+                      "name_ar": "خالد بن زيد أبو أيوب الأنصارى",
+                      "name_ar_mapped": "أبو أيوب الأنصاري خالد بن زيد",
+                      "name_en_mapped": "Abu Ayyub al-Ansari (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "579",
+                      "label": "Musa ibn Talha (2)",
+                      "name_ar": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_ar_mapped": "موسى بن طلحة بن عبيد الله التيمى",
+                      "name_en_mapped": "Musa ibn Talha (2)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11721",
+                      "label": "Muhammad bin Uthman bin Abdullah",
+                      "name_ar": "محمد بن عثمان بن عبد الله بن موهب التيمى",
+                      "name_ar_mapped": "محمد بن عثمان بن عبد الله بن موهب",
+                      "name_en_mapped": "Muhammad bin Uthman bin Abdullah",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20020",
+                      "label": "Shubah bin al-Hajjaj (7)",
+                      "name_ar": "شعبة بن الحجاج العتكى",
+                      "name_ar_mapped": "شعبة بن الحجاج",
+                      "name_en_mapped": "Shubah bin al-Hajjaj (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20214",
+                      "label": "Bahz bin Asad al-Ami (9)",
+                      "name_ar": "بهز بن أسد أبو الأسود العمى البصرى",
+                      "name_ar_mapped": "بهز بن أسد العمي أبو الأسود البصري",
+                      "name_en_mapped": "Bahz bin Asad al-Ami (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30514",
+                      "label": "Muhammad bin Hatim Al-Samayn",
+                      "name_ar": "محمد بن حاتم بن ميمون البغدادى السمين",
+                      "name_ar_mapped": "محمد بن حاتم البغدادي - السمين",
+                      "name_en_mapped": "Muhammad bin Hatim Al-Samayn",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                }
+              ],
+              "isnad_count": 4,
+              "declared_sanad_count": 4,
+              "basis": "as recorded in MIS for the record joined by the accepted local<->MIS linkage; MIS narrator identities, not adjudicated historical persons"
+            }
+          }
+        ],
+        "tool_hadith_ids": [
+          7290
+        ],
+        "agent_used": true,
+        "agent_fallback": false,
+        "fallback_reason": null,
+        "pro_calls_used": 2
+      },
+      "trace": {
+        "started_at": 1794703659.230121,
+        "total_duration_ms": 7378.754,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703659.2302136,
+            "duration_ms": 0.039,
+            "offset_ms": 0.092,
+            "data": {
+              "decision": "chain",
+              "source": "regex",
+              "probability": 1.0,
+              "path": "v2_fast_path",
+              "matched_rule": "explicit_isnad_or_sanad_term",
+              "mode": "auto",
+              "embed_calls": 0
+            }
+          },
+          {
+            "stage": "agent",
+            "timestamp": 1794703662.9109135,
+            "duration_ms": 3.105,
+            "offset_ms": 3680.793,
+            "data": {
+              "name": "get_isnad",
+              "arguments": {
+                "hadith_id": 7290
+              },
+              "returned_ids": [
+                7290
+              ],
+              "agent_fallback": false,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 4,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703666.6063876,
+            "duration_ms": 7362.954,
+            "offset_ms": 7376.267,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 2,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703666.606426,
+            "duration_ms": 9.392,
+            "offset_ms": 7376.305,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703666.6086693,
+            "duration_ms": 1.845,
+            "offset_ms": 7378.548,
+            "data": {
+              "hadith_id": 7290,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 4,
+              "ms": 1.845,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 7378.754,
+          "event_count": 5,
+          "stages": [
+            "router",
+            "agent",
+            "generation",
+            "validation",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 2,
+            "flash_calls": 0,
+            "embed_calls": 0,
+            "tool_calls": 1,
+            "sqlite_queries": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "run_05_chain_topic_nasiha",
+      "category": "chain_topic",
+      "question": "من الصحابي الذي روى حديث الدين النصيحة، وما سلسلة رواته عن الإمام مسلم؟",
+      "result": {
+        "answer": "الصحابي الجليل الذي روى حديث «الدِّينُ النَّصِيحَةُ» هو: **تميم الداري** رضي الله عنه.\n\nوقد ورد لهذا الحديث إسنادان مسجلان في قاعدة البيانات إلى الإمام مسلم (من الصحابي إلى شيخ الإمام مسلم المباشر) كما يلي:\n\n**الإسناد الأول:**\n1. تميم الداري (الصحابي)\n2. عطاء بن يزيد الليثي الجندعي\n3. سهيل بن أبي صالح\n4. سفيان بن عيينة\n5. محمد بن عباد بن الزبرقان المكي (شيخ الإمام مسلم)\n\n**الإسناد الثاني:**\n1. تميم الداري (الصحابي)\n2. عطاء بن يزيد الليثي الجندعي\n3. ذكوان أبو صالح السمان الزيات\n4. القعقاع بن حكيم الكناني المدني\n5. عمرو بن دينار الأثرم الجمحي\n6. سفيان بن عيينة\n7. محمد بن عباد بن الزبرقان المكي (شيخ الإمام مسلم)\n\n(المصدر: صحيح مسلم، حديث رقم 7380)",
+        "raw": "الصحابي الجليل الذي روى حديث «الدِّينُ النَّصِيحَةُ» هو: **تميم الداري** رضي الله عنه.\n\nوقد ورد لهذا الحديث إسنادان مسجلان في قاعدة البيانات إلى الإمام مسلم (من الصحابي إلى شيخ الإمام مسلم المباشر) كما يلي:\n\n**الإسناد الأول:**\n1. تميم الداري (الصحابي)\n2. عطاء بن يزيد الليثي الجندعي\n3. سهيل بن أبي صالح\n4. سفيان بن عيينة\n5. محمد بن عباد بن الزبرقان المكي (شيخ الإمام مسلم)\n\n**الإسناد الثاني:**\n1. تميم الداري (الصحابي)\n2. عطاء بن يزيد الليثي الجندعي\n3. ذكوان أبو صالح السمان الزيات\n4. القعقاع بن حكيم الكناني المدني\n5. عمرو بن دينار الأثرم الجمحي\n6. سفيان بن عيينة\n7. محمد بن عباد بن الزبرقان المكي (شيخ الإمام مسلم)\n\n(المصدر: صحيح مسلم، حديث رقم 7380)",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "7380_0",
+            "hadith_id": 7380,
+            "text": "حَدَّثَنَا مُحَمَّدُ بْنُ عَبَّادٍ الْمَكِّيُّ، حَدَّثَنَا سُفْيَانُ، قَالَ قُلْتُ لِسُهَيْلٍ إِنَّ عَمْرًا حَدَّثَنَا عَنِ الْقَعْقَاعِ، عَنْ أَبِيكَ، قَالَ وَرَجَوْتُ أَنْ يُسْقِطَ، عَنِّي رَجُلاً قَالَ فَقَالَ سَمِعْتُهُ مِنَ الَّذِي سَمِعَهُ مِنْهُ أَبِي كَانَ صَدِيقًا لَهُ بِالشَّامِ ثُمَّ حَدَّثَنَا سُفْيَانُ عَنْ سُهَيْلٍ عَنْ عَطَاءِ بْنِ يَزِيدَ عَنْ تَمِيمٍ الدَّارِيِّ أَنَّ النَّبِيَّ صلى الله عليه وسلم قَالَ ‏\"‏ الدِّينُ النَّصِيحَةُ ‏\"‏ قُلْنَا لِمَنْ قَالَ ‏\"‏ لِلَّهِ وَلِكِتَابِهِ وَلِرَسُولِهِ وَلأَئِمَّةِ الْمُسْلِمِينَ وَعَامَّتِهِمْ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7380,
+              "hadith_number": 7380,
+              "id_in_book": 103,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "7289_0",
+            "hadith_id": 7289,
+            "text": "حَدَّثَنَا مُحَمَّدُ بْنُ عَبْدِ اللَّهِ بْنِ نُمَيْرٍ، حَدَّثَنَا أَبِي، حَدَّثَنَا عَمْرُو بْنُ عُثْمَانَ، حَدَّثَنَا مُوسَى بْنُ طَلْحَةَ، قَالَ حَدَّثَنِي أَبُو أَيُّوبَ، أَنَّ أَعْرَابِيًّا، عَرَضَ لِرَسُولِ اللَّهِ صلى الله عليه وسلم وَهُوَ فِي سَفَرٍ ‏.‏ فَأَخَذَ بِخِطَامِ نَاقَتِهِ أَوْ بِزِمَامِهَا ثُمَّ قَالَ يَا رَسُولَ اللَّهِ - أَوْ يَا مُحَمَّدُ - أَخْبِرْنِي بِمَا يُقَرِّبُنِي مِنَ الْجَنَّةِ وَمَا يُبَاعِدُنِي مِنَ النَّارِ ‏.‏ قَالَ فَكَفَّ النَّبِيُّ صلى الله عليه وسلم ثُمَّ نَظَرَ فِي أَصْحَابِهِ ثُمَّ قَالَ ‏\"‏ لَقَدْ وُفِّقَ - أَوْ لَقَدْ هُدِيَ - قَالَ كَيْفَ قُلْتَ ‏\"‏ ‏.‏ قَالَ فَأَعَادَ ‏.‏ فَقَالَ النَّبِيُّ صلى الله عليه وسلم ‏\"‏ تَعْبُدُ اللَّهَ لاَ تُشْرِكُ بِهِ شَيْئًا وَتُقِيمُ الصَّلاَةَ وَتُؤْتِي الزَّكَاةَ وَتَصِلُ الرَّحِمَ دَعِ النَّاقَةَ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7289,
+              "hadith_number": 7289,
+              "id_in_book": 12,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "7384_0",
+            "hadith_id": 7384,
+            "text": "حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، وَزُهَيْرُ بْنُ حَرْبٍ، وَابْنُ، نُمَيْرٍ قَالُوا حَدَّثَنَا سُفْيَانُ، عَنْ زِيَادِ بْنِ عِلاَقَةَ، سَمِعَ جَرِيرَ بْنَ عَبْدِ اللَّهِ، يَقُولُ بَايَعْتُ النَّبِيَّ صلى الله عليه وسلم عَلَى النُّصْحِ لِكُلِّ مُسْلِمٍ ‏.‏",
+            "metadata": {
+              "parent_id": 7384,
+              "hadith_number": 7384,
+              "id_in_book": 107,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "12909_0",
+            "hadith_id": 12909,
+            "text": "وَحَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، حَدَّثَنَا وَكِيعٌ، عَنْ سُفْيَانَ، عَنْ حَبِيبٍ، عَنْ إِبْرَاهِيمَ،\n بْنِ سَعْدٍ عَنْ سَعْدِ بْنِ مَالِكٍ، وَخُزَيْمَةَ بْنِ ثَابِتٍ، وَأُسَامَةَ بْنِ زَيْدٍ، قَالُوا قَالَ رَسُولُ اللَّهِ صلى\n الله عليه وسلم بِمَعْنَى حَدِيثِ شُعْبَةَ ‏.‏",
+            "metadata": {
+              "parent_id": 12909,
+              "hadith_number": 12909,
+              "id_in_book": 5632,
+              "chapter_id": 39,
+              "chapter_arabic": "كتاب السلام",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "11308_0",
+            "hadith_id": 11308,
+            "text": "حَدَّثَنَا مُحَمَّدُ بْنُ رَافِعٍ، حَدَّثَنَا عَبْدُ الرَّزَّاقِ، أَخْبَرَنَا مَعْمَرٌ، عَنْ هَمَّامِ بْنِ مُنَبِّهٍ، قَالَ هَذَا مَا حَدَّثَنَا أَبُو هُرَيْرَةَ، عَنْ رَسُولِ اللَّهِ صلى الله عليه وسلم فَذَكَرَ أَحَادِيثَ مِنْهَا وَقَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\n\"‏ أَنَا أَوْلَى النَّاسِ بِالْمُؤْمِنِينَ فِي كِتَابِ اللَّهِ عَزَّ وَجَلَّ فَأَيُّكُمْ مَا تَرَكَ دَيْنًا أَوْ ضَيْعَةً فَادْعُونِي فَأَنَا وَلِيُّهُ وَأَيُّكُمْ مَا تَرَكَ مَالاً فَلْيُؤْثَرْ بِمَالِهِ عَصَبَتُهُ مَنْ كَانَ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11308,
+              "hadith_number": 11308,
+              "id_in_book": 4031,
+              "chapter_id": 23,
+              "chapter_arabic": "كتاب الفرائض",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 7380,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 2,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "تميم الداري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عطاء بن يزيد الليثي الجندعي"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "سهيل بن أبي صالح"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "سفيان بن عيينة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "محمد بن عباد بن الزبرقان المكي"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "تميم الداري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عطاء بن يزيد الليثي الجندعي"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "ذكوان أبو صالح السمان الزيات"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "القعقاع بن حكيم الكناني المدني"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عمرو بن دينار الأثرم الجمحي"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "سفيان بن عيينة"
+                },
+                {
+                  "chain_position": 7,
+                  "name_ar_mapped": "محمد بن عباد بن الزبرقان المكي"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "disallowed_narrators_attempt": [],
+        "final_disallowed_narrators": [],
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false,
+        "tool_calls": [
+          {
+            "name": "search_hadith",
+            "args": {
+              "query": "الدين النصيحة قلنا لمن قال لله ولكتابه ولرسوله"
+            },
+            "result": [
+              {
+                "hadith_id": 7380,
+                "chapter": "كتاب الإيمان",
+                "matn": "أَنَّ النَّبِيَّ صلى الله عليه وسلم قَالَ ‏\"‏ الدِّينُ النَّصِيحَةُ ‏\"‏ قُلْنَا لِمَنْ قَالَ ‏\"‏ لِلَّهِ وَلِكِتَابِهِ وَلِرَسُولِهِ وَلأَئِمَّةِ الْمُسْلِمِينَ وَعَامَّتِهِمْ ‏\"‏ ‏.‏"
+              },
+              {
+                "hadith_id": 7289,
+                "chapter": "كتاب الإيمان",
+                "matn": "فَكَفَّ النَّبِيُّ صلى الله عليه وسلم ثُمَّ نَظَرَ فِي أَصْحَابِهِ ثُمَّ قَالَ ‏\"‏ لَقَدْ وُفِّقَ - أَوْ لَقَدْ هُدِيَ - قَالَ كَيْفَ قُلْتَ ‏\"‏ ‏.‏ قَالَ فَأَعَادَ ‏.‏ فَقَالَ النَّبِيُّ صلى الله عليه وسلم ‏\"‏ تَعْبُدُ اللَّهَ لاَ تُشْرِكُ بِهِ شَيْئًا وَتُقِيمُ الصَّلاَةَ وَتُؤْتِي الزَّكَاةَ وَتَصِلُ الرَّحِمَ دَعِ النَّاقَةَ ‏\"‏ ‏.‏"
+              },
+              {
+                "hadith_id": 7384,
+                "chapter": "كتاب الإيمان",
+                "matn": "بَايَعْتُ النَّبِيَّ صلى الله عليه وسلم عَلَى النُّصْحِ لِكُلِّ مُسْلِمٍ ‏.‏"
+              },
+              {
+                "hadith_id": 12909,
+                "chapter": "كتاب السلام",
+                "matn": "قَالَ رَسُولُ اللَّهِ صلى\n الله عليه وسلم بِمَعْنَى حَدِيثِ شُعْبَةَ ‏.‏"
+              },
+              {
+                "hadith_id": 11308,
+                "chapter": "كتاب الفرائض",
+                "matn": "عَنْ رَسُولِ اللَّهِ صلى الله عليه وسلم فَذَكَرَ أَحَادِيثَ مِنْهَا وَقَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\n\"‏ أَنَا أَوْلَى النَّاسِ بِالْمُؤْمِنِينَ فِي كِتَابِ اللَّهِ عَزَّ وَجَلَّ فَأَيُّكُمْ مَا تَرَكَ دَيْنًا أَوْ ضَيْعَةً فَادْعُونِي فَأَنَا وَلِيُّهُ وَأَيُّكُمْ مَا تَرَكَ مَالاً فَلْيُؤْثَرْ بِمَالِهِ عَصَبَتُهُ مَنْ كَانَ ‏\"‏ ‏.‏"
+              }
+            ]
+          },
+          {
+            "name": "get_isnad",
+            "args": {
+              "hadith_id": 7380
+            },
+            "result": {
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "detail": null,
+              "requested_local_id": 7380,
+              "local_hadith": {
+                "local_id": 7380,
+                "id_in_book": 103,
+                "book_id": 2,
+                "chapter_id": 1,
+                "chapter_ar": "كتاب الإيمان",
+                "chapter_en": "The Book of Faith"
+              },
+              "linkage": {
+                "mis_book_no": "2",
+                "mis_hadith_no": "205",
+                "link_status": "ACCEPTED_LINK_V1",
+                "link_relation": "LINKS_TO_MIS_RECORD",
+                "linkage_version": "mis_linkage_accepted_v1",
+                "linkage_artifact_sha256": "9c3a48e7a0af4f0df1cd9250f49a90f343228b614587196fcf2fa6fbfa572c77",
+                "candidate_status": "unique",
+                "similarity": 1.0,
+                "quick_similarity": 1.0
+              },
+              "mis_hadith": {
+                "book_no": "2",
+                "hadith_no": "205",
+                "chapter_no": "2",
+                "unit_no": "25",
+                "declared_sanad_count": 2,
+                "recorded_in": "MIS"
+              },
+              "isnads": [
+                {
+                  "sanad_no": "1",
+                  "narrator_count": 5,
+                  "step_count": 4,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "382",
+                      "label": "Tamim al-Dari (0)",
+                      "name_ar": "تميم بن أوس بن خارجة الدارى",
+                      "name_ar_mapped": "تميم الداري",
+                      "name_en_mapped": "Tamim al-Dari (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "11206",
+                      "label": "Ataa bin Yazid al-Laithi al-Jundai (3)",
+                      "name_ar": "عطاء بن يزيد الليثى المدنى",
+                      "name_ar_mapped": "عطاء بن يزيد الليثي الجندعي",
+                      "name_en_mapped": "Ataa bin Yazid al-Laithi al-Jundai (3)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11173",
+                      "label": "Suhayl bin Abi Salah (6)",
+                      "name_ar": "سهيل بن أبى صالح السمان",
+                      "name_ar_mapped": "سهيل بن أبي صالح",
+                      "name_en_mapped": "Suhayl bin Abi Salah (6)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20005",
+                      "label": "Sufyan bin Uyaynah (8)",
+                      "name_ar": "سفيان بن عيينة الهلالى",
+                      "name_ar_mapped": "سفيان بن عيينة",
+                      "name_en_mapped": "Sufyan bin Uyaynah (8)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "30117",
+                      "label": "Muhammad bin Aabad bin al-Zabrqan (10)",
+                      "name_ar": "محمد بن عباد بن الزبرقان المكى",
+                      "name_ar_mapped": "محمد بن عباد بن الزبرقان المكي",
+                      "name_en_mapped": "Muhammad bin Aabad bin al-Zabrqan (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "2",
+                  "narrator_count": 7,
+                  "step_count": 6,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "382",
+                      "label": "Tamim al-Dari (0)",
+                      "name_ar": "تميم بن أوس بن خارجة الدارى",
+                      "name_ar_mapped": "تميم الداري",
+                      "name_en_mapped": "Tamim al-Dari (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "11206",
+                      "label": "Ataa bin Yazid al-Laithi al-Jundai (3)",
+                      "name_ar": "عطاء بن يزيد الليثى المدنى",
+                      "name_ar_mapped": "عطاء بن يزيد الليثي الجندعي",
+                      "name_en_mapped": "Ataa bin Yazid al-Laithi al-Jundai (3)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11161",
+                      "label": "Dhakwan Abu Salah al-Saman al-Ziyat (3)",
+                      "name_ar": "ذكوان أبو صالح السمان الزيات",
+                      "name_ar_mapped": "ذكوان أبو صالح السمان الزيات",
+                      "name_en_mapped": "Dhakwan Abu Salah al-Saman al-Ziyat (3)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "10612",
+                      "label": "al-Qqa bin Hkym al-Knany (4)",
+                      "name_ar": "القعقاع بن حكيم الكنانى المدنى",
+                      "name_ar_mapped": "القعقاع بن حكيم الكناني المدني",
+                      "name_en_mapped": "al-Qqa bin Hkym al-Knany (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "11081",
+                      "label": "Amr bin Dinar (4)",
+                      "name_ar": "عمرو بن دينار أبو محمد المكى الأثرم",
+                      "name_ar_mapped": "عمرو بن دينار الأثرم الجمحي",
+                      "name_en_mapped": "Amr bin Dinar (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "20005",
+                      "label": "Sufyan bin Uyaynah (8)",
+                      "name_ar": "سفيان بن عيينة الهلالى",
+                      "name_ar_mapped": "سفيان بن عيينة",
+                      "name_en_mapped": "Sufyan bin Uyaynah (8)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 7,
+                      "narrator_id": "30117",
+                      "label": "Muhammad bin Aabad bin al-Zabrqan (10)",
+                      "name_ar": "محمد بن عباد بن الزبرقان المكى",
+                      "name_ar_mapped": "محمد بن عباد بن الزبرقان المكي",
+                      "name_en_mapped": "Muhammad bin Aabad bin al-Zabrqan (10)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                }
+              ],
+              "isnad_count": 2,
+              "declared_sanad_count": 2,
+              "basis": "as recorded in MIS for the record joined by the accepted local<->MIS linkage; MIS narrator identities, not adjudicated historical persons"
+            }
+          }
+        ],
+        "tool_hadith_ids": [
+          7289,
+          7380,
+          7384,
+          11308,
+          12909
+        ],
+        "agent_used": true,
+        "agent_fallback": false,
+        "fallback_reason": null,
+        "pro_calls_used": 3
+      },
+      "trace": {
+        "started_at": 1794703666.608983,
+        "total_duration_ms": 23253.059,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703666.609161,
+            "duration_ms": 0.122,
+            "offset_ms": 0.178,
+            "data": {
+              "decision": "chain",
+              "source": "regex",
+              "probability": 1.0,
+              "path": "v2_fast_path",
+              "matched_rule": "narrators_or_grading_query",
+              "mode": "auto",
+              "embed_calls": 0
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703676.7507613,
+            "duration_ms": 6284.458,
+            "offset_ms": 10141.778,
+            "data": {
+              "hyde_text": "«إِنَّ الدِّينَ النَّصِيحَةُ، قُلْنَا: لِمَنْ يَا رَسُولَ اللهِ؟ قَالَ: لِلَّهِ، وَلِكِتَابِهِ، وَلِرَسُولِهِ، وَلِأَئِمَّةِ الْمُسْلِمِينَ وَعَامَّتِهِمْ؛ فَمَنْ نَصَحَ لَهُمْ فَقَدْ أَدَّى حَقَّ الإِسْلَامِ، وَاسْتَوْجَبَ رِضْوَانَ الرَّحْمَنِ».",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 7380,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 7289,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 7384,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 12909,
+                  "chapter": "كتاب السلام"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 11308,
+                  "chapter": "كتاب الفرائض"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 2
+            }
+          },
+          {
+            "stage": "agent",
+            "timestamp": 1794703676.750797,
+            "duration_ms": 6284.458,
+            "offset_ms": 10141.814,
+            "data": {
+              "name": "search_hadith",
+              "arguments": {
+                "query": "الدين النصيحة قلنا لمن قال لله ولكتابه ولرسوله"
+              },
+              "returned_ids": [
+                7380,
+                7289,
+                7384,
+                12909,
+                11308
+              ],
+              "agent_fallback": false
+            }
+          },
+          {
+            "stage": "agent",
+            "timestamp": 1794703679.3236341,
+            "duration_ms": 2.419,
+            "offset_ms": 12714.651,
+            "data": {
+              "name": "get_isnad",
+              "arguments": {
+                "hadith_id": 7380
+              },
+              "returned_ids": [
+                7380
+              ],
+              "agent_fallback": false,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 2,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703689.8599448,
+            "duration_ms": 16930.842,
+            "offset_ms": 23250.962,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 3,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703689.8599858,
+            "duration_ms": 20.429,
+            "offset_ms": 23251.003,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703689.8618474,
+            "duration_ms": 1.425,
+            "offset_ms": 23252.864,
+            "data": {
+              "hadith_id": 7380,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 2,
+              "ms": 1.425,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 23253.059,
+          "event_count": 7,
+          "stages": [
+            "router",
+            "retrieval",
+            "agent",
+            "agent",
+            "generation",
+            "validation",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 3,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 2,
+            "sqlite_queries": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "run_06_refusal_crypto",
+      "category": "refusal",
+      "question": "ما حكم تداول العملات الرقمية المشفرة والبيتكوين؟",
+      "result": {
+        "answer": "المصادر المتاحة لا تجيب عن هذا السؤال",
+        "raw": "المصادر المتاحة لا تجيب عن هذا السؤال",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "11206_0",
+            "hadith_id": 11206,
+            "text": "حَدَّثَنَا أَبُو الطَّاهِرِ، وَهَارُونُ بْنُ سَعِيدٍ الأَيْلِيُّ، وَأَحْمَدُ بْنُ عِيسَى، قَالُوا حَدَّثَنَا ابْنُ، وَهْبٍ أَخْبَرَنِي مَخْرَمَةُ، عَنْ أَبِيهِ، قَالَ سَمِعْتُ سُلَيْمَانَ بْنَ يَسَارٍ، يَقُولُ إِنَّهُ سَمِعَ مَالِكَ بْنَ، أَبِي عَامِرٍ يُحَدِّثُ عَنْ عُثْمَانَ بْنِ عَفَّانَ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ لاَ تَبِيعُوا الدِّينَارَ بِالدِّينَارَيْنِ وَلاَ الدِّرْهَمَ بِالدِّرْهَمَيْنِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11206,
+              "hadith_number": 11206,
+              "id_in_book": 3929,
+              "chapter_id": 22,
+              "chapter_arabic": "كتاب المساقاة",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "11202_0",
+            "hadith_id": 11202,
+            "text": "حَدَّثَنَا يَحْيَى بْنُ يَحْيَى، قَالَ قَرَأْتُ عَلَى مَالِكٍ عَنْ نَافِعٍ، عَنْ أَبِي سَعِيدٍ الْخُدْرِيِّ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ لاَ تَبِيعُوا الذَّهَبَ بِالذَّهَبِ إِلاَّ مِثْلاً بِمِثْلٍ وَلاَ تُشِفُّوا بَعْضَهَا عَلَى بَعْضٍ وَلاَ تَبِيعُوا الْوَرِقَ بِالْوَرِقِ إِلاَّ مِثْلاً بِمِثْلٍ وَلاَ تُشِفُّوا بَعْضَهَا عَلَى بَعْضٍ وَلاَ تَبِيعُوا مِنْهَا غَائِبًا بِنَاجِزٍ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11202,
+              "hadith_number": 11202,
+              "id_in_book": 3925,
+              "chapter_id": 22,
+              "chapter_arabic": "كتاب المساقاة",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "11221_0",
+            "hadith_id": 11221,
+            "text": "حَدَّثَنَا أَبُو الرَّبِيعِ الْعَتَكِيُّ، حَدَّثَنَا عَبَّادُ بْنُ الْعَوَّامِ، أَخْبَرَنَا يَحْيَى بْنُ أَبِي إِسْحَاقَ، حَدَّثَنَا عَبْدُ الرَّحْمَنِ بْنُ أَبِي بَكْرَةَ، عَنْ أَبِيهِ، قَالَ نَهَى رَسُولُ اللَّهِ صلى الله عليه وسلم عَنِ الْفِضَّةِ بِالْفِضَّةِ وَالذَّهَبِ بِالذَّهَبِ إِلاَّ سَوَاءً بِسَوَاءٍ وَأَمَرَنَا أَنْ نَشْتَرِيَ الْفِضَّةَ بِالذَّهَبِ كَيْفَ شِئْنَا وَنَشْتَرِيَ الذَّهَبَ بِالْفِضَّةِ كَيْفَ شِئْنَا ‏.‏ قَالَ فَسَأَلَهُ رَجُلٌ فَقَالَ يَدًا بِيَدٍ فَقَالَ هَكَذَا سَمِعْتُ ‏.‏",
+            "metadata": {
+              "parent_id": 11221,
+              "hadith_number": 11221,
+              "id_in_book": 3944,
+              "chapter_id": 22,
+              "chapter_arabic": "كتاب المساقاة",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "11203_0",
+            "hadith_id": 11203,
+            "text": "حَدَّثَنَا قُتَيْبَةُ بْنُ سَعِيدٍ، حَدَّثَنَا لَيْثٌ، ح وَحَدَّثَنَا مُحَمَّدُ بْنُ رُمْحٍ، أَخْبَرَنَا اللَّيْثُ، عَنْ نَافِعٍ، أَنَّ ابْنَ عُمَرَ، قَالَ لَهُ رَجُلٌ مِنْ بَنِي لَيْثٍ إِنَّ أَبَا سَعِيدٍ الْخُدْرِيَّ يَأْثُرُ هَذَا عَنْ رَسُولِ اللَّهِ صلى الله عليه وسلم فِي رِوَايَةِ قُتَيْبَةَ فَذَهَبَ عَبْدُ اللَّهِ وَنَافِعٌ مَعَهُ ‏.‏ وَفِي حَدِيثِ ابْنِ رُمْحٍ قَالَ نَافِعٌ فَذَهَبَ عَبْدُ اللَّهِ وَأَنَا مَعَهُ وَاللَّيْثِيُّ حَتَّى دَخَلَ عَلَى أَبِي سَعِيدٍ الْخُدْرِيِّ فَقَالَ إِنَّ هَذَا أَخْبَرَنِي أَنَّكَ تُخْبِرُ أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم نَهَى عَنْ بَيْعِ الْوَرِقِ بِالْوَرِقِ إِلاَّ مِثْلاً بِمِثْلٍ وَعَنْ بَيْعِ الذَّهَبِ بِالذَّهَبِ إِلاَّ مِثْلاً بِمِثْلٍ ‏.‏ فَأَشَارَ أَبُو سَعِيدٍ بِإِصْبَعَيْهِ إِلَى عَيْنَيْهِ وَأُذُنَيْهِ فَقَالَ أَبْصَرَتْ عَيْنَاىَ وَسَمِعَتْ أُذُنَاىَ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ ‏\n\"‏ لاَ تَبِيعُوا الذَّهَبَ بِالذَّهَبِ وَلاَ تَبِيعُوا الْوَرِقَ بِالْوَرِقِ إِلاَّ مِثْلاً بِمِثْلٍ وَلاَ تُشِفُّوا بَعْضَهُ عَلَى بَعْضٍ وَلاَ تَبِيعُوا شَيْئًا غَائِبًا مِنْهُ بِنَاجِزٍ إِلاَّ يَدًا بِيَدٍ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11203,
+              "hadith_number": 11203,
+              "id_in_book": 3926,
+              "chapter_id": 22,
+              "chapter_arabic": "كتاب المساقاة",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "11205_0",
+            "hadith_id": 11205,
+            "text": "وَحَدَّثَنَا قُتَيْبَةُ بْنُ سَعِيدٍ، حَدَّثَنَا يَعْقُوبُ، - يَعْنِي ابْنَ عَبْدِ الرَّحْمَنِ الْقَارِيَّ - عَنْ سُهَيْلٍ، عَنْ أَبِيهِ، عَنْ أَبِي سَعِيدٍ الْخُدْرِيِّ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ لاَ تَبِيعُوا الذَّهَبَ بِالذَّهَبِ وَلاَ الْوَرِقَ بِالْوَرِقِ إِلاَّ وَزْنًا بِوَزْنٍ مِثْلاً بِمِثْلٍ سَوَاءً بِسَوَاءٍ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11205,
+              "hadith_number": 11205,
+              "id_in_book": 3928,
+              "chapter_id": 22,
+              "chapter_arabic": "كتاب المساقاة",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false
+      },
+      "trace": {
+        "started_at": 1794703689.8621523,
+        "total_duration_ms": 45239.918,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703692.4601843,
+            "duration_ms": 2597.964,
+            "offset_ms": 2598.032,
+            "data": {
+              "decision": "text",
+              "source": "classifier",
+              "probability": 0.07357507520058944,
+              "path": "v3_logreg",
+              "matched_rule": null,
+              "mode": "auto",
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703701.2747757,
+            "duration_ms": 8814.526,
+            "offset_ms": 11412.624,
+            "data": {
+              "hyde_text": "من المنظور الشرعي والحديثي، **لا يجوز شرعاً اختلاق أو صياغة متن حديث ونسبته إلى النبي ﷺ (حتى لو كان على سبيل الفرض أو التمثيل)**، لقوله ﷺ في صحيح مسلم: *«مَنْ كَذَبَ عَلَيَّ مُتَعَمِّدًا، فَلْيَتَبَوَّأْ مَقْعَدَهُ مِنَ النَّارِ»*.\n\nولكن، لمعرفة حكم المسألة، يستند علماء الحديث والفقهاء المعاصرون إلى **أحاديث صحيحة ثابتة في صحيح مسلم** تُعد أصولاً في المعاملات المالية وقواعد عامة تنطبق على النوازل كـ \"العملات الرقمية\":\n\n> عَنْ أَبِي هُرَيْرَةَ، قَالَ: **«نَهَى رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ عَنْ بَيْعِ الْحَصَاةِ، وَعَنْ بَيْعِ الْغَرَرِ»** (صحيح مسلم).\n> وعَنْ عُبَادَةَ بْنِ الصَّامِتِ، قَالَ: قَالَ رَسُولُ اللهِ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ: **«الذَّهَبُ بِالذَّهَبِ، وَالْفِضَّةُ بِالْفِضَّةِ... مِثْلًا بِمِثْلٍ، سَوَاءً بِسَوَاءٍ، يَدًا بِيَدٍ، فَإِذَا اخْتَلَفَتْ هَذِهِ الْأَصْنَافُ، فَبِيعُوا كَيْفَ شِئْتُمْ إِذَا كَانَ يَدًا بِيَدٍ»** (صحيح مسلم).\n\n**الخلاصة الفقهية المستنبطة من هذه الأحاديث:**\nيرى جمهور المجامع الفقهية (كمجمع الفقه الإسلامي الدولي ودور الإفتاء المعتمدة) **تحريم** تداول العملات المشفرة غير المنظمة حالياً، لاشتمالها على **\"الغرر الفاحش\"** والمخاطرة الشديدة وجهالة المصدر، ولعدم تحقق صفة \"الثمنية والقبض\" الشرعي فيها كما في حديث الأصناف الربوية.",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 11206,
+                  "chapter": "كتاب المساقاة"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 11202,
+                  "chapter": "كتاب المساقاة"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 11221,
+                  "chapter": "كتاب المساقاة"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 11203,
+                  "chapter": "كتاب المساقاة"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 11205,
+                  "chapter": "كتاب المساقاة"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703735.101999,
+            "duration_ms": 33823.263,
+            "offset_ms": 45239.847,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 1,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703735.102046,
+            "duration_ms": 0.062,
+            "offset_ms": 45239.894,
+            "data": {
+              "status": "valid_refusal",
+              "retry_reason": null,
+              "refusal_reason": "model_refused"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 45239.918,
+          "event_count": 4,
+          "stages": [
+            "router",
+            "retrieval",
+            "generation",
+            "validation"
+          ],
+          "call_counts": {
+            "pro_calls": 1,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 0,
+            "sqlite_queries": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "run_07_narrator_7294",
+      "category": "narrator",
+      "question": "من هم رواة حديث رقم 7294 وما عدد أسانيده؟",
+      "result": {
+        "answer": "عدد أسانيد الحديث رقم 7294 هو **4 أسانيد**، ورواة هذه الأسانيد من الصحابي إلى شيخ الإمام مسلم هم:\n\n**الإسناد الأول:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. ذكوان أبو صالح السمان الزيات\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. حجاج بن يوسف الشاعر (شيخ مسلم)\n\n**الإسناد الثاني:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. طلحة بن نافع الواسطي أبو سفيان الإسكاف\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. حجاج بن يوسف الشاعر (شيخ مسلم)\n\n**الإسناد الثالث:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. ذكوان أبو صالح السمان الزيات\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. القاسم بن زكريا بن دينار القرشي (شيخ مسلم)\n\n**الإسناد الرابع:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. طلحة بن نافع الواسطي أبو سفيان الإسكاف\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. القاسم بن زكريا بن دينار القرشي (شيخ مسلم)\n\n(المصدر: صحيح مسلم، حديث رقم 7294)",
+        "raw": "عدد أسانيد الحديث رقم 7294 هو **4 أسانيد**، ورواة هذه الأسانيد من الصحابي إلى شيخ الإمام مسلم هم:\n\n**الإسناد الأول:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. ذكوان أبو صالح السمان الزيات\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. حجاج بن يوسف الشاعر (شيخ مسلم)\n\n**الإسناد الثاني:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. طلحة بن نافع الواسطي أبو سفيان الإسكاف\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. حجاج بن يوسف الشاعر (شيخ مسلم)\n\n**الإسناد الثالث:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. ذكوان أبو صالح السمان الزيات\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. القاسم بن زكريا بن دينار القرشي (شيخ مسلم)\n\n**الإسناد الرابع:**\n1. جابر بن عبد الله بن عمرو السلمي الأنصاري (الصحابي)\n2. طلحة بن نافع الواسطي أبو سفيان الإسكاف\n3. الأعمش / سليمان بن مهران\n4. شيبان بن عبد الرحمن النحوي أبو معاوية\n5. عبيد الله بن موسى بن أبي المختار باذام\n6. القاسم بن زكريا بن دينار القرشي (شيخ مسلم)\n\n(المصدر: صحيح مسلم، حديث رقم 7294)",
+        "chunks": [
+          {
+            "hadith_id": 7294,
+            "text": "وَحَدَّثَنِي حَجَّاجُ بْنُ الشَّاعِرِ، وَالْقَاسِمُ بْنُ زَكَرِيَّاءَ، قَالاَ حَدَّثَنَا عُبَيْدُ اللَّهِ بْنُ مُوسَى، عَنْ شَيْبَانَ، عَنِ الأَعْمَشِ، عَنْ أَبِي صَالِحٍ، وَأَبِي، سُفْيَانَ عَنْ جَابِرٍ، قَالَ قَالَ النُّعْمَانُ بْنُ قَوْقَلٍ يَا رَسُولَ اللَّهِ ‏.‏ بِمِثْلِهِ ‏.‏ وَزَادَ فِيهِ وَلَمْ أَزِدْ عَلَى ذَلِكَ شَيْئًا ‏.‏",
+            "metadata": {
+              "chapter_arabic": "كتاب الإيمان"
+            },
+            "rank": 1
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 7294,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 4,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "ذكوان أبو صالح السمان الزيات"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "حجاج بن يوسف الشاعر"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "طلحة بن نافع الواسطي أبو سفيان الإسكاف"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "حجاج بن يوسف الشاعر"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "ذكوان أبو صالح السمان الزيات"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "القاسم بن زكريا بن دينار القرشي"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "طلحة بن نافع الواسطي أبو سفيان الإسكاف"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "القاسم بن زكريا بن دينار القرشي"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "disallowed_narrators_attempt": [],
+        "final_disallowed_narrators": [],
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false,
+        "tool_calls": [
+          {
+            "name": "get_isnad",
+            "args": {
+              "hadith_id": 7294
+            },
+            "result": {
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "detail": null,
+              "requested_local_id": 7294,
+              "local_hadith": {
+                "local_id": 7294,
+                "id_in_book": 17,
+                "book_id": 2,
+                "chapter_id": 1,
+                "chapter_ar": "كتاب الإيمان",
+                "chapter_en": "The Book of Faith"
+              },
+              "linkage": {
+                "mis_book_no": "2",
+                "mis_hadith_no": "118",
+                "link_status": "ACCEPTED_LINK_V1",
+                "link_relation": "LINKS_TO_MIS_RECORD",
+                "linkage_version": "mis_linkage_accepted_v1",
+                "linkage_artifact_sha256": "9c3a48e7a0af4f0df1cd9250f49a90f343228b614587196fcf2fa6fbfa572c77",
+                "candidate_status": "unique",
+                "similarity": 1.0,
+                "quick_similarity": 1.0
+              },
+              "mis_hadith": {
+                "book_no": "2",
+                "hadith_no": "118",
+                "chapter_no": "2",
+                "unit_no": "6",
+                "declared_sanad_count": 4,
+                "recorded_in": "MIS"
+              },
+              "isnads": [
+                {
+                  "sanad_no": "1",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "34",
+                      "label": "Jabir ibn Abdullah (0)",
+                      "name_ar": "جابر بن عبد الله بن عمرو بن حرام الأنصارى",
+                      "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري",
+                      "name_en_mapped": "Jabir ibn Abdullah (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "11161",
+                      "label": "Dhakwan Abu Salah al-Saman al-Ziyat (3)",
+                      "name_ar": "ذكوان أبو صالح السمان الزيات",
+                      "name_ar_mapped": "ذكوان أبو صالح السمان الزيات",
+                      "name_en_mapped": "Dhakwan Abu Salah al-Saman al-Ziyat (3)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11060",
+                      "label": "Sulaiman al-Amash (5)",
+                      "name_ar": "سليمان بن مهران الأعمش",
+                      "name_ar_mapped": "الأعمش / سليمان بن مهران",
+                      "name_en_mapped": "Sulaiman al-Amash (5)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20240",
+                      "label": "Shayban bin Abdur Rahman (7)",
+                      "name_ar": "شيبان بن عبد الرحمن أبو معاوية النحوى",
+                      "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية",
+                      "name_en_mapped": "Shayban bin Abdur Rahman (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20340",
+                      "label": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "name_ar": "عبيد الله بن موسى بن باذام العبسى",
+                      "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام",
+                      "name_en_mapped": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "38834",
+                      "label": "Hajjaj bin Yusuf bin al-Shair (0)",
+                      "name_ar": "حجاج بن أبى يعقوب الثقفى البغدادى",
+                      "name_ar_mapped": "حجاج بن يوسف الشاعر",
+                      "name_en_mapped": "Hajjaj bin Yusuf bin al-Shair (0)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "2",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "34",
+                      "label": "Jabir ibn Abdullah (0)",
+                      "name_ar": "جابر بن عبد الله بن عمرو بن حرام الأنصارى",
+                      "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري",
+                      "name_en_mapped": "Jabir ibn Abdullah (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "11249",
+                      "label": "Talha bin Nafi Abi Sufyan al-Askaf (4)",
+                      "name_ar": "طلحة بن نافع أبو سفيان الواسطى الإسكاف",
+                      "name_ar_mapped": "طلحة بن نافع الواسطي أبو سفيان الإسكاف",
+                      "name_en_mapped": "Talha bin Nafi Abi Sufyan al-Askaf (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11060",
+                      "label": "Sulaiman al-Amash (5)",
+                      "name_ar": "سليمان بن مهران الأعمش",
+                      "name_ar_mapped": "الأعمش / سليمان بن مهران",
+                      "name_en_mapped": "Sulaiman al-Amash (5)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20240",
+                      "label": "Shayban bin Abdur Rahman (7)",
+                      "name_ar": "شيبان بن عبد الرحمن أبو معاوية النحوى",
+                      "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية",
+                      "name_en_mapped": "Shayban bin Abdur Rahman (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20340",
+                      "label": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "name_ar": "عبيد الله بن موسى بن باذام العبسى",
+                      "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام",
+                      "name_en_mapped": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "38834",
+                      "label": "Hajjaj bin Yusuf bin al-Shair (0)",
+                      "name_ar": "حجاج بن أبى يعقوب الثقفى البغدادى",
+                      "name_ar_mapped": "حجاج بن يوسف الشاعر",
+                      "name_en_mapped": "Hajjaj bin Yusuf bin al-Shair (0)",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "3",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "34",
+                      "label": "Jabir ibn Abdullah (0)",
+                      "name_ar": "جابر بن عبد الله بن عمرو بن حرام الأنصارى",
+                      "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري",
+                      "name_en_mapped": "Jabir ibn Abdullah (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "11161",
+                      "label": "Dhakwan Abu Salah al-Saman al-Ziyat (3)",
+                      "name_ar": "ذكوان أبو صالح السمان الزيات",
+                      "name_ar_mapped": "ذكوان أبو صالح السمان الزيات",
+                      "name_en_mapped": "Dhakwan Abu Salah al-Saman al-Ziyat (3)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11060",
+                      "label": "Sulaiman al-Amash (5)",
+                      "name_ar": "سليمان بن مهران الأعمش",
+                      "name_ar_mapped": "الأعمش / سليمان بن مهران",
+                      "name_en_mapped": "Sulaiman al-Amash (5)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20240",
+                      "label": "Shayban bin Abdur Rahman (7)",
+                      "name_ar": "شيبان بن عبد الرحمن أبو معاوية النحوى",
+                      "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية",
+                      "name_en_mapped": "Shayban bin Abdur Rahman (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20340",
+                      "label": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "name_ar": "عبيد الله بن موسى بن باذام العبسى",
+                      "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام",
+                      "name_en_mapped": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30475",
+                      "label": "al-Qasim bin Zakaria bin Dinar",
+                      "name_ar": "القاسم بن زكريا بن دينار القرشى الطحان",
+                      "name_ar_mapped": "القاسم بن زكريا بن دينار القرشي",
+                      "name_en_mapped": "al-Qasim bin Zakaria bin Dinar",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                },
+                {
+                  "sanad_no": "4",
+                  "narrator_count": 6,
+                  "step_count": 5,
+                  "narrators": [
+                    {
+                      "chain_position": 1,
+                      "narrator_id": "34",
+                      "label": "Jabir ibn Abdullah (0)",
+                      "name_ar": "جابر بن عبد الله بن عمرو بن حرام الأنصارى",
+                      "name_ar_mapped": "جابر بن عبد الله بن عمرو السلمي الأنصاري",
+                      "name_en_mapped": "Jabir ibn Abdullah (0)",
+                      "gender": "Male",
+                      "generation": "Comp.(RA)"
+                    },
+                    {
+                      "chain_position": 2,
+                      "narrator_id": "11249",
+                      "label": "Talha bin Nafi Abi Sufyan al-Askaf (4)",
+                      "name_ar": "طلحة بن نافع أبو سفيان الواسطى الإسكاف",
+                      "name_ar_mapped": "طلحة بن نافع الواسطي أبو سفيان الإسكاف",
+                      "name_en_mapped": "Talha bin Nafi Abi Sufyan al-Askaf (4)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 3,
+                      "narrator_id": "11060",
+                      "label": "Sulaiman al-Amash (5)",
+                      "name_ar": "سليمان بن مهران الأعمش",
+                      "name_ar_mapped": "الأعمش / سليمان بن مهران",
+                      "name_en_mapped": "Sulaiman al-Amash (5)",
+                      "gender": "Male",
+                      "generation": "Follower(Tabi')"
+                    },
+                    {
+                      "chain_position": 4,
+                      "narrator_id": "20240",
+                      "label": "Shayban bin Abdur Rahman (7)",
+                      "name_ar": "شيبان بن عبد الرحمن أبو معاوية النحوى",
+                      "name_ar_mapped": "شيبان بن عبد الرحمن النحوي أبو معاوية",
+                      "name_en_mapped": "Shayban bin Abdur Rahman (7)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 5,
+                      "narrator_id": "20340",
+                      "label": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "name_ar": "عبيد الله بن موسى بن باذام العبسى",
+                      "name_ar_mapped": "عبيد الله بن موسى بن أبي المختار باذام",
+                      "name_en_mapped": "Ubaidullah bin Musa bin Abi al-Mukhtar (9)",
+                      "gender": "Male",
+                      "generation": "Succ. (Taba' Tabi')"
+                    },
+                    {
+                      "chain_position": 6,
+                      "narrator_id": "30475",
+                      "label": "al-Qasim bin Zakaria bin Dinar",
+                      "name_ar": "القاسم بن زكريا بن دينار القرشى الطحان",
+                      "name_ar_mapped": "القاسم بن زكريا بن دينار القرشي",
+                      "name_en_mapped": "al-Qasim bin Zakaria bin Dinar",
+                      "gender": "Male",
+                      "generation": "3rd Century AH"
+                    }
+                  ]
+                }
+              ],
+              "isnad_count": 4,
+              "declared_sanad_count": 4,
+              "basis": "as recorded in MIS for the record joined by the accepted local<->MIS linkage; MIS narrator identities, not adjudicated historical persons"
+            }
+          }
+        ],
+        "tool_hadith_ids": [
+          7294
+        ],
+        "agent_used": true,
+        "agent_fallback": false,
+        "fallback_reason": null,
+        "pro_calls_used": 2
+      },
+      "trace": {
+        "started_at": 1794703735.1022446,
+        "total_duration_ms": 13650.212,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703735.1024225,
+            "duration_ms": 0.077,
+            "offset_ms": 0.178,
+            "data": {
+              "decision": "chain",
+              "source": "regex",
+              "probability": 1.0,
+              "path": "v2_fast_path",
+              "matched_rule": "explicit_isnad_or_sanad_term",
+              "mode": "auto",
+              "embed_calls": 0
+            }
+          },
+          {
+            "stage": "agent",
+            "timestamp": 1794703738.6387753,
+            "duration_ms": 2.715,
+            "offset_ms": 3536.53,
+            "data": {
+              "name": "get_isnad",
+              "arguments": {
+                "hadith_id": 7294
+              },
+              "returned_ids": [
+                7294
+              ],
+              "agent_fallback": false,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 4,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703748.7501733,
+            "duration_ms": 13615.098,
+            "offset_ms": 13647.928,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 2,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703748.7502139,
+            "duration_ms": 29.085,
+            "offset_ms": 13647.969,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703748.7522802,
+            "duration_ms": 1.672,
+            "offset_ms": 13650.035,
+            "data": {
+              "hadith_id": 7294,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 4,
+              "ms": 1.672,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 13650.212,
+          "event_count": 5,
+          "stages": [
+            "router",
+            "agent",
+            "generation",
+            "validation",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 2,
+            "flash_calls": 0,
+            "embed_calls": 0,
+            "tool_calls": 1,
+            "sqlite_queries": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "run_08_choice_cheating",
+      "category": "choice_text",
+      "question": "ما جزاء من يغش الناس في البيع؟",
+      "result": {
+        "answer": "بناءً على الأحاديث الواردة في السياق، يتبين جزاء الكذب والكتمان والحلف الكاذب في البيع على النحو الآتي:\n\n1. **محق بركة البيع:** إذا كذب المتبايعان وكتما حقيقة السلعة، تُمحق بركة بيعهما؛ لقول النبي صلى الله عليه وسلم: «الْبَيِّعَانِ بِالْخِيَارِ مَا لَمْ يَتَفَرَّقَا فَإِنْ صَدَقَا وَبَيَّنَا بُورِكَ لَهُمَا فِي بَيْعِهِمَا وَإِنْ كَذَبَا وَكَتَمَا مُحِقَتْ بَرَكَةُ بَيْعِهِمَا».\n(المصدر: صحيح مسلم، حديث رقم 11006)\n\n2. **الوعيد الشديد لمن يحلف بالله كذباً في البيع:** الرجل الذي يبايع رجلاً بسلعة بعد العصر فيحلف له بالله أنه أخذها بكذا وكذا فيصدقه المشتري وهو على غير ذلك (أي كاذب)، جزاؤه أنه من الثلاثة الذين لا يكلمهم الله يوم القيامة، ولا ينظر إليهم، ولا يزكيهم، ولهم عذاب أليم.\n(المصدر: صحيح مسلم، حديث رقم 7480)\n\n3. **محق البركة بكثرة الحلف:** كثرة الحلف في البيع وإن كانت تُرَوِّج السلعة وتُنفّقها، فإنها تمحق البركة في النهاية؛ لقوله صلى الله عليه وسلم: «إِيَّاكُمْ وَكَثْرَةَ الْحَلِفِ فِي الْبَيْعِ فَإِنَّهُ يُنَفِّقُ ثُمَّ يَمْحَقُ».\n(المصدر: صحيح مسلم، حديث رقم 11274)",
+        "raw": "بناءً على الأحاديث الواردة في السياق، يتبين جزاء الكذب والكتمان والحلف الكاذب في البيع على النحو الآتي:\n\n1. **محق بركة البيع:** إذا كذب المتبايعان وكتما حقيقة السلعة، تُمحق بركة بيعهما؛ لقول النبي صلى الله عليه وسلم: «الْبَيِّعَانِ بِالْخِيَارِ مَا لَمْ يَتَفَرَّقَا فَإِنْ صَدَقَا وَبَيَّنَا بُورِكَ لَهُمَا فِي بَيْعِهِمَا وَإِنْ كَذَبَا وَكَتَمَا مُحِقَتْ بَرَكَةُ بَيْعِهِمَا».\n(المصدر: صحيح مسلم، حديث رقم 11006)\n\n2. **الوعيد الشديد لمن يحلف بالله كذباً في البيع:** الرجل الذي يبايع رجلاً بسلعة بعد العصر فيحلف له بالله أنه أخذها بكذا وكذا فيصدقه المشتري وهو على غير ذلك (أي كاذب)، جزاؤه أنه من الثلاثة الذين لا يكلمهم الله يوم القيامة، ولا ينظر إليهم، ولا يزكيهم، ولهم عذاب أليم.\n(المصدر: صحيح مسلم، حديث رقم 7480)\n\n3. **محق البركة بكثرة الحلف:** كثرة الحلف في البيع وإن كانت تُرَوِّج السلعة وتُنفّقها، فإنها تمحق البركة في النهاية؛ لقوله صلى الله عليه وسلم: «إِيَّاكُمْ وَكَثْرَةَ الْحَلِفِ فِي الْبَيْعِ فَإِنَّهُ يُنَفِّقُ ثُمَّ يَمْحَقُ».\n(المصدر: صحيح مسلم، حديث رقم 11274)",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "11008_0",
+            "hadith_id": 11008,
+            "text": "حَدَّثَنَا يَحْيَى بْنُ يَحْيَى، وَيَحْيَى بْنُ أَيُّوبَ، وَقُتَيْبَةُ، وَابْنُ، حُجْرٍ قَالَ يَحْيَى بْنُ يَحْيَى أَخْبَرَنَا وَقَالَ الآخَرُونَ، حَدَّثَنَا إِسْمَاعِيلُ بْنُ جَعْفَرٍ، عَنْ عَبْدِ اللَّهِ بْنِ دِينَارٍ، أَنَّهُ سَمِعَ ابْنَ، عُمَرَ يَقُولُ ذَكَرَ رَجُلٌ لِرَسُولِ اللَّهِ صلى الله عليه وسلم أَنَّهُ يُخْدَعُ فِي الْبُيُوعِ فَقَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\n\"‏ مَنْ بَايَعْتَ فَقُلْ لاَ خِلاَبَةَ ‏\"‏ ‏.‏ فَكَانَ إِذَا بَايَعَ يَقُولُ لاَ خِيَابَةَ‏.‏",
+            "metadata": {
+              "parent_id": 11008,
+              "hadith_number": 11008,
+              "id_in_book": 3731,
+              "chapter_id": 21,
+              "chapter_arabic": "كتاب البيوع",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "11274_0",
+            "hadith_id": 11274,
+            "text": "حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، وَأَبُو كُرَيْبٍ وَإِسْحَاقُ بْنُ إِبْرَاهِيمَ - وَاللَّفْظُ لاِبْنِ أَبِي شَيْبَةَ - قَالَ إِسْحَاقُ أَخْبَرَنَا وَقَالَ الآخَرَانِ، حَدَّثَنَا أَبُو أُسَامَةَ، عَنِ الْوَلِيدِ بْنِ كَثِيرٍ، عَنْ مَعْبَدِ بْنِ كَعْبِ بْنِ مَالِكٍ، عَنْ أَبِي قَتَادَةَ الأَنْصَارِيِّ، أَنَّهُ سَمِعَ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ ‏\n\"‏ إِيَّاكُمْ وَكَثْرَةَ الْحَلِفِ فِي الْبَيْعِ فَإِنَّهُ يُنَفِّقُ ثُمَّ يَمْحَقُ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11274,
+              "hadith_number": 11274,
+              "id_in_book": 3997,
+              "chapter_id": 22,
+              "chapter_arabic": "كتاب المساقاة",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "7480_0",
+            "hadith_id": 7480,
+            "text": "وَحَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، وَأَبُو كُرَيْبٍ قَالاَ حَدَّثَنَا أَبُو مُعَاوِيَةَ، عَنِ الأَعْمَشِ، عَنْ أَبِي صَالِحٍ، عَنْ أَبِي هُرَيْرَةَ، - وَهَذَا حَدِيثُ أَبِي بَكْرٍ - قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\n\"‏ ثَلاَثٌ لاَ يُكَلِّمُهُمُ اللَّهُ يَوْمَ الْقِيَامَةِ وَلاَ يَنْظُرُ إِلَيْهِمْ وَلاَ يُزَكِّيهِمْ وَلَهُمْ عَذَابٌ أَلِيمٌ رَجُلٌ عَلَى فَضْلِ مَاءٍ بِالْفَلاَةِ يَمْنَعُهُ مِنِ ابْنِ السَّبِيلِ وَرَجُلٌ بَايَعَ رَجُلاً بِسِلْعَةٍ بَعْدَ الْعَصْرِ فَحَلَفَ لَهُ بِاللَّهِ لأَخَذَهَا بِكَذَا وَكَذَا فَصَدَّقَهُ وَهُوَ عَلَى غَيْرِ ذَلِكَ وَرَجُلٌ بَايَعَ إِمَامًا لاَ يُبَايِعُهُ إِلاَّ لِدُنْيَا فَإِنْ أَعْطَاهُ مِنْهَا وَفَى وَإِنْ لَمْ يُعْطِهِ مِنْهَا لَمْ يَفِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7480,
+              "hadith_number": 7480,
+              "id_in_book": 203,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "11006_0",
+            "hadith_id": 11006,
+            "text": "حَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا يَحْيَى بْنُ سَعِيدٍ، عَنْ شُعْبَةَ، ح وَحَدَّثَنَا عَمْرُو بْنُ، عَلِيٍّ حَدَّثَنَا يَحْيَى بْنُ سَعِيدٍ، وَعَبْدُ الرَّحْمَنِ بْنُ مَهْدِيٍّ، قَالاَ حَدَّثَنَا شُعْبَةُ، عَنْ قَتَادَةَ، عَنْ أَبِي الْخَلِيلِ، عَنْ عَبْدِ اللَّهِ بْنِ الْحَارِثِ، عَنْ حَكِيمِ بْنِ حِزَامٍ، عَنِ النَّبِيِّ صلى الله عليه وسلم قَالَ ‏\n\"‏ الْبَيِّعَانِ بِالْخِيَارِ مَا لَمْ يَتَفَرَّقَا فَإِنْ صَدَقَا وَبَيَّنَا بُورِكَ لَهُمَا فِي بَيْعِهِمَا وَإِنْ كَذَبَا وَكَتَمَا مُحِقَتْ بَرَكَةُ بَيْعِهِمَا ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 11006,
+              "hadith_number": 11006,
+              "id_in_book": 3729,
+              "chapter_id": 21,
+              "chapter_arabic": "كتاب البيوع",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "12202_0",
+            "hadith_id": 12202,
+            "text": "وَحَدَّثَنَا شَيْبَانُ بْنُ فَرُّوخَ، وَأَبُو كَامِلٍ - وَاللَّفْظُ لأَبِي كَامِلٍ - قَالاَ حَدَّثَنَا أَبُو\n عَوَانَةَ عَنْ أَبِي بِشْرٍ، عَنْ سَعِيدِ بْنِ جُبَيْرٍ، قَالَ مَرَّ ابْنُ عُمَرَ بِنَفَرٍ قَدْ نَصَبُوا دَجَاجَةً يَتَرَامَوْنَهَا\n فَلَمَّا رَأَوُا ابْنَ عُمَرَ تَفَرَّقُوا عَنْهَا ‏.‏ فَقَالَ ابْنُ عُمَرَ مَنْ فَعَلَ هَذَا إِنَّ رَسُولَ اللَّهِ صلى الله\n عليه وسلم لَعَنَ مَنْ فَعَلَ هَذَا ‏.‏",
+            "metadata": {
+              "parent_id": 12202,
+              "hadith_number": 12202,
+              "id_in_book": 4925,
+              "chapter_id": 34,
+              "chapter_arabic": "كتاب الصيد والذبائح وما يؤكل من الحيوان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 11006,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 3,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "حكيم بن حزام بن خويلد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الله بن الحارث بن نوفل"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "صالح بن أبي مريم الضبعي - أبو الخليل"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "قتادة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "عبد الرحمن بن مهدي"
+                },
+                {
+                  "chain_position": 7,
+                  "name_ar_mapped": "عمرو بن علي بن بحر الباهلي"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "حكيم بن حزام بن خويلد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الله بن الحارث بن نوفل"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "صالح بن أبي مريم الضبعي - أبو الخليل"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "قتادة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "يحيى بن سعيد بن فروخ القطان"
+                },
+                {
+                  "chain_position": 7,
+                  "name_ar_mapped": "عمرو بن علي بن بحر الباهلي"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "حكيم بن حزام بن خويلد"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الله بن الحارث بن نوفل"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "صالح بن أبي مريم الضبعي - أبو الخليل"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "قتادة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "شعبة بن الحجاج"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "يحيى بن سعيد بن فروخ القطان"
+                },
+                {
+                  "chain_position": 7,
+                  "name_ar_mapped": "محمد بن المثنى أبو موسى - الزمن"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 7480,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 2,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "ذكوان أبو صالح السمان الزيات"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "محمد بن خازم  أبو معاوية الضرير"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "أبو بكر بن أبي شيبة"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "ذكوان أبو صالح السمان الزيات"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "محمد بن خازم  أبو معاوية الضرير"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "محمد بن العلاء - أبو كريب"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 11274,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 3,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو قتادة بن ربعي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "معبد بن كعب بن مالك السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الوليد بن كثير المخزومي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "حماد بن أسامة - أبو أسامة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "إسحاق بن راهويه"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو قتادة بن ربعي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "معبد بن كعب بن مالك السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الوليد بن كثير المخزومي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "حماد بن أسامة - أبو أسامة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "أبو بكر بن أبي شيبة"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو قتادة بن ربعي الأنصاري"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "معبد بن كعب بن مالك السلمي الأنصاري"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "الوليد بن كثير المخزومي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "حماد بن أسامة - أبو أسامة"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "محمد بن العلاء - أبو كريب"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false
+      },
+      "trace": {
+        "started_at": 1794703748.7525532,
+        "total_duration_ms": 16150.934,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703751.4445734,
+            "duration_ms": 2691.952,
+            "offset_ms": 2692.02,
+            "data": {
+              "decision": "text",
+              "source": "classifier",
+              "probability": 0.02472158572098965,
+              "path": "v3_logreg",
+              "matched_rule": null,
+              "mode": "auto",
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703758.107998,
+            "duration_ms": 6663.356,
+            "offset_ms": 9355.445,
+            "data": {
+              "hyde_text": "«مَنْ غَشَّنَا فِي بَيْعٍ أَوْ شِرَاءٍ فَلَيْسَ مِنَّا، وَمَنْ كَتَمَ عَيْبَ سِلْعَتِهِ لَمْ يَزَلْ فِي مَقْتِ اللهِ، وَلَمْ تَزَلِ الْمَلَائِكَةُ تَلْعَنُهُ، وَحُرِمَ بَرَكَةَ رِزْقِهِ، وَبُؤْسُ الدَّارَيْنِ مَأْوَاهُ».",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 11008,
+                  "chapter": "كتاب البيوع"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 11274,
+                  "chapter": "كتاب المساقاة"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 7480,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 11006,
+                  "chapter": "كتاب البيوع"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 12202,
+                  "chapter": "كتاب الصيد والذبائح وما يؤكل من الحيوان"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703764.8993652,
+            "duration_ms": 6787.556,
+            "offset_ms": 16146.812,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 1,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703764.899397,
+            "duration_ms": 0.096,
+            "offset_ms": 16146.844,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703764.9015298,
+            "duration_ms": 1.677,
+            "offset_ms": 16148.977,
+            "data": {
+              "hadith_id": 11006,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 3,
+              "ms": 1.677,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703764.9023836,
+            "duration_ms": 0.82,
+            "offset_ms": 16149.831,
+            "data": {
+              "hadith_id": 7480,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 2,
+              "ms": 0.82,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703764.9033515,
+            "duration_ms": 0.943,
+            "offset_ms": 16150.798,
+            "data": {
+              "hadith_id": 11274,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 3,
+              "ms": 0.943,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 16150.934,
+          "event_count": 7,
+          "stages": [
+            "router",
+            "retrieval",
+            "generation",
+            "validation",
+            "sanad",
+            "sanad",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 1,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 0,
+            "sqlite_queries": 3
+          }
+        }
+      }
+    },
+    {
+      "id": "run_09_choice_orphan",
+      "category": "choice_text",
+      "question": "ما فضل من كفل يتيمًا كما جاء في صحيح مسلم؟",
+      "result": {
+        "answer": "فضل من كفل يتيمًا - سواء كان اليتيم قريبًا له أو لغيره - أنه يكون مع رسول الله صلى الله عليه وسلم في الجنة كهاتين، وأشار مالك بالسبابة والوسطى؛ حيث قال رسول الله صلى الله عليه وسلم: «كَافِلُ الْيَتِيمِ لَهُ أَوْ لِغَيْرِهِ أَنَا وَهُوَ كَهَاتَيْنِ فِي الْجَنَّةِ».\n\n(المصدر: صحيح مسلم، حديث رقم 14561)",
+        "raw": "فضل من كفل يتيمًا - سواء كان اليتيم قريبًا له أو لغيره - أنه يكون مع رسول الله صلى الله عليه وسلم في الجنة كهاتين، وأشار مالك بالسبابة والوسطى؛ حيث قال رسول الله صلى الله عليه وسلم: «كَافِلُ الْيَتِيمِ لَهُ أَوْ لِغَيْرِهِ أَنَا وَهُوَ كَهَاتَيْنِ فِي الْجَنَّةِ».\n\n(المصدر: صحيح مسلم، حديث رقم 14561)",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "14561_0",
+            "hadith_id": 14561,
+            "text": "حَدَّثَنِي زُهَيْرُ بْنُ حَرْبٍ، حَدَّثَنَا إِسْحَاقُ بْنُ عِيسَى، حَدَّثَنَا مَالِكٌ، عَنْ ثَوْرِ بْنِ زَيْدٍ،\n الدِّيلِيِّ قَالَ سَمِعْتُ أَبَا الْغَيْثِ، يُحَدِّثُ عَنْ أَبِي هُرَيْرَةَ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه\n وسلم ‏\n\"‏ كَافِلُ الْيَتِيمِ لَهُ أَوْ لِغَيْرِهِ أَنَا وَهُوَ كَهَاتَيْنِ فِي الْجَنَّةِ ‏\"‏ ‏.‏ وَأَشَارَ مَالِكٌ بِالسَّبَّابَةِ\n وَالْوُسْطَى ‏.‏",
+            "metadata": {
+              "parent_id": 14561,
+              "hadith_number": 14561,
+              "id_in_book": 7284,
+              "chapter_id": 55,
+              "chapter_arabic": "كتاب الزهد والرقائق",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "13809_0",
+            "hadith_id": 13809,
+            "text": "حَدَّثَنِي عَمْرٌو النَّاقِدُ، حَدَّثَنَا أَبُو أَحْمَدَ الزُّبَيْرِيُّ، حَدَّثَنَا مُحَمَّدُ بْنُ عَبْدِ الْعَزِيزِ، عَنْ \n عُبَيْدِ اللَّهِ بْنِ أَبِي بَكْرِ بْنِ أَنَسٍ، عَنْ أَنَسِ بْنِ مَالِكٍ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه\n وسلم ‏\n\"‏ مَنْ عَالَ جَارِيَتَيْنِ حَتَّى تَبْلُغَا جَاءَ يَوْمَ الْقِيَامَةِ أَنَا وَهُوَ ‏\"‏ ‏.‏ وَضَمَّ أَصَابِعَهُ ‏.‏",
+            "metadata": {
+              "parent_id": 13809,
+              "hadith_number": 13809,
+              "id_in_book": 6532,
+              "chapter_id": 45,
+              "chapter_arabic": "كتاب البر والصلة والآداب",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "13575_0",
+            "hadith_id": 13575,
+            "text": "حَدَّثَنَا عَمْرٌو النَّاقِدُ، حَدَّثَنَا سُفْيَانُ، عَنْ أَبِي الزِّنَادِ، عَنِ الأَعْرَجِ، عَنْ أَبِي هُرَيْرَةَ،\n يَبْلُغُ بِهِ النَّبِيَّ صلى الله عليه وسلم وَابْنُ طَاوُسٍ عَنْ أَبِيهِ يَبْلُغُ بِهِ النَّبِيَّ صلى الله عليه\n وسلم ‏.‏ بِمِثْلِهِ غَيْرَ أَنَّهُ قَالَ ‏\n\"‏ أَرْعَاهُ عَلَى وَلَدٍ فِي صِغَرِهِ ‏\"‏ ‏.‏ وَلَمْ يَقُلْ يَتِيمٍ ‏.‏",
+            "metadata": {
+              "parent_id": 13575,
+              "hadith_number": 13575,
+              "id_in_book": 6298,
+              "chapter_id": 44,
+              "chapter_arabic": "كتاب فضائل الصحابة رضى الله تعالى عنهم",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "13574_0",
+            "hadith_id": 13574,
+            "text": "حَدَّثَنَا ابْنُ أَبِي عُمَرَ، حَدَّثَنَا سُفْيَانُ بْنُ عُيَيْنَةَ، عَنْ أَبِي الزِّنَادِ، عَنِ الأَعْرَجِ، عَنْ \n أَبِي هُرَيْرَةَ، وَعَنِ ابْنِ طَاوُسٍ، عَنْ أَبِيهِ، عَنْ أَبِي هُرَيْرَةَ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله\n عليه وسلم ‏\n\"‏ خَيْرُ نِسَاءٍ رَكِبْنَ الإِبِلَ - قَالَ أَحَدُهُمَا صَالِحُ نِسَاءِ قُرَيْشٍ ‏.‏ وَقَالَ الآخَرُ\n نِسَاءُ قُرَيْشٍ - أَحْنَاهُ عَلَى يَتِيمٍ فِي صِغَرِهِ وَأَرْعَاهُ عَلَى زَوْجٍ فِي ذَاتِ يَدِهِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 13574,
+              "hadith_number": 13574,
+              "id_in_book": 6297,
+              "chapter_id": 44,
+              "chapter_arabic": "كتاب فضائل الصحابة رضى الله تعالى عنهم",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "10221_0",
+            "hadith_id": 10221,
+            "text": "وَحَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، وَزُهَيْرُ بْنُ حَرْبٍ، وَعُبَيْدُ اللَّهِ بْنُ سَعِيدٍ، جَمِيعًا عَنْ يَحْيَى، الْقَطَّانِ - قَالَ ابْنُ الْمُثَنَّى حَدَّثَنَا يَحْيَى، - عَنْ عُبَيْدِ اللَّهِ، حَدَّثَنِي نَافِعٌ، عَنِ ابْنِ عُمَرَ، قَالَ مَا تَرَكْتُ اسْتِلاَمَ هَذَيْنِ الرُّكْنَيْنِ - الْيَمَانِيَ وَالْحَجَرَ مُذْ رَأَيْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَسْتَلِمُهُمَا فِي شِدَّةٍ وَلاَ رَخَاءٍ ‏.‏",
+            "metadata": {
+              "parent_id": 10221,
+              "hadith_number": 10221,
+              "id_in_book": 2944,
+              "chapter_id": 15,
+              "chapter_arabic": "كتاب الحج",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 14561,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 1,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "سالم أبو الغيث المدني مولى"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "ثور بن زيد"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "مالك بن أنس بن مالك بن أبي عامر"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "إسحاق بن عيسى بن نجيح"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "زهير بن حرب بن شداد أبو خثيمة"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false
+      },
+      "trace": {
+        "started_at": 1794703764.90359,
+        "total_duration_ms": 13977.954,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703767.3863578,
+            "duration_ms": 2482.688,
+            "offset_ms": 2482.768,
+            "data": {
+              "decision": "text",
+              "source": "classifier",
+              "probability": 0.2276716150641485,
+              "path": "v3_logreg",
+              "matched_rule": null,
+              "mode": "auto",
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703772.9024715,
+            "duration_ms": 5516.044,
+            "offset_ms": 7998.882,
+            "data": {
+              "hyde_text": "«كافِلُ اليَتِيمِ له أوْ لِغَيْرِهِ أنا وهو كَهاتَيْنِ في الجَنَّةِ، وأَشارَ مالِكٌ بالسَّبّابَةِ والوُسْطَى، يَعْنِي رَسولَ اللهِ صَلَّى اللهُ عليه وسَلَّمَ».",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 14561,
+                  "chapter": "كتاب الزهد والرقائق"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 13809,
+                  "chapter": "كتاب البر والصلة والآداب"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 13575,
+                  "chapter": "كتاب فضائل الصحابة رضى الله تعالى عنهم"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 13574,
+                  "chapter": "كتاب فضائل الصحابة رضى الله تعالى عنهم"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 10221,
+                  "chapter": "كتاب الحج"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703778.8798954,
+            "duration_ms": 5974.369,
+            "offset_ms": 13976.306,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 1,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703778.879931,
+            "duration_ms": 0.058,
+            "offset_ms": 13976.341,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703778.8813636,
+            "duration_ms": 1.026,
+            "offset_ms": 13977.774,
+            "data": {
+              "hadith_id": 14561,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 1,
+              "ms": 1.026,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 13977.954,
+          "event_count": 5,
+          "stages": [
+            "router",
+            "retrieval",
+            "generation",
+            "validation",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 1,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 0,
+            "sqlite_queries": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "run_10_choice_hypocrite",
+      "category": "choice_text",
+      "question": "ما علامات المنافق كما وردت في صحيح مسلم؟",
+      "result": {
+        "answer": "بناءً على الأحاديث الواردة في السياق، فإن علامات المنافق وخصاله هي:\n\n1. **إذا حدث كذب.**\n2. **وإذا وعد أخلف.**\n3. **وإذا ائتمن خان.**\nوقد ذُكرت هذه العلامات الثلاث، وجاء في رواية أخرى أن آية المنافق ثلاث وإن صام وصلى وزعم أنه مسلم.\n(المصدر: صحيح مسلم، حديث رقم 7395)\n(المصدر: صحيح مسلم، حديث رقم 7394)\n(المصدر: صحيح مسلم، حديث رقم 7396)\n\nكما ورد أن هناك أربع خصال من كن فيه كان منافقًا خالصًا، ومن كانت فيه خصلة (أو خلة) منهن كانت فيه خصلة من النفاق حتى يدعها، وهي (بالإضافة إلى الكذب في الحديث وإخلاف الوعد):\n4. **إذا عاهد غدر.**\n5. **وإذا خاصم فجر.**\n(المصدر: صحيح مسلم، حديث رقم 7393)",
+        "raw": "بناءً على الأحاديث الواردة في السياق، فإن علامات المنافق وخصاله هي:\n\n1. **إذا حدث كذب.**\n2. **وإذا وعد أخلف.**\n3. **وإذا ائتمن خان.**\nوقد ذُكرت هذه العلامات الثلاث، وجاء في رواية أخرى أن آية المنافق ثلاث وإن صام وصلى وزعم أنه مسلم.\n(المصدر: صحيح مسلم، حديث رقم 7395)\n(المصدر: صحيح مسلم، حديث رقم 7394)\n(المصدر: صحيح مسلم، حديث رقم 7396)\n\nكما ورد أن هناك أربع خصال من كن فيه كان منافقًا خالصًا، ومن كانت فيه خصلة (أو خلة) منهن كانت فيه خصلة من النفاق حتى يدعها، وهي (بالإضافة إلى الكذب في الحديث وإخلاف الوعد):\n4. **إذا عاهد غدر.**\n5. **وإذا خاصم فجر.**\n(المصدر: صحيح مسلم، حديث رقم 7393)",
+        "chunks": [
+          {
+            "rank": 1,
+            "score": null,
+            "chunk_id": "7395_0",
+            "hadith_id": 7395,
+            "text": "حَدَّثَنَا أَبُو بَكْرِ بْنُ إِسْحَاقَ، أَخْبَرَنَا ابْنُ أَبِي مَرْيَمَ، أَخْبَرَنَا مُحَمَّدُ بْنُ جَعْفَرٍ، قَالَ أَخْبَرَنِي الْعَلاَءُ بْنُ عَبْدِ الرَّحْمَنِ بْنِ يَعْقُوبَ، مَوْلَى الْحُرَقَةِ عَنْ أَبِيهِ، عَنْ أَبِي هُرَيْرَةَ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\n\"‏ مِنْ عَلاَمَاتِ الْمُنَافِقِ ثَلاَثَةٌ إِذَا حَدَّثَ كَذَبَ وَإِذَا وَعَدَ أَخْلَفَ وَإِذَا ائْتُمِنَ خَانَ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7395,
+              "hadith_number": 7395,
+              "id_in_book": 118,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 2,
+            "score": null,
+            "chunk_id": "7396_0",
+            "hadith_id": 7396,
+            "text": "حَدَّثَنَا عُقْبَةُ بْنُ مُكْرَمٍ الْعَمِّيُّ، حَدَّثَنَا يَحْيَى بْنُ مُحَمَّدِ بْنِ قَيْسٍ أَبُو زُكَيْرٍ، قَالَ سَمِعْتُ الْعَلاَءَ بْنَ عَبْدِ الرَّحْمَنِ، يُحَدِّثُ بِهَذَا الإِسْنَادِ وَقَالَ ‏\n\"‏ آيَةُ الْمُنَافِقِ ثَلاَثٌ وَإِنْ صَامَ وَصَلَّى وَزَعَمَ أَنَّهُ مُسْلِمٌ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7396,
+              "hadith_number": 7396,
+              "id_in_book": 119,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 3,
+            "score": null,
+            "chunk_id": "7393_0",
+            "hadith_id": 7393,
+            "text": "حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، حَدَّثَنَا عَبْدُ اللَّهِ بْنُ نُمَيْرٍ، ح وَحَدَّثَنَا ابْنُ نُمَيْرٍ، حَدَّثَنَا أَبِي، حَدَّثَنَا الأَعْمَشُ، ح وَحَدَّثَنِي زُهَيْرُ بْنُ حَرْبٍ، حَدَّثَنَا وَكِيعٌ، حَدَّثَنَا سُفْيَانُ، عَنِ الأَعْمَشِ، عَنْ عَبْدِ اللَّهِ بْنِ مُرَّةَ، عَنْ مَسْرُوقٍ، عَنْ عَبْدِ اللَّهِ بْنِ عَمْرٍو، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏\"‏ أَرْبَعٌ مَنْ كُنَّ فِيهِ كَانَ مُنَافِقًا خَالِصًا وَمَنْ كَانَتْ فِيهِ خَلَّةٌ مِنْهُنَّ كَانَتْ فِيهِ خَلَّةٌ مِنْ نِفَاقٍ حَتَّى يَدَعَهَا إِذَا حَدَّثَ كَذَبَ وَإِذَا عَاهَدَ غَدَرَ وَإِذَا وَعَدَ أَخْلَفَ وَإِذَا خَاصَمَ فَجَرَ ‏\"‏ ‏.‏ غَيْرَ أَنَّ فِي حَدِيثِ سُفْيَانَ ‏\"‏ وَإِنْ كَانَتْ فِيهِ خَصْلَةٌ مِنْهُنَّ كَانَتْ فِيهِ خَصْلَةٌ مِنَ النِّفَاقِ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7393,
+              "hadith_number": 7393,
+              "id_in_book": 116,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 4,
+            "score": null,
+            "chunk_id": "7394_0",
+            "hadith_id": 7394,
+            "text": "حَدَّثَنَا يَحْيَى بْنُ أَيُّوبَ، وَقُتَيْبَةُ بْنُ سَعِيدٍ، - وَاللَّفْظُ لِيَحْيَى - قَالاَ حَدَّثَنَا إِسْمَاعِيلُ بْنُ جَعْفَرٍ، قَالَ أَخْبَرَنِي أَبُو سُهَيْلٍ، نَافِعُ بْنُ مَالِكِ بْنِ أَبِي عَامِرٍ عَنْ أَبِيهِ، عَنْ أَبِي هُرَيْرَةَ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ ‏\n\"‏ آيَةُ الْمُنَافِقِ ثَلاَثٌ إِذَا حَدَّثَ كَذَبَ وَإِذَا وَعَدَ أَخْلَفَ وَإِذَا ائْتُمِنَ خَانَ ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 7394,
+              "hadith_number": 7394,
+              "id_in_book": 117,
+              "chapter_id": 1,
+              "chapter_arabic": "كتاب الإيمان",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          },
+          {
+            "rank": 5,
+            "score": null,
+            "chunk_id": "14146_0",
+            "hadith_id": 14146,
+            "text": "حَدَّثَنِي مُحَمَّدُ بْنُ عَبْدِ اللَّهِ بْنِ نُمَيْرٍ، حَدَّثَنَا أَبِي ح، وَحَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ،\n حَدَّثَنَا أَبُو أُسَامَةَ، قَالاَ حَدَّثَنَا عُبَيْدُ اللَّهِ، ح وَحَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، - وَاللَّفْظُ لَهُ - أَخْبَرَنَا \n عَبْدُ الْوَهَّابِ، - يَعْنِي الثَّقَفِيَّ - حَدَّثَنَا عُبَيْدُ اللَّهِ، عَنْ نَافِعٍ، عَنِ ابْنِ عُمَرَ، عَنِ النَّبِيِّ صلى\n الله عليه وسلم قَالَ ‏\n\"‏ مَثَلُ الْمُنَافِقِ كَمَثَلِ الشَّاةِ الْعَائِرَةِ بَيْنَ الْغَنَمَيْنِ تَعِيرُ إِلَى هَذِهِ مَرَّةً\n وَإِلَى هَذِهِ مَرَّةً ‏\"‏ ‏.‏",
+            "metadata": {
+              "parent_id": 14146,
+              "hadith_number": 14146,
+              "id_in_book": 6869,
+              "chapter_id": 51,
+              "chapter_arabic": "كتاب صفات المنافقين وأحكامهم",
+              "source": "صحيح مسلم",
+              "author": "الإمام مسلم بن الحجاج القشيري النيسابوري",
+              "reference_only": false
+            }
+          }
+        ],
+        "sanad": [
+          {
+            "hadith_id": 7395,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 1,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الرحمن بن يعقوب الجهني"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "العلاء بن عبد الرحمن"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "محمد بن جعفر بن أبي كثير"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "سعيد بن أبي مريم"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "محمد بن إسحاق الصغاني"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 7394,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 2,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "مالك بن أبي عامر الأصبحي"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "نافع بن مالك بن أبي عامر الأصبحي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "إسماعيل بن جعفر بن أبي كثير الأنصاري"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "قتيبة بن سعيد بن جميل"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "مالك بن أبي عامر الأصبحي"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "نافع بن مالك بن أبي عامر الأصبحي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "إسماعيل بن جعفر بن أبي كثير الأنصاري"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "يحيى بن أيوب المقابري"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 7396,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 1,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "أبو هريرة - عبد الرحمن بن صخر الدوسي"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "عبد الرحمن بن يعقوب الجهني"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "العلاء بن عبد الرحمن"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "يحيى بن محمد بن قيس المحاربي"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عقبة بن مكرم"
+                }
+              ]
+            ]
+          },
+          {
+            "hadith_id": 7393,
+            "status": "LINKED_WITH_RECORDED_ISNAD",
+            "isnad_count": 3,
+            "isnads": [
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "عبد الله بن عمرو بن العاص"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "مسروق بن الأجدع"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "عبد الله بن مرة الهمداني الخارفي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبد الله بن نمير"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "أبو بكر بن أبي شيبة"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "عبد الله بن عمرو بن العاص"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "مسروق بن الأجدع"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "عبد الله بن مرة الهمداني الخارفي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "عبد الله بن نمير"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "محمد بن عبد الله بن نمير"
+                }
+              ],
+              [
+                {
+                  "chain_position": 1,
+                  "name_ar_mapped": "عبد الله بن عمرو بن العاص"
+                },
+                {
+                  "chain_position": 2,
+                  "name_ar_mapped": "مسروق بن الأجدع"
+                },
+                {
+                  "chain_position": 3,
+                  "name_ar_mapped": "عبد الله بن مرة الهمداني الخارفي"
+                },
+                {
+                  "chain_position": 4,
+                  "name_ar_mapped": "الأعمش / سليمان بن مهران"
+                },
+                {
+                  "chain_position": 5,
+                  "name_ar_mapped": "سفيان الثوري"
+                },
+                {
+                  "chain_position": 6,
+                  "name_ar_mapped": "وكيع بن الجراح"
+                },
+                {
+                  "chain_position": 7,
+                  "name_ar_mapped": "زهير بن حرب بن شداد أبو خثيمة"
+                }
+              ]
+            ]
+          }
+        ],
+        "sanad_error": null,
+        "invalid_citation_attempt": false,
+        "missing_citation_attempt": false,
+        "loose_out_of_context_attempt": false,
+        "mixed_refusal_attempt": false,
+        "regenerated": false,
+        "rewritten": null,
+        "retried": false
+      },
+      "trace": {
+        "started_at": 1794703778.8816643,
+        "total_duration_ms": 14386.687,
+        "events": [
+          {
+            "stage": "router",
+            "timestamp": 1794703781.650167,
+            "duration_ms": 2768.433,
+            "offset_ms": 2768.503,
+            "data": {
+              "decision": "text",
+              "source": "classifier",
+              "probability": 0.3872056846524415,
+              "path": "v3_logreg",
+              "matched_rule": null,
+              "mode": "auto",
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "retrieval",
+            "timestamp": 1794703787.9513786,
+            "duration_ms": 6301.142,
+            "offset_ms": 9069.715,
+            "data": {
+              "hyde_text": "«آيَةُ الْمُنَافِقِ ثَلَاثٌ: إِذَا حَدَّثَ كَذَبَ، وَإِذَا وَعَدَ أَخْلَفَ، وَإِذَا اؤْتُمِنَ خَانَ؛ وَأَرْبَعٌ مَنْ كُنَّ فِيهِ كَانَ مُنَافِقًا خَالِصًا: إِذَا خَاصَمَ فَجَرَ، وَإِذَا عَاهَدَ غَدَرَ، وَإِنْ صَامَ وَصَلَّى وَزَعَمَ أَنَّهُ مُسْلِمٌ».",
+              "top5": [
+                {
+                  "rank": 1,
+                  "hadith_id": 7395,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 2,
+                  "hadith_id": 7396,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 3,
+                  "hadith_id": 7393,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 4,
+                  "hadith_id": 7394,
+                  "chapter": "كتاب الإيمان"
+                },
+                {
+                  "rank": 5,
+                  "hadith_id": 14146,
+                  "chapter": "كتاب صفات المنافقين وأحكامهم"
+                }
+              ],
+              "legacy_fallback": false,
+              "flash_calls": 1,
+              "embed_calls": 1
+            }
+          },
+          {
+            "stage": "generation",
+            "timestamp": 1794703793.2645648,
+            "duration_ms": 5309.769,
+            "offset_ms": 14382.9,
+            "data": {
+              "model": "gemini-4-argon",
+              "attempts": 1,
+              "pro_calls": 1,
+              "regenerated": false
+            }
+          },
+          {
+            "stage": "validation",
+            "timestamp": 1794703793.2645986,
+            "duration_ms": 0.093,
+            "offset_ms": 14382.934,
+            "data": {
+              "status": "valid_answer",
+              "retry_reason": null,
+              "refusal_reason": null
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703793.266084,
+            "duration_ms": 1.097,
+            "offset_ms": 14384.42,
+            "data": {
+              "hadith_id": 7395,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 1,
+              "ms": 1.097,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703793.266773,
+            "duration_ms": 0.663,
+            "offset_ms": 14385.109,
+            "data": {
+              "hadith_id": 7394,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 2,
+              "ms": 0.663,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703793.267188,
+            "duration_ms": 0.397,
+            "offset_ms": 14385.524,
+            "data": {
+              "hadith_id": 7396,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 1,
+              "ms": 0.397,
+              "source": "SQLite sanad graph"
+            }
+          },
+          {
+            "stage": "sanad",
+            "timestamp": 1794703793.2682168,
+            "duration_ms": 1.011,
+            "offset_ms": 14386.553,
+            "data": {
+              "hadith_id": 7393,
+              "status": "LINKED_WITH_RECORDED_ISNAD",
+              "isnad_count": 3,
+              "ms": 1.011,
+              "source": "SQLite sanad graph"
+            }
+          }
+        ],
+        "summary": {
+          "total_duration_ms": 14386.687,
+          "event_count": 8,
+          "stages": [
+            "router",
+            "retrieval",
+            "generation",
+            "validation",
+            "sanad",
+            "sanad",
+            "sanad",
+            "sanad"
+          ],
+          "call_counts": {
+            "pro_calls": 1,
+            "flash_calls": 1,
+            "embed_calls": 2,
+            "tool_calls": 0,
+            "sqlite_queries": 4
+          }
+        }
+      }
+    }
+  ]
+}

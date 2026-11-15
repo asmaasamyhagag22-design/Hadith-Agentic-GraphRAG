@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import sys
 
 import streamlit as st
@@ -20,6 +21,13 @@ from app.components import (
     render_trace_panel_html,
 )
 from app.config import DEFAULT_EXAMPLES, AppConfig, load_config
+from app.replay import (
+    load_recorded_runs,
+    make_replay_banner_reason,
+    match_recorded_run,
+    resolve_replay_mode,
+    serve_recorded_run,
+)
 from app.state import (
     bootstrap_environment,
     configure_logging,
@@ -40,7 +48,13 @@ def _select_example_callback(question: str) -> None:
     st.session_state["pending_question"] = question
 
 
-def _render_sidebar(config: AppConfig, warm_status: dict) -> tuple[str, str]:
+def _render_sidebar(
+    config: AppConfig,
+    warm_status: dict,
+    *,
+    is_replay: bool = False,
+    replay_reason: str | None = None,
+) -> tuple[str, str]:
     """Render Advanced settings sidebar and return (agent_mode, retrieval_mode)."""
     with st.sidebar:
         st.header("الإعدادات المتقدمة")
@@ -86,12 +100,15 @@ def _render_sidebar(config: AppConfig, warm_status: dict) -> tuple[str, str]:
         st.subheader("حالة المنظومة")
         creds_ok, creds_source = has_live_credentials(config)
         st.markdown(
+            f"- **وضع التشغيل:** {'عرض مسجّل (Replay)' if is_replay else 'مباشر (Live)'}\n"
             f"- **الأوزان (Router v3):** {'جاهزة' if warm_status.get('router_ready') else 'غير متوفرة'}\n"
             f"- **قاعدة بيانات السند:** {'جاهزة' if warm_status.get('sanad_ready') else 'غير متوفرة'} "
             f"({warm_status.get('hadith_count', 0)} حديث)\n"
-            f"- **فهرس المتون:** {'جاهز' if warm_status.get('pipeline_ready') else 'غير محمّل'}\n"
+            f"- **فهرس المتون:** {'جاهز' if warm_status.get('pipeline_ready') else 'وضع مسجّل / غير محمّل'}\n"
             f"- **الاعتمادات الحية:** {'متوفرة (' + creds_source + ')' if creds_ok else 'غير متوفرة'}"
         )
+        if is_replay and replay_reason:
+            st.info(f"Recorded run — replayed: {replay_reason}")
     return agent_mode, retrieval_mode
 
 
@@ -114,31 +131,43 @@ def main() -> None:
     render_hero(config.app_title, config.app_subtitle)
     render_how_it_works()
 
+    is_replay, base_replay_reason = resolve_replay_mode(config)
+
     # Warm-up cached resources cleanly on first load
     selected_retrieval = (
         "upgraded"
         if config.cloud_mode
         else str(st.session_state.get("retrieval_mode", config.pipeline_mode))
     )
+    should_load_pipeline = not is_replay
     if not st.session_state.get("warmed_up"):
         with st.spinner("جاري تهيئة الفهارس وقاعدة بيانات السند للمرة الأولى..."):
-            warm_status = warm_up_resources(config, selected_retrieval, load_pipeline=True)
+            warm_status = warm_up_resources(
+                config, selected_retrieval, load_pipeline=should_load_pipeline
+            )
         st.session_state["warmed_up"] = True
-        if warm_status.get("error") is None and warm_status.get("pipeline_ready"):
+        if warm_status.get("error") is None and (warm_status.get("pipeline_ready") or is_replay):
             st.markdown(
                 f"""
                 <div class="musnad-banner musnad-banner--warmup">
-                    <span>تمت تهيئة الفهارس وقاعدة بيانات السند ({warm_status.get('hadith_count', 0)} حديثًا).</span>
+                    <span>تمت تهيئة المنظومة وقاعدة بيانات السند ({warm_status.get('hadith_count', 0)} حديثًا).</span>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
     else:
-        warm_status = warm_up_resources(config, selected_retrieval, load_pipeline=True)
+        warm_status = warm_up_resources(
+            config, selected_retrieval, load_pipeline=should_load_pipeline
+        )
 
-    agent_mode, retrieval_mode = _render_sidebar(config, warm_status)
+    agent_mode, retrieval_mode = _render_sidebar(
+        config, warm_status, is_replay=is_replay, replay_reason=base_replay_reason
+    )
 
-    if warm_status.get("error") is not None and st.session_state.get("last_result") is None:
+    if is_replay and base_replay_reason:
+        st.info(f"ℹ️ **Recorded run — replayed**: {base_replay_reason}")
+
+    if warm_status.get("error") is not None and st.session_state.get("last_result") is None and not is_replay:
         friendly, details = format_error_details(warm_status["error"])
         render_error_card(
             "تعذّر تهيئة بعض ملفات الفهرس عند بدء التشغيل، يرجى التحقق من المسارات.",
@@ -180,7 +209,71 @@ def main() -> None:
             pipeline = warm_status.get("pipeline")
             matn_map = warm_status.get("matn_by_hadith_id") or {}
 
-            if pipeline is None:
+            def _run_replay_flow(reason_prefix: str) -> None:
+                recorded_runs = load_recorded_runs(config.replay_path)
+                matched, exact = match_recorded_run(cleaned, recorded_runs)
+                if matched is None:
+                    msg = "لا تتوفر عروض مسجّلة في ملف recorded_runs.json حاليًا."
+                    logger.error("No recorded runs available at %s", config.replay_path)
+                    st.session_state["last_result"] = None
+                    st.session_state["last_trace"] = None
+                    st.session_state["last_error"] = (msg, str(config.replay_path))
+                    render_error_card(msg, str(config.replay_path))
+                    return
+
+                full_reason = make_replay_banner_reason(
+                    reason_prefix,
+                    matched_question=str(matched.get("question") or ""),
+                    exact_match=exact,
+                )
+                col_answer, col_trace = st.columns([3, 2], gap="large")
+                with col_answer:
+                    answer_slot = st.empty()
+                    answer_slot.info("⏳ جاري تشغيل العرض المسجّل بخطواته الزمنية الفعلية…")
+                with col_trace:
+                    st.markdown("### التتبع المباشر لمراحل التنفيذ")
+                    trace_slot = st.empty()
+
+                def _on_replay_progress(events_snapshot: list[dict]) -> None:
+                    trace_slot.markdown(
+                        render_trace_panel_html(events_snapshot, None, in_progress=True),
+                        unsafe_allow_html=True,
+                    )
+
+                try:
+                    speed = float(os.getenv("MUSNAD_REPLAY_SPEED", "1.0"))
+                except ValueError:
+                    speed = 1.0
+
+                result, trace_dict = serve_recorded_run(
+                    matched,
+                    matn_by_hadith_id=matn_map,
+                    on_progress=_on_replay_progress,
+                    pace=speed > 0.0,
+                    speed_scale=speed,
+                )
+                st.session_state["last_result"] = result
+                st.session_state["last_trace"] = trace_dict
+                st.session_state["last_replay_reason"] = full_reason
+                answer_slot.empty()
+                with col_answer:
+                    render_answer_panel(
+                        result,
+                        refusal_text=REFUSAL,
+                        replay_reason=full_reason,
+                    )
+                trace_slot.markdown(
+                    render_trace_panel_html(
+                        list(trace_dict.get("events") or []),
+                        trace_dict.get("summary"),
+                        in_progress=False,
+                    ),
+                    unsafe_allow_html=True,
+                )
+
+            if is_replay:
+                _run_replay_flow(base_replay_reason or "عرض مسجّل.")
+            elif pipeline is None:
                 err = warm_status.get("error") or RuntimeError("Retrieval pipeline is not initialized.")
                 logger.error("Pipeline unavailable for question execution: %s", err)
                 friendly, details = format_error_details(err)
@@ -215,23 +308,69 @@ def main() -> None:
 
                 if err is not None or result is None:
                     answer_slot.empty()
-                    friendly, details = format_error_details(
-                        err or RuntimeError("Unexpected empty query result.")
-                    )
-                    st.session_state["last_result"] = None
-                    st.session_state["last_trace"] = trace_dict
-                    st.session_state["last_error"] = (friendly, details)
-                    with col_answer:
-                        render_error_card(friendly, details)
-                    with col_trace:
-                        trace_slot.markdown(
-                            render_trace_panel_html(
-                                list((trace_dict or {}).get("events") or []),
-                                (trace_dict or {}).get("summary"),
-                                in_progress=False,
-                            ),
-                            unsafe_allow_html=True,
+                    if config.cloud_mode:
+                        logger.warning(
+                            "Cloud API execution failed (%s); falling back to replay mode.",
+                            type(err).__name__ if err else "EmptyResult",
                         )
+                        recorded_runs = load_recorded_runs(config.replay_path)
+                        matched, exact = match_recorded_run(cleaned, recorded_runs)
+                        if matched is not None:
+                            cloud_reason = make_replay_banner_reason(
+                                "تعذّر الاتصال بخدمة التوليد السحابية مؤقتًا، لذا تم التحويل تلقائيًا إلى العرض المسجّل.",
+                                matched_question=str(matched.get("question") or ""),
+                                exact_match=exact,
+                            )
+                            replay_res, replay_trace = serve_recorded_run(
+                                matched,
+                                matn_by_hadith_id=matn_map,
+                                on_progress=None,
+                                pace=False,
+                            )
+                            st.session_state["last_result"] = replay_res
+                            st.session_state["last_trace"] = replay_trace
+                            st.session_state["last_replay_reason"] = cloud_reason
+                            with col_answer:
+                                render_answer_panel(
+                                    replay_res,
+                                    refusal_text=REFUSAL,
+                                    replay_reason=cloud_reason,
+                                )
+                            trace_slot.markdown(
+                                render_trace_panel_html(
+                                    list(replay_trace.get("events") or []),
+                                    replay_trace.get("summary"),
+                                    in_progress=False,
+                                ),
+                                unsafe_allow_html=True,
+                            )
+                        else:
+                            friendly, details = format_error_details(
+                                err or RuntimeError("Cloud generation failed.")
+                            )
+                            st.session_state["last_result"] = None
+                            st.session_state["last_trace"] = trace_dict
+                            st.session_state["last_error"] = (friendly, details)
+                            with col_answer:
+                                render_error_card(friendly, details)
+                    else:
+                        friendly, details = format_error_details(
+                            err or RuntimeError("Unexpected empty query result.")
+                        )
+                        st.session_state["last_result"] = None
+                        st.session_state["last_trace"] = trace_dict
+                        st.session_state["last_error"] = (friendly, details)
+                        with col_answer:
+                            render_error_card(friendly, details)
+                        with col_trace:
+                            trace_slot.markdown(
+                                render_trace_panel_html(
+                                    list((trace_dict or {}).get("events") or []),
+                                    (trace_dict or {}).get("summary"),
+                                    in_progress=False,
+                                ),
+                                unsafe_allow_html=True,
+                            )
                 else:
                     st.session_state["last_result"] = result
                     st.session_state["last_trace"] = trace_dict

@@ -201,6 +201,7 @@ def test_streamlit_app_example_and_error_handling(
             "regenerated": False,
         }
 
+    monkeypatch.setenv("GEMINI_API_KEY", "test-dummy-key")
     monkeypatch.setattr(app_state, "warm_up_resources", _fake_warm_up)
     monkeypatch.setattr(app_state, "answer_with_details", _fake_answer_success)
 
@@ -211,7 +212,7 @@ def test_streamlit_app_example_and_error_handling(
     assert len(at.sidebar.selectbox) == 2
 
     # Click chain example button cleanly
-    chain_btn = next(b for b in at.button if "7306" in b.label)
+    chain_btn = next(b for b in at.button if "سؤال إسنادي" in b.label)
     chain_btn.click().run(timeout=30)
     assert not at.exception
 

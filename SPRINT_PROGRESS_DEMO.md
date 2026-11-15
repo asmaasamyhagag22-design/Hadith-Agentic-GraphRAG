@@ -2,20 +2,19 @@
 
 Branch: `demo-app` (worktree `../sanad-demo`, branched from `origin/retrieval-upgrade`)
 
-API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `0 Pro`, `0 Flash`, `0 Embed`)
+API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `17 Pro`, `8 Flash`, `16 Embed` — includes 1 Pro / 1 Flash / 2 Embed from aborted initial run_01 + 16 Pro / 7 Flash / 14 Embed across 10 recorded runs)
 
 ## Step Status
 - [done] **Step 1 — Observational Trace Collector (`src/trace.py`)**:
-  - Created `src/trace.py` (`TraceCollector`, `TraceEvent`) with zero overhead when `trace=None`.
-  - Wired optional `trace=None` into `src/pipeline.py`, `src/retrieve.py`, `src/agent.py`, and `src/answer.py`.
-  - Created `tests/test_trace.py` (5/5 passing).
+  - `src/trace.py` (`TraceCollector`, `TraceEvent`) wired optionally across `src/pipeline.py`, `src/retrieve.py`, `src/agent.py`, `src/answer.py`, plus `tests/test_trace.py` (5/5).
 - [done] **Step 2 — Professional Streamlit App (`app/`)**:
-  - Added `.streamlit/config.toml`, `app/config.py`, `app/state.py`, `app/components.py`, `app/streamlit_app.py`.
-  - Implemented Arabic RTL UI, 4 example buttons, "how it works" expander, horizontal sanad chips (Muslim's teacher to highlighted Companion + `+N طرق أخرى`), vocalised matn expanders, progressive live trace panel with `source: SQLite sanad graph` badges, total time & call counts, Advanced sidebar (`auto/on/off` and retrieval mode), `@st.cache_resource` warm-up, and friendly Arabic error card + details expander + logging.
-  - Added `tests/test_app_ui.py` (AppTest + component tests).
-  - Verified: `check_docs` 5/5, CI subset `301 passed, 26 deselected`, full `pytest` `327 passed`.
-- [in_progress] **Step 3 — Replay Mode (`data/demo/recorded_runs.json`)**
-- [pending] **Step 4 — Parallel HyDE + Query Embedding Latency Improvement**
+  - RTL Arabic UI (`app/config.py`, `app/state.py`, `app/components.py`, `app/streamlit_app.py`, `.streamlit/config.toml`), 4 examples, progressive live trace, horizontal narrator chips, `@st.cache_resource` warm-up, error handling + `tests/test_app_ui.py` (3/3).
+- [done] **Step 3 — Replay Mode (`data/demo/recorded_runs.json`)**:
+  - Recorded 10 real runs with full traces via `src/record_demo_runs.py` into `data/demo/recorded_runs.json` (2 text, 3 chain incl. topic chain, 1 refusal, 1 narrator, 3 choice).
+  - Implemented `app/replay.py` and wired explicit `MUSNAD_DEMO_REPLAY=1`, missing credentials fallback, usage-cap hook, and cloud fallback with `"Recorded run — replayed"` banner and real step durations.
+  - Added `tests/test_replay.py` (4/4).
+  - Verified: `check_docs` 5/5, CI subset `305 passed, 26 deselected`, full `pytest` `331 passed`.
+- [in_progress] **Step 4 — Parallel HyDE + Query Embedding Latency Improvement**
 - [pending] **Step 5 — 20-Question Live Playwright Self-Test & Findings**
 - [pending] **Step 6 — Docker, AWS CDK (`infra/`), Usage Guard, Runbook & README**
 - [pending] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**

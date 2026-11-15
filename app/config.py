@@ -52,9 +52,9 @@ DEFAULT_EXAMPLES: tuple[ExampleQuestion, ...] = (
     ),
     ExampleQuestion(
         key="chain",
-        label="سؤال إسنادي: حديث رقم 7306",
+        label="سؤال إسنادي: حديث رقم 7294",
         category="سلسلة السند",
-        question="ما أسانيد حديث رقم 7306 ومن الصحابي الذي رواه؟",
+        question="من هم رواة حديث رقم 7294 وما عدد أسانيده؟",
     ),
     ExampleQuestion(
         key="refusal",

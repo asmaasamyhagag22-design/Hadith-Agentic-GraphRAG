@@ -4,9 +4,24 @@
     "flash": 40
   },
   "used": {
-    "pro": 0,
-    "flash": 0,
-    "embed": 0
+    "pro": 17,
+    "flash": 8,
+    "embed": 16
   },
-  "runs": []
+  "runs": [
+    {
+      "timestamp": "2026-11-15T00:46:09Z",
+      "step": "Step 3 (aborted run_01 before finish() bugfix)",
+      "pro": 1,
+      "flash": 1,
+      "embed": 2
+    },
+    {
+      "timestamp": "2026-11-15T00:49:53.272850+00:00",
+      "step": "Step 3: 10 recorded demo runs",
+      "pro": 16,
+      "flash": 7,
+      "embed": 14
+    }
+  ]
 }
