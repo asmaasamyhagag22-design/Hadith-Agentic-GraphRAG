@@ -18,10 +18,12 @@ dependencies = [
     # only used by src/chroma_ingest.py, an alternative store that the
     # query path does not go through — see README
     "chromadb",
+    "streamlit>=1.42.0",
 ]
 
 [dependency-groups]
 dev = [
+    "playwright>=1.65.2",
     "pytest>=9.2.0",
 ]
 
