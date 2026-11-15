@@ -30,4 +30,6 @@ API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `40 Pro`, `39 Flash`, 
   - AWS CDK stack in `infra/` (`musnad_stack.py`, `app.py`, `cdk.json`): 2-AZ public VPC (`0` NAT gateways), ECR, ECS Fargate (`512/1024` configurable), ALB (sticky sessions, `/_stcore/health`, optional HTTPS/redirect), 14-day CloudWatch LogGroup, Secrets Manager, DynamoDB on-demand TTL table, least-privilege TaskRole, AWS Budgets alarm (`cdk.out/MusnadDemoStack.template.json` synthesized).
   - Atomic usage guard (`app/usage_guard.py` + `app/streamlit_app.py`) enforcing per-session, per-IP hourly, and global daily (`MUSNAD_DAILY_CAP`, default `200`) limits in DynamoDB or in-memory local backend.
   - Added `docs/deploy_aws.md` (GCP `Vertex AI User` SA + billing alert + ordered AWS Console/Terminal runbook), `README.md` (`## Live demo` + `### Deployment`), and 2x `docs/assets/demo-screenshot.png`.
-- [in_progress] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**
+- [done] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**
+  - `git fetch origin && git merge origin/retrieval-upgrade --no-edit` -> `Already up to date.` (`origin/retrieval-upgrade` at `2665785` is ancestor of `demo-app`).
+  - Final post-merge checks: `uv run python infra/app.py`, `uv run python -m src.check_docs`, CI pytest subset, and full `pytest` suite.
