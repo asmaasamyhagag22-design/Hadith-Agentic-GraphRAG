@@ -326,6 +326,9 @@ class UpgradedRetriever:
         self.mode = "upgraded"
         self.default_k = 5
         self.last_used_fallback = False
+        self.hyde_text_cache = {}
+        self.last_hyde_text = None
+        self.last_call_stats = {"flash_calls": 0, "embed_calls": 0}
         self._dense_rank_cache = {}
 
     @classmethod
@@ -483,7 +486,9 @@ class UpgradedRetriever:
                         ),
                     ),
                 )
-                pseudo = strip_diacritics((resp_h.text or "").strip()) or strip_diacritics(question)
+                raw_hyde = (resp_h.text or "").strip()
+                self.hyde_text_cache[question] = raw_hyde
+                pseudo = strip_diacritics(raw_hyde) or strip_diacritics(question)
                 resp_he = embed_client.models.embed_content(
                     model="gemini-embedding-001",
                     contents=[pseudo],
@@ -520,7 +525,12 @@ class UpgradedRetriever:
     def search(self, question, k=5):
         cand_k = max(self.candidates, k)
         cache_key = (question, cand_k)
+        flash_calls = 0
+        embed_calls = 0
         if cache_key not in self._dense_rank_cache:
+            had_q = question in self.query_vec_cache
+            had_h = question in self.hyde_vec_cache
+            had_t = question in self.hyde_text_cache
             try:
                 q_vec = self._blended_query_vector(question)
             except Exception as error:
@@ -528,12 +538,25 @@ class UpgradedRetriever:
                 if fallback is None:
                     raise
                 self.last_used_fallback = True
+                self.last_hyde_text = None
+                self.last_call_stats = {
+                    "flash_calls": 1 if (not had_t and question in self.hyde_text_cache) else 0,
+                    "embed_calls": (
+                        (1 if (not had_q and question in self.query_vec_cache) else 0)
+                        + (1 if (not had_h and question in self.hyde_vec_cache) else 0)
+                    ),
+                }
                 print(
                     f"[warn] upgraded retrieval API failed ({type(error).__name__}: {error}); "
                     f"falling back to legacy local pipeline.",
                     file=sys.stderr,
                 )
                 return fallback.search(question, k=k)
+            flash_calls = 1 if (self.hyde_alpha < 1.0 and not had_t and question in self.hyde_text_cache) else 0
+            embed_calls = (
+                (1 if (not had_q and question in self.query_vec_cache) else 0)
+                + (1 if (self.hyde_alpha < 1.0 and not had_h and question in self.hyde_vec_cache) else 0)
+            )
             w0, w1, w2, w3 = self.weights
             active_lists = []
             active_weights = []
@@ -560,6 +583,10 @@ class UpgradedRetriever:
             )
 
         self.last_used_fallback = False
+        self.last_hyde_text = (
+            self.hyde_text_cache.get(question) if self.hyde_alpha < 1.0 else None
+        )
+        self.last_call_stats = {"flash_calls": flash_calls, "embed_calls": embed_calls}
         fused = self._dense_rank_cache[cache_key]
         results = []
         for rank, chunk_id in enumerate(fused[:k], start=1):

@@ -415,7 +415,7 @@ def ordered_cited_ids(answer):
     return ordered
 
 
-def attach_sanad(hadith_ids, db_path=None):
+def attach_sanad(hadith_ids, db_path=None, trace=None):
     """Fetch recorded sanad chains from SQLite for each cited hadith ID.
 
     Opens one DB connection per request. Keeps exact sanad_context status for
@@ -427,10 +427,12 @@ def attach_sanad(hadith_ids, db_path=None):
         return [], None
 
     conn = None
+    t_open0 = time.perf_counter() if trace is not None else 0.0
     try:
         conn = open_graph() if db_path is None else open_graph(db_path)
         entries = []
         for hid in hadith_ids:
+            t_h0 = time.perf_counter() if trace is not None else 0.0
             ctx = context_for_local_hadith(conn, hid)
             isnads = [
                 [
@@ -450,9 +452,29 @@ def attach_sanad(hadith_ids, db_path=None):
                     "isnads": isnads,
                 }
             )
+            if trace is not None:
+                hid_ms = (time.perf_counter() - t_h0) * 1000.0
+                trace.record_sanad(
+                    hadith_id=hid,
+                    status=ctx["status"],
+                    isnad_count=ctx["isnad_count"],
+                    ms=hid_ms,
+                    source="SQLite sanad graph",
+                )
         return entries, None
     except Exception as exc:
-        return [], f"{type(exc).__name__}: {exc}"
+        err_text = f"{type(exc).__name__}: {exc}"
+        if trace is not None:
+            err_ms = (time.perf_counter() - t_open0) * 1000.0
+            trace.record_sanad(
+                hadith_id=None,
+                status="error",
+                isnad_count=0,
+                ms=err_ms,
+                error=err_text,
+                source="SQLite sanad graph",
+            )
+        return [], err_text
     finally:
         if conn is not None:
             conn.close()
@@ -504,18 +526,44 @@ def _resolve_agent_enabled_fn():
     return resolve_agent_enabled
 
 
-def _resolve_use_agent(retriever, use_agent=None, question=None):
+def _resolve_use_agent(retriever, use_agent=None, question=None, trace=None):
     """Resolve whether to execute via tool-calling agent or legacy single-pass RAG."""
     if use_agent is not None:
         if isinstance(use_agent, bool):
+            if trace is not None:
+                trace.record_router(
+                    decision="chain" if use_agent else "text",
+                    source="override",
+                    probability=None,
+                    duration_ms=0.0,
+                    mode="on" if use_agent else "off",
+                )
             return use_agent
-        return _resolve_agent_enabled_fn()(use_agent, question=question, retriever=retriever)
+        fn = _resolve_agent_enabled_fn()
+        if trace is not None:
+            return fn(use_agent, question=question, retriever=retriever, trace=trace)
+        return fn(use_agent, question=question, retriever=retriever)
     env_val = os.environ.get("MUSNAD_AGENT", "").strip()
     if env_val:
-        return _resolve_agent_enabled_fn()(env_val, question=question, retriever=retriever)
+        fn = _resolve_agent_enabled_fn()
+        if trace is not None:
+            return fn(env_val, question=question, retriever=retriever, trace=trace)
+        return fn(env_val, question=question, retriever=retriever)
     if hasattr(retriever, "agent_mode"):
-        return _resolve_agent_enabled_fn()(getattr(retriever, "agent_mode"), question=question, retriever=retriever)
-    return bool(getattr(retriever, "agent_enabled", False))
+        fn = _resolve_agent_enabled_fn()
+        if trace is not None:
+            return fn(getattr(retriever, "agent_mode"), question=question, retriever=retriever, trace=trace)
+        return fn(getattr(retriever, "agent_mode"), question=question, retriever=retriever)
+    enabled = bool(getattr(retriever, "agent_enabled", False))
+    if trace is not None:
+        trace.record_router(
+            decision="chain" if enabled else "text",
+            source="override",
+            probability=None,
+            duration_ms=0.0,
+            mode="on" if enabled else "off",
+        )
+    return enabled
 
 
 def _call_agent(question, retriever, **kwargs):
@@ -524,6 +572,17 @@ def _call_agent(question, retriever, **kwargs):
     except ImportError:
         from agent import run_agent
     return run_agent(question, retriever, **kwargs)
+
+
+def _format_trace_top5(chunks):
+    return [
+        {
+            "rank": chunk.get("rank", idx + 1),
+            "hadith_id": int(chunk["hadith_id"]),
+            "chapter": (chunk.get("metadata") or {}).get("chapter_arabic", ""),
+        }
+        for idx, chunk in enumerate((chunks or [])[:5])
+    ]
 
 
 def answer_with_details(
@@ -535,6 +594,8 @@ def answer_with_details(
     model=MODEL,
     sanad_db_path=None,
     use_agent=None,
+    trace=None,
+    _skip_router_trace=False,
 ):
     """
     بترجع dict فيه الإجابة النهائية **والمحاولة الخام**.
@@ -543,10 +604,14 @@ def answer_with_details(
     هتطلع صفر أخطاء دايمًا بحكم البناء، وده رقم بلا معنى.
     """
 
-    if _resolve_use_agent(retriever, use_agent=use_agent, question=question):
-        return _call_agent(
-            question,
-            retriever,
+    active_trace_for_router = None if _skip_router_trace else trace
+    if _resolve_use_agent(
+        retriever,
+        use_agent=use_agent,
+        question=question,
+        trace=active_trace_for_router,
+    ):
+        agent_kwargs = dict(
             k=k,
             enforce_citations=enforce_citations,
             model=model,
@@ -560,20 +625,43 @@ def answer_with_details(
                 model=model,
                 sanad_db_path=sanad_db_path,
                 use_agent=False,
+                trace=trace,
+                _skip_router_trace=True,
             ),
         )
+        if trace is not None:
+            agent_kwargs["trace"] = trace
+        return _call_agent(question, retriever, **agent_kwargs)
 
     rewritten = None
     retried = False
 
+    t_ret0 = time.perf_counter() if trace is not None else 0.0
     if self_correct:
         chunks, rewritten, retried = retrieve_with_self_correction(
             question, retriever, k
         )
     else:
         chunks = retriever.search(question, k=k)
+    if trace is not None:
+        ret_ms = (time.perf_counter() - t_ret0) * 1000.0
+        call_stats = getattr(retriever, "last_call_stats", None) or {}
+        trace.record_retrieval(
+            hyde_text=getattr(retriever, "last_hyde_text", None),
+            top5=_format_trace_top5(chunks),
+            legacy_fallback=bool(getattr(retriever, "last_used_fallback", False)),
+            duration_ms=ret_ms,
+            **call_stats,
+        )
 
     if not chunks:
+        if trace is not None:
+            trace.record_validation(
+                status=VALID_REFUSAL.value,
+                retry_reason=None,
+                refusal_reason="empty_retrieval",
+                duration_ms=0.0,
+            )
         return {
             "answer": REFUSAL,
             "raw": REFUSAL,
@@ -593,8 +681,11 @@ def answer_with_details(
 
     system_instruction = build_system_prompt(format_context(chunks))
 
+    t_gen0 = time.perf_counter() if trace is not None else 0.0
     raw = generate(question, system_instruction=system_instruction, model=model)
+    gen_ms = (time.perf_counter() - t_gen0) * 1000.0 if trace is not None else 0.0
 
+    t_val0 = time.perf_counter() if trace is not None else 0.0
     status = validate_answer(raw, context_ids)
     invalid = bool(cited_ids(raw) - context_ids)
     missing_citation = status == MISSING_CITATION
@@ -602,6 +693,7 @@ def answer_with_details(
         (loose_cited_ids(raw) - cited_ids(raw)) - context_ids
     )
     mixed_refusal = status == MIXED_REFUSAL
+    val_ms = (time.perf_counter() - t_val0) * 1000.0 if trace is not None else 0.0
 
     answer = raw
     regenerated = False
@@ -613,13 +705,17 @@ def answer_with_details(
         # في المجال ده أسوأ من الاعتراف بعدم المعرفة.
         regenerated = True
 
+        t_regen0 = time.perf_counter() if trace is not None else 0.0
         answer = generate(
             CORRECTIONS[status],
             system_instruction=system_instruction,
             history=[("user", question), ("model", raw)],
             model=model,
         )
+        if trace is not None:
+            gen_ms += (time.perf_counter() - t_regen0) * 1000.0
 
+        t_val1 = time.perf_counter() if trace is not None else 0.0
         final_status = validate_answer(answer, context_ids)
         if final_status not in (
             VALID_ANSWER,
@@ -627,12 +723,36 @@ def answer_with_details(
         ):
             answer = REFUSAL
             final_status = VALID_REFUSAL
+        if trace is not None:
+            val_ms += (time.perf_counter() - t_val1) * 1000.0
+
+    if trace is not None:
+        trace.record_generation(
+            model=model,
+            attempts=2 if regenerated else 1,
+            duration_ms=gen_ms,
+            pro_calls=2 if regenerated else 1,
+            regenerated=regenerated,
+        )
+        refusal_reason = None
+        if final_status == VALID_REFUSAL:
+            refusal_reason = (
+                "validation_failed_after_retry" if regenerated else "model_refused"
+            )
+        trace.record_validation(
+            status=final_status.value,
+            retry_reason=status.value if regenerated else None,
+            refusal_reason=refusal_reason,
+            duration_ms=val_ms,
+        )
 
     sanad = []
     sanad_error = None
     if final_status == VALID_ANSWER:
         sanad, sanad_error = attach_sanad(
-            ordered_cited_ids(answer), db_path=sanad_db_path
+            ordered_cited_ids(answer),
+            db_path=sanad_db_path,
+            trace=trace,
         )
 
     return {
@@ -657,15 +777,17 @@ def answer_question(
     k=5,
     enforce_citations=True,
     self_correct=False,
+    trace=None,
 ):
 
-    details = answer_with_details(
-        question,
-        retriever,
+    kwargs = dict(
         k=k,
         enforce_citations=enforce_citations,
         self_correct=self_correct,
     )
+    if trace is not None:
+        kwargs["trace"] = trace
+    details = answer_with_details(question, retriever, **kwargs)
     _last_answer_details.details = details
 
     return details["answer"], details["chunks"]

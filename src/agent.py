@@ -19,6 +19,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeoutError
 from pathlib import Path
+import time
 from typing import Any, Callable
 
 from google.genai import types
@@ -243,6 +244,7 @@ def run_agent(
     isnad_fn: Callable[[int], dict[str, Any]] | None = None,
     lexicon: NarratorLexicon | None = None,
     fallback_fn: Callable[[], dict[str, Any]] | None = None,
+    trace: Any = None,
 ) -> dict[str, Any]:
     """Run tool-calling loop with C1 bounds/timeout/fallback and C2 validation."""
     from src.answer import (
@@ -253,6 +255,7 @@ def run_agent(
         TEMPERATURE,
         VALID_ANSWER,
         VALID_REFUSAL,
+        _format_trace_top5,
         attach_sanad,
         cited_ids,
         loose_cited_ids,
@@ -273,7 +276,6 @@ def run_agent(
         return any(tok in msg for tok in ("429", "500", "502", "503", "504", "RESOURCE_EXHAUSTED", "DEADLINE_EXCEEDED", "UNAVAILABLE"))
 
     def _default_generate(contents: list[Any], *, allow_tools: bool) -> Any:
-        import time
         from src.answer import INITIAL_BACKOFF_SECONDS, MAX_ATTEMPTS
 
         active_client = client if client is not None else _get_default_client()
@@ -333,6 +335,17 @@ def run_agent(
     chunks_by_id: dict[int, dict[str, Any]] = {}
     ordered_chunks: list[dict[str, Any]] = []
     pro_calls_used = 0
+    gen_ms_total = 0.0
+
+    def _timed_model_call(call_contents: list[Any], *, allow_tools: bool) -> Any:
+        nonlocal pro_calls_used, gen_ms_total
+        pro_calls_used += 1
+        t0 = time.perf_counter() if trace is not None else 0.0
+        try:
+            return model_call(call_contents, allow_tools=allow_tools)
+        finally:
+            if trace is not None:
+                gen_ms_total += (time.perf_counter() - t0) * 1000.0
 
     def _record_chunk(chunk: dict[str, Any]) -> None:
         hid = int(chunk["hadith_id"])
@@ -345,10 +358,17 @@ def run_agent(
     def _run_fallback(exc: Exception) -> dict[str, Any]:
         if fallback_fn is None:
             raise exc
+        reason = f"{type(exc).__name__}: {exc}"
+        if trace is not None:
+            trace.record_agent_fallback(
+                fallback_reason=reason,
+                duration_ms=gen_ms_total,
+                pro_calls=pro_calls_used,
+            )
         fb = dict(fallback_fn())
         fb["agent_used"] = True
         fb["agent_fallback"] = True
-        fb["fallback_reason"] = f"{type(exc).__name__}: {exc}"
+        fb["fallback_reason"] = reason
         fb["tool_calls"] = tool_trace
         fb["tool_hadith_ids"] = sorted(tool_hadith_ids)
         fb["pro_calls_used"] = pro_calls_used
@@ -361,8 +381,7 @@ def run_agent(
 
     try:
         while len(tool_trace) < max_tool_calls:
-            pro_calls_used += 1
-            response = model_call(contents, allow_tools=True)
+            response = _timed_model_call(contents, allow_tools=True)
             fn_calls, text, candidate_content = _extract_response_parts(response)
 
             if candidate_content is not None:
@@ -386,14 +405,34 @@ def run_agent(
                 args = dict(getattr(fc, "args", None) or {})
                 if name == "search_hadith":
                     query = str(args.get("query") or question)
+                    t_tool0 = time.perf_counter() if trace is not None else 0.0
                     chunks = _run_with_timeout(
                         lambda q=query: _exec_search(q),
                         tool_timeout_s,
                     )
+                    tool_ms = (time.perf_counter() - t_tool0) * 1000.0 if trace is not None else 0.0
+                    returned_ids = [int(ch["hadith_id"]) for ch in chunks]
                     for ch in chunks:
                         hid = int(ch["hadith_id"])
                         tool_hadith_ids.add(hid)
                         _record_chunk(ch)
+                    if trace is not None:
+                        call_stats = getattr(retriever, "last_call_stats", None) or {}
+                        trace.record_retrieval(
+                            hyde_text=getattr(retriever, "last_hyde_text", None),
+                            top5=_format_trace_top5(chunks),
+                            legacy_fallback=bool(
+                                getattr(retriever, "last_used_fallback", False)
+                            ),
+                            duration_ms=tool_ms,
+                            **call_stats,
+                        )
+                        trace.record_agent_tool(
+                            name="search_hadith",
+                            arguments={"query": query},
+                            returned_ids=returned_ids,
+                            duration_ms=tool_ms,
+                        )
                     payload = {
                         "query": query,
                         "results": [
@@ -413,12 +452,15 @@ def run_agent(
                     )
                 elif name == "get_isnad":
                     hid = _coerce_hadith_id(args.get("hadith_id"))
+                    t_tool0 = time.perf_counter() if trace is not None else 0.0
                     ctx = _run_with_timeout(
                         lambda target_id=hid: _exec_isnad(target_id),
                         tool_timeout_s,
                     )
+                    tool_ms = (time.perf_counter() - t_tool0) * 1000.0 if trace is not None else 0.0
                     isnad_results.append(ctx)
-                    if ctx.get("status") != INVALID_LOCAL_HADITH_ID:
+                    is_valid_hid = ctx.get("status") != INVALID_LOCAL_HADITH_ID
+                    if is_valid_hid:
                         tool_hadith_ids.add(hid)
                         local_meta = ctx.get("local_hadith") or {}
                         _record_chunk(
@@ -427,6 +469,16 @@ def run_agent(
                                 "text": "",
                                 "metadata": {"chapter_arabic": local_meta.get("chapter_ar", "")},
                             }
+                        )
+                    if trace is not None:
+                        trace.record_agent_tool(
+                            name="get_isnad",
+                            arguments={"hadith_id": hid},
+                            returned_ids=[hid] if is_valid_hid else [],
+                            duration_ms=tool_ms,
+                            status=ctx.get("status"),
+                            isnad_count=int(ctx.get("isnad_count") or 0),
+                            source="SQLite sanad graph",
                         )
                     payload = _format_isnad_for_model(ctx)
                     tool_trace.append(
@@ -458,8 +510,7 @@ def run_agent(
                 contents[-1] = types.Content(role="user", parts=merged_parts)
             else:
                 contents.append(types.Content(role="user", parts=[limit_note]))
-            pro_calls_used += 1
-            final_resp = model_call(contents, allow_tools=False)
+            final_resp = _timed_model_call(contents, allow_tools=False)
             _, draft_answer, final_content = _extract_response_parts(final_resp)
             if final_content is not None:
                 contents.append(final_content)
@@ -469,8 +520,10 @@ def run_agent(
     raw = draft_answer or REFUSAL
     lex = _resolve_lexicon(lexicon, resolved_db_path)
 
+    t_val0 = time.perf_counter() if trace is not None else 0.0
     status = validate_answer(raw, tool_hadith_ids, tool_ids=tool_hadith_ids)
     disallowed = find_disallowed_narrators(raw, isnad_results, lex)
+    val_ms = (time.perf_counter() - t_val0) * 1000.0 if trace is not None else 0.0
 
     invalid_citation = bool(cited_ids(raw) - tool_hadith_ids)
     missing_citation = status == "missing_citation"
@@ -498,29 +551,62 @@ def run_agent(
             types.Content(role="user", parts=[types.Part.from_text(text=feedback)])
         )
         try:
-            pro_calls_used += 1
-            regen_resp = model_call(regen_contents, allow_tools=False)
+            regen_resp = _timed_model_call(regen_contents, allow_tools=False)
             _, regen_text, _ = _extract_response_parts(regen_resp)
         except Exception as exc:
             return _run_fallback(exc)
 
         answer = regen_text or REFUSAL
+        t_val1 = time.perf_counter() if trace is not None else 0.0
         final_status = validate_answer(answer, tool_hadith_ids, tool_ids=tool_hadith_ids)
         final_disallowed = find_disallowed_narrators(answer, isnad_results, lex)
         if final_status not in (VALID_ANSWER, VALID_REFUSAL) or final_disallowed:
             answer = REFUSAL
             final_status = VALID_REFUSAL
+        if trace is not None:
+            val_ms += (time.perf_counter() - t_val1) * 1000.0
     elif needs_regen:
         # Even if citation enforcement is toggled off in experiments, C2 forbids ungrounded narrators
         if final_disallowed:
             answer = REFUSAL
             final_status = VALID_REFUSAL
 
+    if trace is not None:
+        trace.record_generation(
+            model=resolved_model,
+            attempts=2 if regenerated else 1,
+            duration_ms=gen_ms_total,
+            pro_calls=pro_calls_used,
+            regenerated=regenerated,
+        )
+        retry_reason = None
+        if regenerated:
+            if disallowed and status in (VALID_ANSWER, VALID_REFUSAL):
+                retry_reason = "disallowed_narrators"
+            elif disallowed:
+                retry_reason = f"{status.value}+disallowed_narrators"
+            else:
+                retry_reason = status.value
+        refusal_reason = None
+        if final_status == VALID_REFUSAL:
+            if regenerated:
+                refusal_reason = "validation_failed_after_retry"
+            elif final_disallowed:
+                refusal_reason = "disallowed_narrators"
+            else:
+                refusal_reason = "model_refused"
+        trace.record_validation(
+            status=final_status.value,
+            retry_reason=retry_reason,
+            refusal_reason=refusal_reason,
+            duration_ms=val_ms,
+        )
+
     sanad: list[dict[str, Any]] = []
     sanad_error: str | None = None
     if final_status == VALID_ANSWER:
         sanad, sanad_error = attach_sanad(
-            ordered_cited_ids(answer), db_path=resolved_db_path
+            ordered_cited_ids(answer), db_path=resolved_db_path, trace=trace
         )
 
     return {

@@ -149,20 +149,78 @@ def resolve_agent_mode(agent=None):
     )
 
 
-def resolve_agent_enabled(agent=None, question=None, retriever=None):
+def _router_source_from_path(path: str) -> str:
+    if path in ("v2_fast_path", "v2_rule_miss"):
+        return "regex"
+    if path == "v3_logreg":
+        return "classifier"
+    return "v2 fallback"
+
+
+def resolve_agent_enabled(agent=None, question=None, retriever=None, trace=None):
     """Resolve whether agent tool-calling is active (evaluating ``auto`` via router)."""
     mode = resolve_agent_mode(agent)
+    if trace is None:
+        if mode == "on":
+            return True
+        if mode == "off":
+            return False
+        if question is None:
+            return False
+        try:
+            from src.router import classify_intent
+        except ImportError:
+            from router import classify_intent
+        return classify_intent(question, retriever=retriever) == "chain"
+
     if mode == "on":
+        trace.record_router(
+            decision="chain",
+            source="override",
+            probability=None,
+            duration_ms=0.0,
+            mode=mode,
+        )
         return True
     if mode == "off":
+        trace.record_router(
+            decision="text",
+            source="override",
+            probability=None,
+            duration_ms=0.0,
+            mode=mode,
+        )
         return False
     if question is None:
+        trace.record_router(
+            decision="text",
+            source="no_question",
+            probability=None,
+            duration_ms=0.0,
+            mode=mode,
+        )
         return False
     try:
-        from src.router import classify_intent
+        from src.router import classify_intent_with_trace
     except ImportError:
-        from router import classify_intent
-    return classify_intent(question, retriever=retriever) == "chain"
+        from router import classify_intent_with_trace
+    q_cache = getattr(retriever, "query_vec_cache", None)
+    was_cached = isinstance(q_cache, dict) and question in q_cache
+    res = classify_intent_with_trace(question, retriever=retriever)
+    embed_calls = (
+        1 if isinstance(q_cache, dict) and not was_cached and question in q_cache else 0
+    )
+    trace.record_router(
+        decision=res["intent"],
+        source=_router_source_from_path(res.get("path", "")),
+        probability=res.get("probability"),
+        duration_ms=res.get("latency_ms", 0.0),
+        path=res.get("path"),
+        matched_rule=res.get("matched_rule"),
+        mode=mode,
+        embed_calls=embed_calls,
+    )
+    return res["intent"] == "chain"
 
 
 def build_pipeline(
