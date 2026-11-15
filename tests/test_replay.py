@@ -173,7 +173,7 @@ def test_resolve_replay_mode_triggers(monkeypatch: pytest.MonkeyPatch, tmp_path:
     cfg = load_config()
     is_rep, reason = resolve_replay_mode(cfg)
     assert is_rep is True
-    assert reason and "اعتمادات" in reason
+    assert reason and "بدون اتصال" in reason
 
     monkeypatch.setenv("GEMINI_API_KEY", "dummy")
     cfg_live = load_config()
@@ -181,13 +181,13 @@ def test_resolve_replay_mode_triggers(monkeypatch: pytest.MonkeyPatch, tmp_path:
 
     is_cap, cap_reason = resolve_replay_mode(cfg_live, usage_capped_reason="تم بلوغ الحد اليومي")
     assert is_cap is True
-    assert cap_reason == "تم بلوغ الحد اليومي"
+    assert cap_reason == "عرض مسجَّل مسبقًا (بدون اتصال)"
 
     monkeypatch.setenv("MUSNAD_DEMO_REPLAY", "1")
     cfg_flag = load_config()
     is_flag, flag_reason = resolve_replay_mode(cfg_flag)
     assert is_flag is True
-    assert flag_reason and "MUSNAD_DEMO_REPLAY=1" in flag_reason
+    assert flag_reason == "عرض مسجَّل مسبقًا (بدون اتصال)"
 
 
 def test_match_and_serve_recorded_run_preserves_durations(tmp_path: Path):
@@ -251,12 +251,14 @@ def test_streamlit_app_replay_explicit_and_missing_creds(
     monkeypatch.setenv("GEMINI_API_KEY", "dummy")
     at = AppTest.from_file(str(ROOT / "app" / "streamlit_app.py"))
     at.run(timeout=30)
-    chain_btn = next(b for b in at.button if "سؤال إسنادي" in b.label)
+    chain_btn = next(b for b in at.button if "سند حديث" in b.label)
     chain_btn.click().run(timeout=30)
     assert not at.exception
     md = "\n".join(m.value for m in at.markdown)
-    assert "Recorded run — replayed" in md
-    assert "1.82 s" in md
+    assert "عرض مسجَّل مسبقًا (بدون اتصال)" in md
+    assert "Recorded run — replayed" not in md
+    assert "MUSNAD_DEMO_REPLAY" not in md
+    assert "1.82 ثانية" in md
     assert "عبد الله بن العباس" in md
 
     # 2) Automatic replay when no credentials exist
@@ -271,9 +273,8 @@ def test_streamlit_app_replay_explicit_and_missing_creds(
     text_btn.click().run(timeout=30)
     assert not at_auto.exception
     md_auto = "\n".join(m.value for m in at_auto.markdown)
-    assert "Recorded run — replayed" in md_auto
-    assert "اعتمادات" in md_auto
-    assert "4.12 s" in md_auto
+    assert "عرض مسجَّل مسبقًا (بدون اتصال)" in md_auto
+    assert "4.12 ثانية" in md_auto
 
 
 def test_real_recorded_runs_json_valid_if_present():

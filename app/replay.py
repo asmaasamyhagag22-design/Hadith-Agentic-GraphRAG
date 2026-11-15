@@ -11,6 +11,8 @@ from app.config import AppConfig
 from app.state import enrich_chunks_matn, has_live_credentials
 from src.router import normalize_for_routing
 
+REPLAY_BANNER_TEXT = "عرض مسجَّل مسبقًا (بدون اتصال)"
+
 
 def load_recorded_runs(replay_path: Path) -> list[dict[str, Any]]:
     """Load recorded demo runs with full execution traces from disk."""
@@ -70,33 +72,29 @@ def resolve_replay_mode(
     *,
     usage_capped_reason: str | None = None,
 ) -> tuple[bool, str | None]:
-    """Determine whether queries should use recorded replay mode and explain why."""
+    """Determine whether queries should use recorded replay mode and return pure Arabic banner copy."""
     if config.demo_replay:
-        return True, "تم تفعيل وضع العرض المسجّل (`MUSNAD_DEMO_REPLAY=1`)."
+        return True, REPLAY_BANNER_TEXT
 
     if usage_capped_reason:
-        return True, usage_capped_reason
+        return True, REPLAY_BANNER_TEXT
 
     creds_ok, _ = has_live_credentials(config)
     if not creds_ok:
-        return (
-            True,
-            "لا تتوفر اعتمادات API حية في هذه الجلسة، لذا تم التحويل تلقائيًا إلى العرض المسجّل.",
-        )
+        return True, REPLAY_BANNER_TEXT
 
     return False, None
 
 
 def make_replay_banner_reason(
-    base_reason: str,
+    base_reason: str | None = None,
     *,
     matched_question: str | None = None,
     exact_match: bool = True,
 ) -> str:
-    """Format replay explanation banner text cleanly."""
-    if exact_match or not matched_question:
-        return base_reason
-    return f"{base_reason} — أقرب سؤال مسجّل مطابق: «{matched_question}»."
+    """Return the single concise Arabic replay banner text for the main UI."""
+    del matched_question, exact_match  # kept for backward-compatible call signature
+    return base_reason.strip() if base_reason and base_reason.strip() == REPLAY_BANNER_TEXT else REPLAY_BANNER_TEXT
 
 
 def serve_recorded_run(

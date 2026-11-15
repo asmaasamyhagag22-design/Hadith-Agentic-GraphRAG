@@ -35,7 +35,7 @@ def _env_str(name: str, default: str) -> str:
 
 @dataclass(frozen=True)
 class ExampleQuestion:
-    """Preset button metadata displayed on the main query bar."""
+    """Preset chip metadata displayed beneath the question box."""
 
     key: str
     label: str
@@ -46,25 +46,25 @@ class ExampleQuestion:
 DEFAULT_EXAMPLES: tuple[ExampleQuestion, ...] = (
     ExampleQuestion(
         key="text",
-        label="سؤال متني: قيام رمضان",
+        label="فضل قيام رمضان",
         category="متن الحديث",
         question="ما فضل قيام شهر رمضان إيمانًا واحتسابًا؟",
     ),
     ExampleQuestion(
         key="chain",
-        label="سؤال إسنادي: حديث رقم 7294",
+        label="سند حديث 7294",
         category="سلسلة السند",
         question="من هم رواة حديث رقم 7294 وما عدد أسانيده؟",
     ),
     ExampleQuestion(
         key="refusal",
-        label="خارج المصادر: العملات الرقمية",
+        label="العملات الرقمية",
         category="الامتناع المنضبط",
         question="ما حكم تداول العملات الرقمية المشفرة والبيتكوين؟",
     ),
     ExampleQuestion(
         key="narrator",
-        label="سؤال راوٍ طبيعي: الدين النصيحة",
+        label="حديث الدين النصيحة",
         category="راوي الحديث",
         question="من الصحابي الذي روى حديث الدين النصيحة، وما سلسلة رواته عن الإمام مسلم؟",
     ),
@@ -110,10 +110,10 @@ def load_config() -> AppConfig:
         pipeline_mode = "upgraded"
 
     return AppConfig(
-        app_title=_env_str("MUSNAD_APP_TITLE", "مُسنَد — مساعد بحث صحيح مسلم"),
+        app_title=_env_str("MUSNAD_APP_TITLE", "مُسنَد"),
         app_subtitle=_env_str(
             "MUSNAD_APP_SUBTITLE",
-            "استرجاع موثَّق للمتون مع تحقيق حتمي لأسانيد الرواة من قاعدة بيانات السند",
+            "اسأل عن أي حديث في صحيح مسلم، وستحصل على الحديث وسنده من المصدر.",
         ),
         pipeline_mode=pipeline_mode,
         agent_mode=agent_mode,

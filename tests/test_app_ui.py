@@ -16,7 +16,9 @@ if str(ROOT) not in sys.path:
 
 from app.components import (
     extra_routes_label,
+    format_live_progress_line,
     format_narrator_chain_for_display,
+    render_answer_card_html,
     render_sanad_chain_html,
     render_trace_panel_html,
 )
@@ -75,11 +77,23 @@ def test_sanad_chip_ordering_extra_routes_and_trace_badges():
     )
     assert "narrator-chip--companion" in sanad_html
     assert "+3 طرق أخرى" in sanad_html
-    assert "source: SQLite sanad graph" in sanad_html
+    assert "source: SQLite sanad graph" not in sanad_html
     assert sanad_html.index("قتيبة بن سعيد") < sanad_html.index("أبو هريرة")
 
+    assert format_live_progress_line([]) == "تحديد نوع السؤال…"
+    assert format_live_progress_line([{"stage": "router"}]) == "تحديد نوع السؤال… البحث…"
+    assert (
+        format_live_progress_line([{"stage": "router"}, {"stage": "retrieval"}])
+        == "تحديد نوع السؤال… البحث… صياغة الإجابة…"
+    )
+    assert (
+        format_live_progress_line(
+            [{"stage": "router"}, {"stage": "retrieval"}, {"stage": "generation"}]
+        )
+        == "تحديد نوع السؤال… البحث… صياغة الإجابة… إرفاق السند"
+    )
     in_progress_html = render_trace_panel_html([], None, in_progress=True)
-    assert "جاري بدء التوجيه والبحث" in in_progress_html
+    assert "تحديد نوع السؤال…" in in_progress_html
 
     events = [
         {
@@ -120,17 +134,52 @@ def test_sanad_chip_ordering_extra_routes_and_trace_badges():
         },
     }
     trace_html = render_trace_panel_html(events, summary, in_progress=False)
-    assert trace_html.count("source: SQLite sanad graph") == 2
-    assert "1.25 s" in trace_html
-    assert "12.5 ms" in trace_html
+    assert trace_html.count('<span class="musnad-pill musnad-pill--ok">قاعدة بيانات السند</span>') == 2
+    assert "source: SQLite sanad graph" not in trace_html
+    assert "1.25 ثانية" in trace_html
+    assert "12.5 مللي ثانية" in trace_html
+
+
+def test_unified_answer_card_contains_answer_source_and_sanad():
+    card_html = render_answer_card_html(
+        {
+            "answer": "روى الحديث أبو بكر بن أبي شيبة عن ابن عباس.\n\n(المصدر: صحيح مسلم، حديث رقم 7306)",
+            "sanad": [
+                {
+                    "hadith_id": 7306,
+                    "status": "LINKED_WITH_RECORDED_ISNAD",
+                    "isnad_count": 2,
+                    "isnads": [
+                        [
+                            {"chain_position": 1, "name_ar_mapped": "عبد الله بن العباس"},
+                            {"chain_position": 2, "name_ar_mapped": "أبو بكر بن أبي شيبة"},
+                        ],
+                        [
+                            {"chain_position": 1, "name_ar_mapped": "عبد الله بن العباس"},
+                            {"chain_position": 2, "name_ar_mapped": "إسحاق بن راهويه"},
+                        ],
+                    ],
+                }
+            ],
+        },
+        refusal_text="لا يتضمن صحيح مسلم نصًا صريحًا يجيب عن هذا السؤال.",
+    )
+    assert card_html.count('class="musnad-answer-card"') == 1
+    assert "musnad-source-line" in card_html
+    assert "المصدر: صحيح مسلم، حديث رقم 7306" in card_html
+    assert "narrator-chip--companion" in card_html
+    assert "عرض بقية الطرق" in card_html
 
 
 def test_streamlit_app_example_and_error_handling(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
-    """Test warm-up, example click rendering, and graceful Arabic API error handling via AppTest."""
+    """Test minimal landing layout, example chip fill+submit, single answer card, and error handling."""
     assert len(DEFAULT_EXAMPLES) == 4
+    from app.usage_guard import InMemoryUsageBackend
+
+    monkeypatch.setattr("app.usage_guard._LOCAL_BACKEND", InMemoryUsageBackend())
 
     def _fake_warm_up(config, retrieval_mode, *, load_pipeline=True):
         return {
@@ -172,7 +221,7 @@ def test_streamlit_app_example_and_error_handling(
                 ms=2.0,
             )
         return {
-            "answer": "روى الحديث أبو بكر بن أبي شيبة عن عبد الله بن العباس (المصدر: صحيح مسلم، حديث رقم 7306).",
+            "answer": "روى الحديث أبو بكر بن أبي شيبة عن عبد الله بن العباس.\n\n(المصدر: صحيح مسلم، حديث رقم 7306)",
             "raw": "...",
             "chunks": [
                 {
@@ -208,20 +257,36 @@ def test_streamlit_app_example_and_error_handling(
     at = AppTest.from_file(str(ROOT / "app" / "streamlit_app.py"))
     at.run(timeout=30)
     assert not at.exception
-    assert len(at.button) >= 5  # 4 examples + submit
+    assert len(at.button) >= 5  # 4 example chips + 1 form submit
+    assert len(at.text_input) == 1
+    assert "اكتب سؤالك هنا… مثال: من روى حديث الدين النصيحة؟" == at.text_input[0].placeholder
     assert len(at.sidebar.selectbox) == 2
 
-    # Click chain example button cleanly
-    chain_btn = next(b for b in at.button if "سؤال إسنادي" in b.label)
+    initial_md = "\n".join(m.value for m in at.markdown)
+    assert "مُسنَد" in initial_md
+    assert "اسأل عن أي حديث في صحيح مسلم، وستحصل على الحديث وسنده من المصدر." in initial_md
+    assert "MUSNAD_" not in initial_md
+    assert "حدود الاستخدام المباشر:" in initial_md
+    assert len(at.expander) == 0  # Nothing else above or below fold before asking
+
+    # Click chain example chip cleanly -> fills input + submits
+    chain_btn = next(b for b in at.button if "سند حديث" in b.label)
     chain_btn.click().run(timeout=30)
     assert not at.exception
+    assert at.text_input[0].value == "من هم رواة حديث رقم 7294 وما عدد أسانيده؟"
 
     markdown_blob = "\n".join(m.value for m in at.markdown)
     assert "7306" in markdown_blob
     assert "+3 طرق أخرى" in markdown_blob
-    assert "source: SQLite sanad graph" in markdown_blob
     assert "عبد الله بن العباس" in markdown_blob
-    # Enriched matn inside expander
+    # Pure Arabic UI: no English technical badges or raw enum names in main flow
+    assert "source: SQLite sanad graph" not in markdown_blob
+    assert "valid_answer" not in markdown_blob
+    assert "LINKED_WITH_RECORDED_ISNAD" not in markdown_blob
+
+    exp_labels = [exp.label for exp in at.expander]
+    assert "الأحاديث المستخدمة" in exp_labels
+    assert "كيف وصل النظام للإجابة؟" in exp_labels
     expander_texts = "\n".join(m.value for exp in at.expander for m in exp.markdown)
     assert "متن مشكول كامل للحديث رقم 7306" in expander_texts
 
@@ -232,8 +297,8 @@ def test_streamlit_app_example_and_error_handling(
     monkeypatch.setattr(app_state, "answer_with_details", _fake_answer_error)
     caplog.clear()
     with caplog.at_level(logging.ERROR, logger="musnad"):
-        at.text_area[0].input("سؤال يسبب خطأ").run(timeout=30)
-        submit_btn = next(b for b in at.button if "اسأل" in b.label)
+        at.text_input[0].set_value("سؤال يسبب خطأ")
+        submit_btn = next(b for b in at.button if b.label == "اسأل")
         submit_btn.click().run(timeout=30)
 
     assert not at.exception
@@ -286,8 +351,9 @@ def test_step5_ui_fixes_markdown_lists_status_localization_and_bidi():
         summary=None,
         in_progress=False,
     )
-    assert '<code dir="ltr">[9142, 9138]</code>' in trace_html
+    assert "9142، 9138" in trace_html
     assert "إسناد واحد" in trace_html
+    assert "LINKED_WITH_RECORDED_ISNAD" not in trace_html
     assert '[data-testid="stSidebar"][data-collapsed="true"]' in _CSS
     assert '[data-testid="stAppViewContainer"]' in _CSS
 
@@ -303,6 +369,8 @@ def test_sanad_strip_single_line_rtl_and_minimal_toolbar_config():
     chip_rule = _CSS.split(".narrator-chip {", 1)[1].split("}", 1)[0]
     assert "flex: 0 0 auto" in chip_rule
     assert "white-space: nowrap" in chip_rule
+
+    assert '[data-testid="InputInstructions"]' in _CSS
 
     config_toml = (ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8")
     assert 'toolbarMode = "minimal"' in config_toml
@@ -364,8 +432,8 @@ def test_timeout_error_shows_arabic_retry_message_even_in_cloud_mode(
 
     caplog.clear()
     with caplog.at_level(logging.ERROR, logger="musnad"):
-        at.text_area[0].input("سؤال تتجاوز مهلة التوليد").run(timeout=30)
-        submit_btn = next(b for b in at.button if "اسأل" in b.label)
+        at.text_input[0].set_value("سؤال تتجاوز مهلة التوليد")
+        submit_btn = next(b for b in at.button if b.label == "اسأل")
         submit_btn.click().run(timeout=30)
 
     assert not at.exception

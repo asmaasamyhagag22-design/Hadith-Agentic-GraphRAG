@@ -235,8 +235,8 @@ def test_streamlit_switches_to_replay_when_session_or_daily_cap_hit(monkeypatch)
     monkeypatch.setattr("app.replay.load_recorded_runs", lambda _p: [fake_run])
 
     def _submit(app: AppTest, q: str) -> None:
-        app.text_area(key="question_input").set_value(q)
-        submit = [b for b in app.button if "اسأل" in b.label][0]
+        app.text_input(key="question_input").set_value(q)
+        submit = [b for b in app.button if b.label == "اسأل"][0]
         submit.click()
         app.run()
 
@@ -253,7 +253,7 @@ def test_streamlit_switches_to_replay_when_session_or_daily_cap_hit(monkeypatch)
     _submit(at, "سؤال ثانٍ يتجاوز حد الجلسة")
     assert not at.exception
     assert len(calls) == 1  # NOT incremented!
-    assert "Recorded run — replayed" in " ".join(x.value for x in at.info)
+    assert "عرض مسجَّل مسبقًا (بدون اتصال)" in "\n".join(m.value for m in at.markdown)
 
     # Fresh session when global daily cap (2) is reached after 1 more fresh query
     at2 = AppTest.from_file(str(REPO_ROOT / "app" / "streamlit_app.py"))
@@ -263,7 +263,7 @@ def test_streamlit_switches_to_replay_when_session_or_daily_cap_hit(monkeypatch)
 
     at3 = AppTest.from_file(str(REPO_ROOT / "app" / "streamlit_app.py"))
     at3.run()
-    assert "Recorded run — replayed" in " ".join(x.value for x in at3.info)
+    assert "عرض مسجَّل مسبقًا (بدون اتصال)" in "\n".join(m.value for m in at3.markdown)
     _submit(at3, "سؤال بعد نفاد السقف اليومي")
     assert not at3.exception
     assert len(calls) == 2

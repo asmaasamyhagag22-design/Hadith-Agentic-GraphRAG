@@ -1,4 +1,4 @@
-"""Reusable RTL UI rendering helpers for the Musnad Streamlit application."""
+"""Reusable minimalist RTL UI rendering helpers for the Musnad Streamlit application."""
 
 from __future__ import annotations
 
@@ -8,13 +8,49 @@ from typing import Any
 
 import streamlit as st
 
+from app.usage_guard import UsageDecision
+
 STAGE_LABELS: dict[str, tuple[str, str]] = {
-    "router": ("🧭", "توجيه المسار"),
-    "retrieval": ("🔎", "استرجاع المتون"),
-    "agent": ("🛠️", "أداة الوكيل"),
+    "router": ("🧭", "تحديد نوع السؤال"),
+    "retrieval": ("🔎", "البحث في المتون"),
+    "agent": ("🛠️", "الاستعلام الإسنادي"),
     "generation": ("✍️", "صياغة الإجابة"),
-    "validation": ("🛡️", "التحقق والتدقيق"),
-    "sanad": ("🔗", "إرفاق السند الحتمي"),
+    "validation": ("🛡️", "التحقق من التوثيق"),
+    "sanad": ("🔗", "إرفاق السند"),
+}
+
+_ROUTER_DECISION_AR: dict[str, str] = {
+    "chain": "سؤال إسنادي",
+    "text": "سؤال متني",
+}
+
+_ROUTER_SOURCE_AR: dict[str, str] = {
+    "regex": "تعرّف رقمي مباشر",
+    "classifier": "مصنّف المقاصد",
+    "v2_fallback": "مصنّف احتياطي",
+    "fallback": "تصنيف احتياطي",
+}
+
+_VALIDATION_AR: dict[str, str] = {
+    "valid_answer": "إجابة موثّقة برقم الحديث",
+    "valid_refusal": "امتناع منضبط عن الإجابة",
+    "missing_citation": "غياب إحالة رقم الحديث",
+    "out_of_context_citation": "إحالة خارج النتائج المسترجعة",
+    "mixed_refusal": "امتناع مختلط بنص إضافي",
+    "disallowed_narrators": "مراجعة أسماء الرواة",
+    "validation_failed_after_retry": "تعذّر التوثيق بعد إعادة الصياغة",
+    "model_refused": "عدم وجود إجابة في صحيح مسلم",
+    "empty_retrieval": "لم يُعثر على نصوص مطابقة",
+}
+
+SANAD_STATUS_ARABIC_UI: dict[str, str] = {
+    "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK": "الحديث موثق محليًا ولا يوجد ربط مقبول بسند المسند بعد",
+    "NO_RECORDED_ISNAD": "لا يوجد إسناد مسجّل في قاعدة البيانات",
+    "LINKED_WITH_ZERO_ISNADS": "الحديث مربوط ولا توجد له طرق مسجّلة",
+    "AMBIGUOUS_MIS_LINK": "توجد أكثر من مطابقة محتملة في قاعدة السند",
+    "GRAPH_UNAVAILABLE": "تعذّر الوصول إلى قاعدة بيانات السند",
+    "LINKED_WITH_RECORDED_ISNAD": "سند موثّق",
+    "INVALID_LOCAL_HADITH_ID": "رقم الحديث غير موجود في قاعدة بيانات السند",
 }
 
 _CSS = """
@@ -23,12 +59,27 @@ _CSS = """
 
 html, body, .stApp {
     font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+    background-color: #FAF8F3;
+    color: #1F1E1B;
 }
 
-/* Keep outer flex layout LTR so Streamlit's native sidebar collapse transform (-300px)
-   moves the collapsed sidebar offscreen left rather than sliding across the RTL page. */
+/* Keep outer flex container LTR so Streamlit's native sidebar collapse transform (-300px)
+   slides the collapsed sidebar offscreen cleanly instead of covering the RTL viewport. */
 [data-testid="stAppViewContainer"] {
     direction: ltr;
+    background-color: #FAF8F3;
+}
+
+[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+[data-testid="stAppDeployButton"] {
+    display: none !important;
+}
+
+[data-testid="InputInstructions"] {
+    display: none !important;
 }
 
 [data-testid="stMain"],
@@ -37,9 +88,16 @@ html, body, .stApp {
     text-align: right;
 }
 
+.stMainBlockContainer {
+    max-width: 1080px !important;
+    margin-inline: auto !important;
+    padding: 1.75rem 1.75rem 2.25rem 1.75rem !important;
+}
+
 [data-testid="stSidebar"] {
     direction: rtl;
     text-align: right;
+    background-color: #F4F1EA;
 }
 
 [data-testid="stSidebar"][data-collapsed="true"] {
@@ -57,75 +115,174 @@ html, body, .stApp {
 .stApp [data-testid="stExpander"] summary {
     direction: rtl;
     text-align: right;
+    font-weight: 600;
+    color: #292722;
 }
 
+/* Top minimal header: product title + one single subtitle line */
 .musnad-hero {
-    background: linear-gradient(135deg, #154728 0%, #1F6338 60%, #264F36 100%);
-    color: #FAF9F5;
-    padding: 1.25rem 1.5rem;
-    border-radius: 14px;
-    border: 1px solid #2E7D4B;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 16px rgba(21, 71, 40, 0.12);
+    max-width: 760px;
+    margin: 0 auto 1.15rem auto;
+    text-align: center;
+    padding: 0.25rem 0;
 }
 
-.musnad-hero h1 {
-    margin: 0 0 0.35rem 0;
-    font-size: 1.75rem;
+.musnad-title {
+    margin: 0 0 0.3rem 0;
+    font-family: 'Amiri', 'Noto Sans Arabic', serif;
+    font-size: 2.5rem;
     font-weight: 700;
-    color: #FFFFFF;
+    color: #154728;
+    line-height: 1.2;
 }
 
-.musnad-hero p {
+.musnad-subtitle {
     margin: 0;
-    font-size: 0.96rem;
-    color: #E7F3EC;
+    font-size: 1.02rem;
+    color: #4E4B42;
     line-height: 1.6;
 }
 
-.musnad-banner {
+/* Centered query form */
+.st-key-musnad_query_area {
+    max-width: 760px;
+    margin: 0 auto 0.25rem auto;
+}
+
+[data-testid="stForm"] {
+    max-width: 760px;
+    margin: 0 auto 0.2rem auto;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+[data-testid="stForm"] [data-testid="stTextInput"] input {
+    min-height: 3.35rem;
+    font-size: 1.03rem;
     padding: 0.7rem 1rem;
-    border-radius: 10px;
-    margin-bottom: 0.85rem;
-    font-size: 0.92rem;
+    border-radius: 14px;
+    border: 1.5px solid #D5CFC2;
+    background: #FFFFFF;
+    color: #1F1E1B;
+    box-shadow: 0 2px 10px rgba(21, 71, 40, 0.05);
+}
+
+[data-testid="stForm"] [data-testid="stTextInput"] input:focus {
+    border-color: #175934;
+    box-shadow: 0 0 0 3px rgba(23, 89, 52, 0.14);
+}
+
+[data-testid="stFormSubmitButton"] button {
+    min-height: 3.35rem;
+    border-radius: 14px;
+    font-size: 1.03rem;
+    font-weight: 700;
+    background: #175934;
+    border: 1px solid #175934;
+    color: #FFFFFF;
+}
+
+[data-testid="stFormSubmitButton"] button:hover {
+    background: #124628;
+    border-color: #124628;
+}
+
+/* 4 compact example chips centered directly below query box */
+.st-key-musnad_chips_row {
+    max-width: 760px;
+    margin: 0.15rem auto 1.15rem auto;
+}
+
+.st-key-musnad_chips_row [data-testid="stButton"] button {
+    min-height: 2.15rem;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.84rem;
     font-weight: 500;
+    background: #FFFFFF;
+    border: 1px solid #DCD6C8;
+    color: #35332D;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    white-space: nowrap;
+}
+
+.st-key-musnad_chips_row [data-testid="stButton"] button:hover {
+    border-color: #175934;
+    color: #154728;
+    background: #F4FAF6;
+}
+
+/* Results wrapper */
+.st-key-musnad_results_area {
+    max-width: 1020px;
+    margin: 0.3rem auto 0 auto;
+}
+
+/* Live single progress line while answering */
+.musnad-progress-line {
+    max-width: 760px;
+    margin: 0.5rem auto 1rem auto;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    background: #F1F7F3;
+    border: 1px solid #CBE3D4;
+    color: #154728;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: center;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.55rem;
 }
 
-.musnad-banner--replay {
-    background: #FEF3C7;
-    border: 1px solid #F59E0B;
+.musnad-progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #175934;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+/* Concise Arabic replay banner */
+.musnad-replay-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    max-width: 1020px;
+    margin: 0 auto 0.65rem auto;
+    padding: 0.48rem 0.9rem;
+    border-radius: 10px;
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
     color: #78350F;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-align: center;
 }
 
-.musnad-banner--warmup {
-    background: #ECFDF5;
-    border: 1px solid #6EE7B7;
-    color: #065F46;
-}
-
+/* Unified Single Answer Card (Answer + Source Line + Sanad Chips) */
 .musnad-answer-card {
     background: #FFFFFF;
-    border: 1px solid #E5E2D9;
-    border-right: 5px solid #1B5E20;
-    border-radius: 12px;
-    padding: 1.15rem 1.25rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgba(28, 25, 23, 0.04);
+    border: 1px solid #E5DFD2;
+    border-right: 4px solid #175934;
+    border-radius: 14px;
+    padding: 1.2rem 1.35rem;
+    margin-bottom: 0.8rem;
+    box-shadow: 0 2px 12px rgba(28, 25, 23, 0.04);
 }
 
 .musnad-answer-card--refusal {
     border-right-color: #B45309;
-    background: #FFFDF7;
+    background: #FFFDF8;
 }
 
 .musnad-answer-body {
     font-family: 'Amiri', 'Noto Sans Arabic', serif;
-    font-size: 1.22rem;
+    font-size: 1.2rem;
     line-height: 1.9;
     color: #1C1917;
     white-space: normal;
@@ -141,38 +298,71 @@ html, body, .stApp {
 
 .musnad-answer-list {
     margin: 0.35rem 0 0.65rem 0;
-    padding-inline-start: 2.1rem;
+    padding-inline-start: 2.0rem;
     list-style-position: outside;
 }
 
 .musnad-answer-list li {
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.32rem;
 }
 
 .musnad-answer-citation {
-    margin-top: 0.6rem;
-    font-size: 1.04rem;
     color: #166534;
     font-weight: 600;
+}
+
+.musnad-source-line {
+    margin-top: 0.75rem;
+    padding: 0.42rem 0.78rem;
+    border-radius: 8px;
+    background: #F4F9F5;
+    border: 1px solid #D3E8DA;
+    color: #154728;
+    font-size: 0.92rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Integrated Sanad Section inside the Answer Card */
+.musnad-sanad-section {
+    margin-top: 0.95rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid #EFECE3;
+}
+
+.musnad-sanad-block + .musnad-sanad-block {
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed #ECE7DC;
+}
+
+.sanad-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: 0.48rem;
+    font-size: 0.9rem;
+    color: #3F3D36;
 }
 
 .musnad-status-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.45rem;
-    margin-bottom: 0.65rem;
+    gap: 0.4rem;
     align-items: center;
 }
 
 .musnad-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.18rem 0.62rem;
+    gap: 0.25rem;
+    padding: 0.14rem 0.56rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 1.45;
 }
 
 .musnad-pill--ok {
@@ -187,47 +377,20 @@ html, body, .stApp {
     border: 1px solid #FCD34D;
 }
 
-.musnad-pill--db {
-    direction: ltr;
-    unicode-bidi: isolate;
-    background: #EFF6FF;
-    color: #1E40AF;
-    border: 1px solid #BFDBFE;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
 .musnad-pill--extra {
     background: #F5F3FF;
     color: #5B21B6;
     border: 1px solid #DDD6FE;
 }
 
-.sanad-card {
-    background: #FFFFFF;
-    border: 1px solid #E5E2D9;
-    border-radius: 12px;
-    padding: 0.9rem 1.1rem;
-    margin-bottom: 0.85rem;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.sanad-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.65rem;
-}
-
+/* Compact Narrator Chain Strip: all visible on one line at 1440 px */
 .sanad-strip {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.1rem 0.6rem 0.1rem;
+    align-items: stretch;
+    gap: 0.26rem;
+    padding: 0.25rem 0;
     overflow-x: auto;
     overflow-y: hidden;
     direction: rtl;
@@ -238,15 +401,26 @@ html, body, .stApp {
 .narrator-chip {
     display: inline-flex;
     flex-direction: column;
+    justify-content: center;
     align-items: flex-start;
     flex: 0 0 auto;
     white-space: nowrap;
-    padding: 0.4rem 0.72rem;
-    border-radius: 10px;
+    padding: 0.28rem 0.56rem;
+    border-radius: 9px;
     background: #F8F7F2;
-    border: 1px solid #D6D3C8;
-    font-size: 0.86rem;
+    border: 1px solid #DCD7CA;
+    font-size: 0.77rem;
+    line-height: 1.3;
     color: #292524;
+}
+
+@media (min-width: 900px) {
+    .narrator-chip {
+        flex: 0 1 auto;
+        white-space: normal;
+        max-width: 162px;
+        text-align: right;
+    }
 }
 
 .narrator-chip--teacher {
@@ -259,42 +433,81 @@ html, body, .stApp {
     border: 2px solid #D97706;
     color: #78350F;
     font-weight: 700;
-    box-shadow: 0 1px 6px rgba(217, 119, 6, 0.18);
+    box-shadow: 0 1px 5px rgba(217, 119, 6, 0.16);
 }
 
 .narrator-chip-role {
-    font-size: 0.68rem;
-    font-weight: 600;
-    opacity: 0.82;
-    margin-bottom: 0.1rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    opacity: 0.85;
+    margin-bottom: 0.06rem;
 }
 
 .sanad-arrow {
     flex: 0 0 auto;
+    align-self: center;
     color: #78716C;
     font-weight: 700;
-    font-size: 1rem;
-    padding: 0 0.15rem;
+    font-size: 0.84rem;
+    padding: 0 0.04rem;
+}
+
+.sanad-extra-details {
+    margin-top: 0.45rem;
+    font-size: 0.84rem;
+    color: #44403C;
+}
+
+.sanad-extra-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: #154728;
+    list-style-position: inside;
+}
+
+.sanad-extra-route {
+    margin: 0.35rem 0 0 0;
+    padding: 0.38rem 0.6rem;
+    background: #FAF8F3;
+    border-radius: 8px;
+    line-height: 1.6;
+}
+
+/* Matn cards inside collapsed "الأحاديث المستخدمة" expander */
+.matn-item {
+    margin-bottom: 0.8rem;
+}
+
+.matn-item:last-child {
+    margin-bottom: 0;
+}
+
+.matn-item-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #154728;
+    margin-bottom: 0.3rem;
 }
 
 .matn-box {
     font-family: 'Amiri', 'Noto Sans Arabic', serif;
-    font-size: 1.16rem;
-    line-height: 2.0;
+    font-size: 1.12rem;
+    line-height: 1.95;
     color: #1C1917;
     background: #FCFBF8;
-    padding: 0.85rem 1rem;
+    padding: 0.78rem 0.95rem;
     border-radius: 8px;
     border: 1px solid #EAE6DC;
     white-space: pre-wrap;
 }
 
+/* Arabic trace timeline inside collapsed "كيف وصل النظام للإجابة؟" expander */
 .trace-card {
     background: #FFFFFF;
     border: 1px solid #E5E2D9;
     border-radius: 10px;
-    padding: 0.7rem 0.9rem;
-    margin-bottom: 0.55rem;
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.5rem;
 }
 
 .trace-card-head {
@@ -303,23 +516,20 @@ html, body, .stApp {
     align-items: center;
     flex-wrap: wrap;
     gap: 0.4rem;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.3rem;
 }
 
 .trace-stage-title {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: #1C1917;
 }
 
 .trace-dur-pill {
-    direction: ltr;
-    unicode-bidi: isolate;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.76rem;
     background: #F5F5F4;
     border: 1px solid #E7E5E4;
-    padding: 0.1rem 0.5rem;
+    padding: 0.08rem 0.52rem;
     border-radius: 999px;
     color: #44403C;
 }
@@ -335,7 +545,7 @@ html, body, .stApp {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.45rem;
-    margin-top: 0.65rem;
+    margin-top: 0.6rem;
 }
 
 .trace-metric {
@@ -352,22 +562,75 @@ html, body, .stApp {
 }
 
 .trace-metric-value {
-    direction: ltr;
-    unicode-bidi: isolate;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: #154728;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .musnad-error-card {
     background: #FEF2F2;
     border: 1px solid #FCA5A5;
-    border-right: 5px solid #DC2626;
+    border-right: 4px solid #DC2626;
     border-radius: 10px;
-    padding: 0.95rem 1.1rem;
+    padding: 0.9rem 1.05rem;
     color: #7F1D1D;
-    margin-bottom: 0.75rem;
+    margin: 0.5rem auto 0.75rem auto;
+    max-width: 760px;
+}
+
+.musnad-footer {
+    max-width: 760px;
+    margin: 1.5rem auto 0 auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid #ECE7DC;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #6B675E;
+    line-height: 1.6;
+}
+
+/* Mobile 375 px adaptations */
+@media (max-width: 640px) {
+    .stMainBlockContainer {
+        padding: 1rem 0.75rem 1.75rem 0.75rem !important;
+    }
+
+    .musnad-hero {
+        margin-bottom: 0.85rem;
+    }
+
+    .musnad-title {
+        font-size: 1.95rem;
+    }
+
+    .musnad-subtitle {
+        font-size: 0.92rem;
+    }
+
+    .st-key-musnad_chips_row [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 0.4rem !important;
+    }
+
+    .st-key-musnad_chips_row [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 0.4rem) !important;
+        min-width: calc(50% - 0.4rem) !important;
+        width: auto !important;
+    }
+
+    .musnad-answer-card {
+        padding: 0.95rem 1rem;
+    }
+
+    .musnad-answer-body {
+        font-size: 1.12rem;
+    }
+
+    .trace-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 </style>
 """
@@ -379,11 +642,34 @@ def inject_rtl_styles() -> None:
 
 
 def format_duration_ms(duration_ms: float | int | None) -> str:
-    """Format millisecond duration concisely for trace badges."""
+    """Format millisecond duration cleanly in Arabic."""
     val = float(duration_ms or 0.0)
     if val >= 1000.0:
-        return f"{val / 1000.0:.2f} s"
-    return f"{val:.1f} ms"
+        return f"{val / 1000.0:.2f} ثانية"
+    return f"{val:.1f} مللي ثانية"
+
+
+def format_live_progress_line(events: list[dict[str, Any]]) -> str:
+    """Build single-line Arabic step-by-step progress text from live events."""
+    seen = {str(ev.get("stage") or "") for ev in events}
+    if any(s in seen for s in ("generation", "validation", "sanad")):
+        return "تحديد نوع السؤال… البحث… صياغة الإجابة… إرفاق السند"
+    if "retrieval" in seen or "agent" in seen:
+        return "تحديد نوع السؤال… البحث… صياغة الإجابة…"
+    if "router" in seen:
+        return "تحديد نوع السؤال… البحث…"
+    return "تحديد نوع السؤال…"
+
+
+def render_live_progress_html(events: list[dict[str, Any]]) -> str:
+    """Render concise single-line Arabic progress indicator while answering."""
+    text = format_live_progress_line(events)
+    return (
+        f'<div class="musnad-progress-line" role="status" aria-live="polite">'
+        f'<span class="musnad-progress-dot" aria-hidden="true"></span>'
+        f'<span>{html.escape(text)}</span>'
+        f'</div>'
+    )
 
 
 def format_narrator_chain_for_display(
@@ -414,7 +700,7 @@ def format_narrator_chain_for_display(
             role_label = "شيخ مسلم"
         else:
             role = "narrator"
-            role_label = f"الطبقة {pos}" if pos > 0 else "راوٍ"
+            role_label = f"الطبقة {pos}" if pos > 0 else ""
         items.append(
             {
                 "name": name,
@@ -435,51 +721,30 @@ def extra_routes_label(isnad_count: int, shown_count: int = 1) -> str:
 
 
 def render_hero(title: str, subtitle: str) -> None:
-    """Render top RTL hero banner."""
+    """Render minimal top header with product name and one short subtitle line."""
     st.markdown(
         f"""
-        <div class="musnad-hero">
-            <h1>{html.escape(title)}</h1>
-            <p>{html.escape(subtitle)}</p>
-        </div>
+        <header class="musnad-hero">
+            <h1 class="musnad-title">{html.escape(title)}</h1>
+            <p class="musnad-subtitle">{html.escape(subtitle)}</p>
+        </header>
         """,
         unsafe_allow_html=True,
     )
-
-
-def render_how_it_works() -> None:
-    """Render concise Arabic 'how it works' expander."""
-    with st.expander("كيف يعمل مُسنَد؟", expanded=False):
-        st.markdown(
-            """
-1. **موجّه المسار (`Intent Router v3`)**: يفرز السؤال تلقائيًا بين الأسئلة المتنية/الفقهية وأسئلة الرواة والأسانيد.
-2. **الاسترجاع الهجين المُحسَّن (`HyDE + Gemini Embeddings`)**: يوسّع السؤال المتني دلاليًا ويبحث في متون *صحيح مسلم* الموثّقة.
-3. **وكيل السند الحتمي (`Tool Agent + MIS Sanad Graph`)**: لأسئلة الرواة والسلاسل، يستعلم الوكيل مباشرة من قاعدة بيانات **SQLite** للأسانيد، مع التحقق الصارم من عدم ذكر أي راوٍ غير وارد في السند.
-4. **التحقق وإرفاق السند**: تُفحَص كل إحالة (`المصدر: صحيح مسلم، حديث رقم ...`) وتُربط سلاسل الرواة حتميًا من شيخ الإمام مسلم حتى الصحابي الجليل، أو يمتنع النظام بنص صريح إذا لم تكفِ المصادر.
-            """.strip()
-        )
 
 
 _BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
 _CODE_SPAN_RE = re.compile(r"`([^`]+)`")
 _ORDERED_LIST_RE = re.compile(r"^\d+[\.\)]\s+(.*)$")
 _BULLET_LIST_RE = re.compile(r"^[-*•]\s+(.*)$")
-_CITATION_LINE_RE = re.compile(r"^\(المصدر:\s*.+\)$")
-
-SANAD_STATUS_ARABIC_UI: dict[str, str] = {
-    "VALID_LOCAL_HADITH_BUT_NO_ACCEPTED_MIS_LINK": "الحديث موثق محليًا ولا يوجد ربط مقبول بسند المسند بعد",
-    "NO_RECORDED_ISNAD": "لا يوجد إسناد مسجّل في قاعدة البيانات",
-    "LINKED_WITH_ZERO_ISNADS": "الحديث مربوط ولا توجد له طرق مسجّلة",
-    "AMBIGUOUS_MIS_LINK": "توجد أكثر من مطابقة محتملة في قاعدة السند",
-    "GRAPH_UNAVAILABLE": "تعذّر الوصول إلى قاعدة بيانات السند",
-}
+_CITATION_LINE_RE = re.compile(r"^\(المصدر:\s*(.+)\)$")
 
 
 def _format_inline_markdown_html(text: str) -> str:
-    """Escape HTML safely and render **bold** and `code` spans without CommonMark leaks."""
+    """Escape HTML safely and render **bold** and inline spans without CommonMark leaks."""
     escaped = html.escape(text)
     escaped = _BOLD_RE.sub(r"<strong>\1</strong>", escaped)
-    return _CODE_SPAN_RE.sub(r'<code dir="ltr">\1</code>', escaped)
+    return _CODE_SPAN_RE.sub(r"<span>\1</span>", escaped)
 
 
 def _format_isnad_count_ar(cnt: int) -> str:
@@ -537,8 +802,55 @@ def format_answer_body_html(answer: str) -> str:
     return "".join(blocks) if blocks else f'<p class="musnad-answer-para">{html.escape(answer)}</p>'
 
 
-def render_sanad_chain_html(sanad_entry: dict[str, Any]) -> str:
-    """Build escaped HTML card with horizontal narrator chips from Muslim's teacher to Companion."""
+def _extract_answer_and_source(
+    answer: str,
+    result: dict[str, Any],
+    *,
+    is_refusal: bool,
+) -> tuple[str, str]:
+    """Separate trailing standalone citation line into a clean Arabic source line."""
+    lines = (answer or "").replace("\r\n", "\n").splitlines()
+    while lines and not lines[-1].strip():
+        lines.pop()
+
+    source_line = ""
+    if lines:
+        last = lines[-1].strip()
+        m_full = _CITATION_LINE_RE.match(last)
+        if m_full:
+            source_line = f"المصدر: {m_full.group(1).strip()}"
+            lines.pop()
+            while lines and not lines[-1].strip():
+                lines.pop()
+        elif last.startswith("المصدر:"):
+            source_line = last
+            lines.pop()
+            while lines and not lines[-1].strip():
+                lines.pop()
+
+    if not source_line and not is_refusal:
+        inline_match = re.search(r"\(المصدر:\s*([^()]+)\)\s*[.؟!]?\s*$", answer or "")
+        if inline_match:
+            source_line = f"المصدر: {inline_match.group(1).strip()}"
+        else:
+            sanad_ids = [
+                str(entry.get("hadith_id"))
+                for entry in (result.get("sanad") or [])
+                if entry.get("hadith_id") is not None
+            ]
+            if sanad_ids:
+                source_line = f"المصدر: صحيح مسلم، حديث رقم {', '.join(sanad_ids)}"
+
+    body_text = "\n".join(lines).strip() or answer.strip()
+    return body_text, source_line
+
+
+def render_sanad_chain_html(
+    sanad_entry: dict[str, Any],
+    *,
+    compact_header: bool = True,
+) -> str:
+    """Build compact escaped Arabic sanad strip from Muslim's teacher to Companion."""
     hadith_id = html.escape(str(sanad_entry.get("hadith_id", "؟")))
     status = str(sanad_entry.get("status") or "")
     isnads = list(sanad_entry.get("isnads") or [])
@@ -550,19 +862,18 @@ def render_sanad_chain_html(sanad_entry: dict[str, Any]) -> str:
         if extra_lbl
         else ""
     )
-    source_badge = '<span class="musnad-pill musnad-pill--db">source: SQLite sanad graph</span>'
+    heading = "سند الحديث" if compact_header else f"سند حديث رقم {hadith_id}"
 
     if not isnads:
         status_ar = SANAD_STATUS_ARABIC_UI.get(
-            status, status or "لا يوجد إسناد مسجل في قاعدة البيانات"
+            status, "لا يوجد إسناد مسجّل في قاعدة البيانات"
         )
         return (
-            f'<div class="sanad-card">'
+            f'<div class="musnad-sanad-block">'
             f'<div class="sanad-card-header">'
-            f'<strong>سند حديث رقم {hadith_id}</strong>'
-            f'<div class="musnad-status-row">{source_badge}</div>'
+            f'<strong>{html.escape(heading)}</strong>'
             f'</div>'
-            f'<div class="trace-detail">الحالة: {html.escape(status_ar)}</div>'
+            f'<div class="trace-detail">{html.escape(status_ar)}</div>'
             f'</div>'
         )
 
@@ -572,24 +883,89 @@ def render_sanad_chain_html(sanad_entry: dict[str, Any]) -> str:
         if idx > 0:
             chip_parts.append('<span class="sanad-arrow" aria-hidden="true">←</span>')
         cls = "narrator-chip"
+        role_html = ""
         if chip["role"] == "companion":
             cls += " narrator-chip--companion"
+            role_html = '<span class="narrator-chip-role">الصحابي</span>'
         elif chip["role"] == "teacher":
             cls += " narrator-chip--teacher"
+            role_html = '<span class="narrator-chip-role">شيخ مسلم</span>'
         chip_parts.append(
-            f'<span class="{cls}">'
-            f'<span class="narrator-chip-role">{html.escape(chip["role_label"])}</span>'
+            f'<span class="{cls}" title="{html.escape(chip["name"])}">'
+            f'{role_html}'
             f'<span>{html.escape(chip["name"])}</span>'
             f'</span>'
         )
 
+    extra_routes_html = ""
+    if len(isnads) > 1:
+        route_lines: list[str] = []
+        for r_idx, route in enumerate(isnads[1:], start=2):
+            ordered = format_narrator_chain_for_display(route)
+            names = " ← ".join(html.escape(item["name"]) for item in ordered)
+            route_lines.append(
+                f'<div class="sanad-extra-route"><strong>الطريق {r_idx}:</strong> {names}</div>'
+            )
+        summary_txt = f"عرض بقية الطرق ({extra_lbl})" if extra_lbl else f"عرض بقية الطرق ({len(isnads) - 1})"
+        extra_routes_html = (
+            f'<details class="sanad-extra-details">'
+            f'<summary>{html.escape(summary_txt)}</summary>'
+            f'{"".join(route_lines)}'
+            f'</details>'
+        )
+
     return (
-        f'<div class="sanad-card">'
+        f'<div class="musnad-sanad-block">'
         f'<div class="sanad-card-header">'
-        f'<strong>سند حديث رقم {hadith_id} (من شيخ مسلم إلى الصحابي)</strong>'
-        f'<div class="musnad-status-row">{extra_html}{source_badge}</div>'
+        f'<strong>{html.escape(heading)}</strong>'
+        f'<div class="musnad-status-row">{extra_html}</div>'
         f'</div>'
         f'<div class="sanad-strip">{"".join(chip_parts)}</div>'
+        f'{extra_routes_html}'
+        f'</div>'
+    )
+
+
+def render_answer_card_html(
+    result: dict[str, Any],
+    *,
+    refusal_text: str,
+) -> str:
+    """Build ONE unified card HTML containing the answer, source line, and compact narrator strip."""
+    answer = str(result.get("answer") or refusal_text)
+    is_refusal = answer.strip() == refusal_text.strip()
+    body_text, source_line = _extract_answer_and_source(answer, result, is_refusal=is_refusal)
+
+    body_html = format_answer_body_html(body_text)
+    source_html = (
+        f'<div class="musnad-source-line">{html.escape(source_line)}</div>'
+        if source_line
+        else ""
+    )
+
+    sanad_entries = list(result.get("sanad") or [])
+    sanad_html = ""
+    if sanad_entries:
+        multi = len(sanad_entries) > 1
+        blocks = "".join(
+            render_sanad_chain_html(entry, compact_header=not multi)
+            for entry in sanad_entries
+        )
+        sanad_html = f'<div class="musnad-sanad-section">{blocks}</div>'
+
+    card_cls = "musnad-answer-card musnad-answer-card--refusal" if is_refusal else "musnad-answer-card"
+    refusal_pill = (
+        '<div class="musnad-status-row"><span class="musnad-pill musnad-pill--warn">لا تتوفر إجابة صريحة في صحيح مسلم</span></div>'
+        if is_refusal
+        else ""
+    )
+
+    return (
+        f'<div class="{card_cls}">'
+        f'{refusal_pill}'
+        f'<div class="musnad-answer-body">{body_html}</div>'
+        f'{source_html}'
+        f'{sanad_html}'
         f'</div>'
     )
 
@@ -600,172 +976,125 @@ def render_answer_panel(
     refusal_text: str,
     replay_reason: str | None = None,
 ) -> None:
-    """Render replay banner (if active), answer card, horizontal sanad chips, and retrieved matns."""
+    """Render concise Arabic replay notice, unified Answer Card, and collapsed hadiths expander."""
     if replay_reason:
         st.markdown(
-            f'<div class="musnad-banner musnad-banner--replay">'
-            f'<strong>Recorded run — replayed</strong>'
-            f'<span>{_format_inline_markdown_html(replay_reason)}</span>'
-            f'</div>',
+            '<div class="musnad-replay-line">عرض مسجَّل مسبقًا (بدون اتصال)</div>',
             unsafe_allow_html=True,
         )
 
-    answer = str(result.get("answer") or refusal_text)
-    is_refusal = answer.strip() == refusal_text.strip()
-
-    pills: list[str] = []
-    if is_refusal:
-        pills.append('<span class="musnad-pill musnad-pill--warn">امتناع منضبط عن الإجابة</span>')
-    else:
-        pills.append('<span class="musnad-pill musnad-pill--ok">إجابة موثّقة من صحيح مسلم</span>')
-
-    if result.get("agent_used"):
-        pills.append('<span class="musnad-pill musnad-pill--db">مسار الوكيل الإسنادي</span>')
-    if result.get("agent_fallback"):
-        pills.append('<span class="musnad-pill musnad-pill--warn">تحويل احتياطي لمسار المتون</span>')
-    if result.get("regenerated"):
-        pills.append('<span class="musnad-pill musnad-pill--warn">تمت إعادة الصياغة بعد فحص التوثيق</span>')
-
-    card_cls = "musnad-answer-card musnad-answer-card--refusal" if is_refusal else "musnad-answer-card"
-    body_html = format_answer_body_html(answer)
     st.markdown(
-        f'<div class="{card_cls}">'
-        f'<div class="musnad-status-row">{"".join(pills)}</div>'
-        f'<div class="musnad-answer-body">{body_html}</div>'
-        f'</div>',
+        render_answer_card_html(result, refusal_text=refusal_text),
         unsafe_allow_html=True,
     )
 
-    sanad_entries = list(result.get("sanad") or [])
-    if sanad_entries:
-        st.markdown("### سلاسل الإسناد الموثّقة")
-        for entry in sanad_entries:
-            st.markdown(render_sanad_chain_html(entry), unsafe_allow_html=True)
-            isnads = list(entry.get("isnads") or [])
-            if len(isnads) > 1:
-                hid = entry.get("hadith_id", "؟")
-                with st.expander(f"عرض بقية طرق حديث رقم {hid} ({len(isnads)} طرق مسجلة)", expanded=False):
-                    for route_idx, route in enumerate(isnads[1:], start=2):
-                        ordered = format_narrator_chain_for_display(route)
-                        names = " ← ".join(item["name"] for item in ordered)
-                        st.markdown(f"**الطريق {route_idx}:** {names}")
-    elif result.get("sanad_error"):
-        st.warning(f"تعذّر إرفاق السند الحتمي: {result['sanad_error']}")
+    if result.get("sanad_error"):
+        st.caption("تعذّر إرفاق سلسلة السند في هذا الطلب.")
 
     chunks = list(result.get("chunks") or [])
     if chunks:
-        st.markdown("### الأحاديث المسترجعة")
-        for idx, chunk in enumerate(chunks, start=1):
-            hid = chunk.get("hadith_id", "؟")
-            meta = chunk.get("metadata") or {}
-            chapter = meta.get("chapter_arabic") or meta.get("chapter_ar") or "غير مبوّب"
-            rank = chunk.get("rank", idx)
-            matn = str(chunk.get("text") or chunk.get("matn") or "").strip()
-            with st.expander(f"[{rank}] حديث رقم {hid} — {chapter}", expanded=False):
-                if matn:
-                    st.markdown(
-                        f'<div class="matn-box">{html.escape(matn)}</div>',
-                        unsafe_allow_html=True,
+        with st.expander("الأحاديث المستخدمة", expanded=False):
+            for idx, chunk in enumerate(chunks, start=1):
+                hid = html.escape(str(chunk.get("hadith_id", "؟")))
+                meta = chunk.get("metadata") or {}
+                chapter = html.escape(
+                    str(meta.get("chapter_arabic") or meta.get("chapter_ar") or "غير مبوّب")
+                )
+                matn = str(chunk.get("text") or chunk.get("matn") or "").strip()
+                st.markdown(
+                    f'<div class="matn-item">'
+                    f'<div class="matn-item-title">{idx}. حديث رقم {hid} — {chapter}</div>'
+                    + (
+                        f'<div class="matn-box">{html.escape(matn)}</div>'
+                        if matn
+                        else '<div class="trace-detail">تم الوصول لهذا الحديث مباشرة برقم الحديث.</div>'
                     )
-                else:
-                    st.caption("تم الوصول لهذا الحديث مباشرة عبر رقم الحديث في جدول السند.")
+                    + '</div>',
+                    unsafe_allow_html=True,
+                )
 
 
-def _summarize_trace_event(stage: str, data: dict[str, Any]) -> tuple[str, bool]:
-    """Build concise Arabic description + SQLite chain badge flag for one trace event."""
-    show_sqlite_badge = False
+def _summarize_trace_event(stage: str, data: dict[str, Any]) -> str:
+    """Build pure-Arabic step description for the collapsed trace timeline."""
     if stage == "router":
-        decision = data.get("decision") or "—"
-        source = data.get("source") or "—"
+        raw_dec = str(data.get("decision") or "")
+        raw_src = str(data.get("source") or "")
+        decision = _ROUTER_DECISION_AR.get(raw_dec, "مسار الإجابة")
+        source = _ROUTER_SOURCE_AR.get(raw_src, "التوجيه التلقائي")
         prob = data.get("probability")
-        prob_str = f" | احتمال السند: {prob:.3f}" if isinstance(prob, (int, float)) else ""
-        return f"القرار: {decision} | المصدر: {source}{prob_str}", False
+        prob_str = f" | نسبة السند: {prob:.0%}" if isinstance(prob, (int, float)) else ""
+        return html.escape(f"المسار: {decision} | الآلية: {source}{prob_str}")
 
     if stage == "retrieval":
         top5 = data.get("top5") or []
-        ids_str = ", ".join(str(item.get("hadith_id")) for item in top5) or "لا يوجد"
+        ids_str = "، ".join(str(item.get("hadith_id")) for item in top5) or "لا يوجد"
         hyde = str(data.get("hyde_text") or "").strip()
         hyde_snippet = (hyde[:110] + "…") if len(hyde) > 110 else hyde
-        parts = [f'أعلى 5 أحاديث: <code dir="ltr">[{html.escape(ids_str)}]</code>']
+        parts = [f"الأحاديث المسترجعة: {html.escape(ids_str)}"]
         if hyde_snippet:
-            parts.append(f"HyDE: {html.escape(hyde_snippet)}")
+            parts.append(f"صياغة بحثية مساعدة: {html.escape(hyde_snippet)}")
         if data.get("legacy_fallback"):
-            parts.append(html.escape("⚠️ تحويل لمسار الاسترجاع المحلي (legacy_fallback)"))
-        return "<br/>".join(parts), False
+            parts.append("تم التحويل لمسار الاسترجاع المحلي")
+        return "<br/>".join(parts)
 
     if stage == "agent":
         if data.get("agent_fallback"):
-            reason = data.get("fallback_reason") or "غير محدد"
-            return html.escape(f"⚠️ تعذّر الوكيل وتم التحويل الاحتياطي: {reason}"), False
+            return "تعذّر مسار الوكيل الإسنادي وتم التحويل إلى البحث المباشر في المتون."
         tool_name = str(data.get("name") or "")
         args = data.get("arguments") or {}
         returned = data.get("returned_ids") or []
         if tool_name == "get_isnad":
-            show_sqlite_badge = True
+            hid = args.get("hadith_id") or (returned[0] if returned else "؟")
             cnt = int(data.get("isnad_count", 0) or 0)
-            return (
-                f'الأداة: <code dir="ltr">get_isnad({html.escape(str(args))})</code> → '
-                f'أُعيد: <code dir="ltr">{html.escape(str(returned))}</code> | '
-                f'عدد الأسانيد: {html.escape(_format_isnad_count_ar(cnt))}',
-                show_sqlite_badge,
+            return html.escape(
+                f"الاستعلام من قاعدة بيانات السند عن حديث رقم {hid} ({_format_isnad_count_ar(cnt)})"
             )
-        return (
-            f'الأداة: <code dir="ltr">{html.escape(tool_name)}({html.escape(str(args))})</code> → '
-            f'أُعيد: <code dir="ltr">{html.escape(str(returned))}</code>',
-            False,
-        )
+        if tool_name == "search_hadith":
+            query = str(args.get("query") or "").strip()
+            ids_str = "، ".join(str(x) for x in returned) or "لا يوجد"
+            return html.escape(
+                f"البحث في متون صحيح مسلم عن: «{query}» — أُعيدت الأحاديث: {ids_str}"
+            )
+        return html.escape(f"استعلام مساعد أعاد {len(returned)} نتائج")
 
     if stage == "generation":
-        model = data.get("model") or "—"
-        attempts = data.get("attempts") or 1
+        attempts = int(data.get("attempts") or 1)
         timeout_s = data.get("timeout_s")
-        timeout_label = f"{float(timeout_s):g} ث" if isinstance(timeout_s, (int, float)) else "45 ث"
+        timeout_label = f"{float(timeout_s):g} ثانية" if isinstance(timeout_s, (int, float)) else "45 ثانية"
         if data.get("event_kind") == "timeout_retry":
-            return (
-                html.escape(
-                    f"⏱️ انتهت مهلة التوليد ({model}) بعد {timeout_label} في المحاولة الأولى — جاري إعادة المحاولة مرة واحدة…"
-                ),
-                False,
+            return html.escape(
+                f"انتهت مهلة التوليد بعد {timeout_label} في المحاولة الأولى — جاري إعادة المحاولة…"
             )
         if data.get("timed_out"):
-            return (
-                html.escape(
-                    f"⏱️ انتهت مهلة التوليد ({model}) بعد {timeout_label} في المحاولتين ({attempts} محاولات) — يُرجى إعادة المحاولة."
-                ),
-                False,
+            return html.escape(
+                f"انتهت مهلة التوليد بعد {timeout_label} في المحاولتين ({attempts} محاولات) — يُرجى إعادة المحاولة."
             )
         if data.get("timeout_retries"):
-            return (
-                html.escape(
-                    f"النموذج: {model} | عدد المحاولات: {attempts} (نجحت بعد إعادة محاولة انتهاء المهلة)"
-                ),
-                False,
+            return html.escape(
+                f"عدد المحاولات: {attempts} (نجحت بعد إعادة محاولة انتهاء المهلة)"
             )
-        return html.escape(f"النموذج: {model} | عدد المحاولات: {attempts}"), False
+        return html.escape(f"عدد المحاولات: {attempts}")
 
     if stage == "validation":
-        status = data.get("status") or "—"
-        pieces = [f"الحالة: {status}"]
+        raw_status = str(data.get("status") or "")
+        status_ar = _VALIDATION_AR.get(raw_status, "تم الفحص")
+        pieces = [f"النتيجة: {status_ar}"]
         if data.get("retry_reason"):
-            pieces.append(f"سبب الإعادة: {data['retry_reason']}")
+            r_raw = str(data["retry_reason"])
+            pieces.append(f"سبب إعادة الصياغة: {_VALIDATION_AR.get(r_raw, 'تدقيق الإحالة')}")
         if data.get("refusal_reason"):
-            pieces.append(f"سبب الامتناع: {data['refusal_reason']}")
-        return html.escape(" | ".join(pieces)), False
+            ref_raw = str(data["refusal_reason"])
+            pieces.append(f"السبب: {_VALIDATION_AR.get(ref_raw, 'عدم كفاية المصدر')}")
+        return html.escape(" | ".join(pieces))
 
     if stage == "sanad":
-        show_sqlite_badge = True
         hid = data.get("hadith_id")
-        status = str(data.get("status") or "—")
-        status_ar = SANAD_STATUS_ARABIC_UI.get(status, status)
+        status = str(data.get("status") or "")
+        status_ar = SANAD_STATUS_ARABIC_UI.get(status, "سند موثّق")
         cnt = int(data.get("isnad_count", 0) or 0)
-        ms = data.get("ms")
-        ms_str = f" | {ms} ms" if ms is not None else ""
-        return (
-            html.escape(f"حديث {hid}: {status_ar} | {_format_isnad_count_ar(cnt)}{ms_str}"),
-            show_sqlite_badge,
-        )
+        return html.escape(f"حديث {hid}: {status_ar} | {_format_isnad_count_ar(cnt)}")
 
-    return html.escape(str(data)), False
+    return "خطوة تنفيذية"
 
 
 def render_trace_panel_html(
@@ -774,39 +1103,31 @@ def render_trace_panel_html(
     *,
     in_progress: bool = False,
 ) -> str:
-    """Build full HTML for the progressive execution trace panel."""
+    """Build pure-Arabic HTML timeline for the collapsed 'كيف وصل النظام للإجابة؟' expander."""
+    if in_progress:
+        return render_live_progress_html(events)
+
     blocks: list[str] = []
-
-    if in_progress and not events:
-        blocks.append(
-            '<div class="trace-card"><div class="trace-stage-title">⏳ جاري بدء التوجيه والبحث…</div>'
-            '<div class="trace-detail">يتم تجهيز الطلب وإرسال مراحل التنفيذ فور ورودها.</div></div>'
-        )
-
     for ev in events:
         stage = str(ev.get("stage") or "")
         data = dict(ev.get("data") or {})
-        icon, title_ar = STAGE_LABELS.get(stage, ("•", stage))
+        icon, title_ar = STAGE_LABELS.get(stage, ("•", "مرحلة تنفيذ"))
         dur_str = format_duration_ms(ev.get("duration_ms"))
-        detail_html, is_chain_db = _summarize_trace_event(stage, data)
+        detail_html = _summarize_trace_event(stage, data)
+        is_chain_db = stage == "sanad" or (stage == "agent" and data.get("name") == "get_isnad")
         db_badge = (
-            '<span class="musnad-pill musnad-pill--db">source: SQLite sanad graph</span>'
+            '<span class="musnad-pill musnad-pill--ok">قاعدة بيانات السند</span>'
             if is_chain_db
             else ""
         )
         blocks.append(
             f'<div class="trace-card">'
             f'<div class="trace-card-head">'
-            f'<span class="trace-stage-title">{icon} {html.escape(title_ar)} <code>{html.escape(stage)}</code></span>'
-            f'<div class="musnad-status-row" style="margin-bottom:0">{db_badge}<span class="trace-dur-pill">{html.escape(dur_str)}</span></div>'
+            f'<span class="trace-stage-title">{icon} {html.escape(title_ar)}</span>'
+            f'<div class="musnad-status-row">{db_badge}<span class="trace-dur-pill">{html.escape(dur_str)}</span></div>'
             f'</div>'
             f'<div class="trace-detail">{detail_html}</div>'
             f'</div>'
-        )
-
-    if in_progress and events:
-        blocks.append(
-            '<div class="trace-card"><div class="trace-detail">⏳ بانتظار المرحلة التالية…</div></div>'
         )
 
     if summary:
@@ -814,11 +1135,11 @@ def render_trace_panel_html(
         counts = dict(summary.get("call_counts") or {})
         metrics = [
             ("الزمن الكلي", total_ms),
-            ("Pro", str(counts.get("pro_calls", 0))),
-            ("Flash", str(counts.get("flash_calls", 0))),
-            ("Embeddings", str(counts.get("embed_calls", 0))),
-            ("Tools", str(counts.get("tool_calls", 0))),
-            ("SQLite", str(counts.get("sqlite_queries", 0))),
+            ("استدعاءات الصياغة", str(counts.get("pro_calls", 0))),
+            ("استدعاءات البحث", str(counts.get("flash_calls", 0))),
+            ("التضمين", str(counts.get("embed_calls", 0))),
+            ("الأدوات", str(counts.get("tool_calls", 0))),
+            ("استعلامات السند", str(counts.get("sqlite_queries", 0))),
         ]
         metric_cards = "".join(
             f'<div class="trace-metric">'
@@ -843,5 +1164,33 @@ def render_error_card(friendly_message: str, details_text: str) -> None:
         unsafe_allow_html=True,
     )
     if details_text:
-        with st.expander("تفاصيل الخطأ (Details)", expanded=False):
+        with st.expander("تفاصيل إضافية", expanded=False):
             st.code(details_text, language="text")
+
+
+def render_footer(
+    usage_status: UsageDecision | None,
+    *,
+    session_limit: int,
+    ip_hourly_limit: int,
+    daily_cap: int,
+    is_replay: bool = False,
+) -> None:
+    """Render quiet compact Arabic footer line showing usage limits."""
+    parts: list[str] = []
+    if is_replay:
+        parts.append("عرض مسجَّل مسبقًا (بدون اتصال)")
+    if isinstance(usage_status, UsageDecision):
+        parts.append(
+            f"حدود الاستخدام المباشر: الجلسة {usage_status.session_count}/{session_limit} · "
+            f"الساعة {usage_status.ip_hourly_count}/{ip_hourly_limit} · "
+            f"اليومي {usage_status.daily_count}/{daily_cap}"
+        )
+    else:
+        parts.append(
+            f"حدود الاستخدام المباشر: {session_limit} للجلسة · {ip_hourly_limit} في الساعة · {daily_cap} يوميًا"
+        )
+    st.markdown(
+        f'<footer class="musnad-footer">{html.escape(" | ".join(parts))}</footer>',
+        unsafe_allow_html=True,
+    )
