@@ -1,0 +1,261 @@
+{
+  "n": 15,
+  "dataset": "golden.jsonl (first 15 answerable queries from live_latency_and_cost)",
+  "before_sequential_ms": {
+    "median": 7587.98,
+    "p95": 9995.12,
+    "mean": 7916.32,
+    "min": 6836.36,
+    "max": 12133.19
+  },
+  "after_parallel_ms": {
+    "median": 6148.29,
+    "p95": 7590.15,
+    "mean": 6379.98,
+    "min": 5782.24,
+    "max": 9164.18
+  },
+  "speedup_ms": {
+    "median_saved_ms": 1439.69,
+    "p95_saved_ms": 2404.97
+  },
+  "retrieval_quality_n15": {
+    "hit@1": "12/15 (80.00%)",
+    "hit@3": "13/15 (86.67%)",
+    "hit@5": "13/15 (86.67%)",
+    "mrr": 0.8222
+  },
+  "api_calls_used": {
+    "pro_calls": 0,
+    "flash_calls": 15,
+    "embed_calls": 30
+  },
+  "fallback_count": 0,
+  "records": [
+    {
+      "idx": 1,
+      "question": "ما جزاء من صام رمضان إيماناً واحتساباً؟",
+      "before_retrieval_ms": 9078.81,
+      "after_retrieval_ms": 9164.18,
+      "delta_ms": 85.37,
+      "used_fallback": false,
+      "retrieved_ids": [
+        8950,
+        8948,
+        9867,
+        9868,
+        8949
+      ]
+    },
+    {
+      "idx": 2,
+      "question": "ما هي أركان الإسلام الخمسة؟",
+      "before_retrieval_ms": 7305.33,
+      "after_retrieval_ms": 5814.13,
+      "delta_ms": -1491.2,
+      "used_fallback": false,
+      "retrieved_ids": [
+        7298,
+        7299,
+        7297,
+        7296,
+        7282
+      ]
+    },
+    {
+      "idx": 3,
+      "question": "ماذا قال النبي عن فضل يوم عرفة؟",
+      "before_retrieval_ms": 7813.85,
+      "after_retrieval_ms": 6448.43,
+      "delta_ms": -1365.42,
+      "used_fallback": false,
+      "retrieved_ids": [
+        10443,
+        9907,
+        14608,
+        8305,
+        10116
+      ]
+    },
+    {
+      "idx": 4,
+      "question": "هل يجوز صيام يوم الشك؟",
+      "before_retrieval_ms": 7080.63,
+      "after_retrieval_ms": 6075.82,
+      "delta_ms": -1004.81,
+      "used_fallback": false,
+      "retrieved_ids": [
+        9675,
+        9678,
+        9664,
+        9663,
+        9666
+      ]
+    },
+    {
+      "idx": 5,
+      "question": "ما الحديث الذي يربط قبول الأعمال بالنية؟",
+      "before_retrieval_ms": 7912.22,
+      "after_retrieval_ms": 6426.29,
+      "delta_ms": -1485.93,
+      "used_fallback": false,
+      "retrieved_ids": [
+        12068,
+        13659,
+        7519,
+        13853,
+        7518
+      ]
+    },
+    {
+      "idx": 6,
+      "question": "كم عدد ركعات صلاة الوتر؟",
+      "before_retrieval_ms": 7587.98,
+      "after_retrieval_ms": 6148.29,
+      "delta_ms": -1439.69,
+      "used_fallback": false,
+      "retrieved_ids": [
+        8927,
+        8928,
+        8918,
+        8920,
+        8933
+      ]
+    },
+    {
+      "idx": 7,
+      "question": "ما حكم صيام نبي الله داود؟",
+      "before_retrieval_ms": 12133.19,
+      "after_retrieval_ms": 6017.27,
+      "delta_ms": -6115.92,
+      "used_fallback": false,
+      "retrieved_ids": [
+        9900,
+        9901,
+        9903,
+        9897,
+        9895
+      ]
+    },
+    {
+      "idx": 8,
+      "question": "هل يوجد أحاديث عن فضل كفالة اليتيم؟",
+      "before_retrieval_ms": 8156.55,
+      "after_retrieval_ms": 6449.92,
+      "delta_ms": -1706.63,
+      "used_fallback": false,
+      "retrieved_ids": [
+        14561,
+        13809,
+        13575,
+        14612,
+        13574
+      ]
+    },
+    {
+      "idx": 9,
+      "question": "ماذا تفعل إذا نسيت وأكلت وأنت صائم؟",
+      "before_retrieval_ms": 7339.34,
+      "after_retrieval_ms": 5907.81,
+      "delta_ms": -1431.53,
+      "used_fallback": false,
+      "retrieved_ids": [
+        9877,
+        9770,
+        9760,
+        9811,
+        9913
+      ]
+    },
+    {
+      "idx": 10,
+      "question": "لمن تكون النصيحة في الدين؟",
+      "before_retrieval_ms": 6836.36,
+      "after_retrieval_ms": 6003.98,
+      "delta_ms": -832.38,
+      "used_fallback": false,
+      "retrieved_ids": [
+        7380,
+        7384,
+        14670,
+        12097,
+        7289
+      ]
+    },
+    {
+      "idx": 11,
+      "question": "من هو المسلم الحق كما وصفه النبي؟",
+      "before_retrieval_ms": 7130.84,
+      "after_retrieval_ms": 6534.86,
+      "delta_ms": -595.98,
+      "used_fallback": false,
+      "retrieved_ids": [
+        7346,
+        7345,
+        7347,
+        7355,
+        13657
+      ]
+    },
+    {
+      "idx": 12,
+      "question": "ما شرط كمال الإيمان في التعامل مع الآخرين؟",
+      "before_retrieval_ms": 6915.18,
+      "after_retrieval_ms": 6915.57,
+      "delta_ms": 0.39,
+      "used_fallback": false,
+      "retrieved_ids": [
+        7354,
+        7355,
+        7358,
+        7360,
+        7352
+      ]
+    },
+    {
+      "idx": 13,
+      "question": "ما حكم الغش في البيع؟",
+      "before_retrieval_ms": 8161.66,
+      "after_retrieval_ms": 5782.24,
+      "delta_ms": -2379.42,
+      "used_fallback": false,
+      "retrieved_ids": [
+        11006,
+        11008,
+        11274,
+        10964,
+        10960
+      ]
+    },
+    {
+      "idx": 14,
+      "question": "ما فضل الطهارة في الإسلام؟",
+      "before_retrieval_ms": 8272.92,
+      "after_retrieval_ms": 6180.8,
+      "delta_ms": -2092.12,
+      "used_fallback": false,
+      "retrieved_ids": [
+        7761,
+        8693,
+        7717,
+        7760,
+        8868
+      ]
+    },
+    {
+      "idx": 15,
+      "question": "كم عدد شعب الإيمان وأين موقع الحياء منها؟",
+      "before_retrieval_ms": 7019.88,
+      "after_retrieval_ms": 5830.06,
+      "delta_ms": -1189.82,
+      "used_fallback": false,
+      "retrieved_ids": [
+        7337,
+        7336,
+        7338,
+        7370,
+        7526
+      ]
+    }
+  ]
+}

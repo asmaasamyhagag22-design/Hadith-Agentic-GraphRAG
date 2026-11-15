@@ -103,6 +103,8 @@ router_eval_v3 | golden | Router v3 (golden, out-of-sample) | dataset=golden.jso
 router_eval_v3 | synthetic_in_sample | Router v3 on synthetic_eval (in training data (in-sample)) | dataset=synthetic_eval.jsonl n=224 section=34 | Text_specificity=99.1%@224
 router_eval_v3 | chain_dev_in_sample | Router v3 on chain_eval_dev (in training data (in-sample)) | dataset=chain_eval_dev.jsonl n=15 section=34 | Chain_recall=100.0%@15
 router_eval_v3 | pooled | Router v3 pooled across all 6 eval sets (mixed: includes 239 in training data (in-sample) + 30 seen during design) | n=387 section=34 | Overall_accuracy=98.7%@387 Balanced_accuracy=98.2%@387 Median_overhead_ms=0.0645 p95_overhead_ms=0.1243
+retrieval_latency_parallel | sequential_n15 | Sequential HyDE baseline (n=15) | dataset=golden.jsonl n=15 section=35 | Retrieval_median_ms=7588.0 Retrieval_p95_ms=9995.1 Retrieval_mean_ms=7916.3
+retrieval_latency_parallel | parallel_n15 | Parallel raw embed + HyDE (n=15) | dataset=golden.jsonl n=15 section=35 | Retrieval_median_ms=6148.3 Retrieval_p95_ms=7590.2 Retrieval_mean_ms=6380.0
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3711,6 +3713,28 @@ artifact was touched.
   - النتائج (`6/6` إجابات سليمة في `53.14 s`، باستهلاك **`10` نداءات Pro** [الحد `<= 15`] و**`2` نداء Flash** و**`4` نداءات Embed**؛ الإجمالي التراكمي للميزانية **`449 / 500`** Pro و**`146 / 800`** Flash):
     - أسئلة النص (`3/3`): سؤال الصيام (`#8950`) وسؤال ركعتي الفجر (`#8859`, `#8860`) مع إلحاق سلاسلهما من قاعدة البيانات، وسؤال التراويح (`golden#29`) برفض صارم («المصادر المتاحة لا تجيب عن هذا السؤال»).
     - أسئلة السند (`3/3`): صحابي `#7296` (أداة `get_isnad` مباشرة ← ابن عمر)، وعدد طرق `#9000` (`get_isnad` ← طريقان مسجلان)، وصحابي حديث كافل اليتيم `#14561` (خطوتان `search_hadith` ثم `get_isnad` ← أبو هريرة) مع إلحاق السلسلة الكاملة تحت كل إجابة.
+
+---
+
+## 35. تسريع الاسترجاع المرقّى بتشغيل تضمين الاستعلام وتوليد HyDE بالتوازي (`Parallel HyDE`)
+
+**تاريخ القياس:** 2026-11-15 · **الكود:** `src/retrieve.py` (`UpgradedRetriever._blended_query_vector`)، `src/measure_parallel_hyde.py`، `tests/test_parallel_hyde.py` · **المصدر:** `data/processed/e5_simple_default_results.json` (`live_latency_and_cost.records[:15]`) و`data/demo/parallel_hyde_latency_n15.json`
+
+### 1) التحسين الهندسي والتكافؤ الرياضي للمخرجات
+في النسخة التسلسلية السابقة من `UpgradedRetriever._blended_query_vector` (§29.6)، كان تضمين الاستعلام الخام (`gemini-embedding-001`) يُنفَّذ أولًا ثم يليه توليد `HyDE` (`gemini-3.8-flash`، `LOW`) ثم تضمين نص `HyDE`. حُوِّل هذا المسار إلى تشغيل **تضمين الاستعلام الخام** و**توليد وتضمين `HyDE`** بالتوازي عبر `ThreadPoolExecutor(max_workers=2)` مع عزل عملاء `genai.Client` وعدم تحديث الذاكرة المؤقتة إلا بعد نجاح كلا المهمتين.
+
+- **التحقق الحتمي عبر Mock API (`tests/test_parallel_hyde.py`):** بمقارنة المسار الموازي بالمسار التسلسلي على نفس الاستجابات المولّدة، تطابق متجه الاستعلام الممزوج بالكامل (`np.allclose` و`np.array_equal`) وتطابقت معرفات الأحاديث المسترجعة وسياق النص النهائي (`format_context`) بايتًا ببايت (`byte-identical`).
+
+### 2) قياس كمون الاسترجاع الحي غير المخزّن (`n = 15` سؤالًا من `golden.jsonl`)
+قِيس الاسترجاع الحي غير المخزّن (`k = 5`، بعد مسح `query_vec_cache` و`hyde_vec_cache` و`_dense_rank_cache` قبل كل استعلام، واستهلاك `15` نداء Flash و`30` نداء Embed و`0` نداءات Pro، و`0/15` رجوعًا للمسار الاحتياطي) على أول `15` سؤالًا قابلًا للإجابة من `golden.jsonl`، ومقارنتها بقياسات خط الأساس التسلسلي المقترنة لنفس الأسئلة الـ `15` في §29.7:
+
+| الإعداد (`n = 15` غير مخزّن) | الوسيط (`median`) | المئين 95 (`p95`) | المتوسط (`mean`) | المدى (`min–max`) |
+| --- | ---: | ---: | ---: | ---: |
+| **قبل التوازي (تسلسلي — §29.7 `records[:15]`)** | `7588.0 ms` (`7.59 s`) | `9995.1 ms` (`10.00 s`) | `7916.3 ms` | `6836.4–12133.2 ms` |
+| **بعد التوازي (`Parallel HyDE`)** | **`6148.3 ms`** (**`6.15 s`**) | **`7590.2 ms`** (**`7.59 s`**) | **`6380.0 ms`** | `5782.2–9164.2 ms` |
+| **الوفْر الزمني المحقَّق** | **`-1439.7 ms`** (`-1.44 s`، `-19.0%`) | **`-2405.0 ms`** (`-2.40 s`، `-24.1%`) | **`-1536.3 ms`** | — |
+
+- **ملاحظة الشفافية حول جودة الاسترجاع الحية العابرة:** في هذا التشغيل الحي غير المخزّن (`n = 15`) حقق المسار `12/15` (`80.0%`) `hit@1` و`13/15` (`86.7%`) `hit@5` (`MRR = 0.8222`)؛ حيث استبدلت استجابتان عابرتان من `gemini-3.8-flash` الحديث المرجعي في أول `5` نتائج على سؤالَي «يوم الشك» و«الغش في البيع» بسبب عدم الحتمية الخادمية في `gemini-3.8-flash` حتى عند `temperature=0`، بينما حققت المتجهات المثبّتة نفسها `15/15` (`100.0%`) مع تكافؤ حتمي بايت-ببايت في الاختبار المحاكى.
 
 
 

@@ -1,6 +1,7 @@
-import sys
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
+import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -412,10 +413,19 @@ class UpgradedRetriever:
             ids_path=ids_path,
         )
 
-    def _embed_raw_query_vector(self, question, http_opts=None, embed_client=None):
-        """Return L2-normalized gemini-embedding-001 vector for ``question``, caching it."""
-        if question in self.query_vec_cache:
-            return self.query_vec_cache[question]
+    @staticmethod
+    def _embed_text(embed_client, text, types_mod):
+        resp = embed_client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=[text],
+            config=types_mod.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY", output_dimensionality=3072
+            ),
+        )
+        return _l2_normalize_vec(resp.embeddings[0].values)
+
+    def _compute_raw_query_vector(self, question, *, http_opts=None, embed_client=None):
+        """Compute L2-normalized gemini-embedding-001 vector for ``question``."""
         from dotenv import load_dotenv
         from google import genai
         from google.genai import types
@@ -425,17 +435,17 @@ class UpgradedRetriever:
             http_opts = types.HttpOptions(timeout=self.api_timeout_ms)
         if embed_client is None:
             embed_client = genai.Client(http_options=http_opts)
-        resp_q = embed_client.models.embed_content(
-            model="gemini-embedding-001",
-            contents=[strip_diacritics(question)],
-            config=types.EmbedContentConfig(
-                task_type="RETRIEVAL_QUERY", output_dimensionality=3072
-            ),
+        return self._embed_text(embed_client, strip_diacritics(question), types)
+
+    def _embed_raw_query_vector(self, question, http_opts=None, embed_client=None):
+        """Return L2-normalized gemini-embedding-001 vector for ``question``, caching it."""
+        if question in self.query_vec_cache:
+            return self.query_vec_cache[question]
+        vec = self._compute_raw_query_vector(
+            question, http_opts=http_opts, embed_client=embed_client
         )
-        self.query_vec_cache[question] = _l2_normalize_vec(
-            resp_q.embeddings[0].values
-        )
-        return self.query_vec_cache[question]
+        self.query_vec_cache[question] = vec
+        return vec
 
     def get_query_embedding(self, question):
         """Return cached or freshly embedded 3072d query vector, or None on API failure."""
@@ -446,10 +456,47 @@ class UpgradedRetriever:
         except Exception:
             return None
 
+    def _generate_and_embed_hyde(
+        self, question, *, http_opts=None, gen_client=None, embed_client=None
+    ):
+        """Generate a HyDE passage via gemini-3.8-flash and embed it with gemini-embedding-001."""
+        from google import genai
+        from google.genai import types
+
+        active_gen = (
+            gen_client
+            if gen_client is not None
+            else genai.Client(location="global", http_options=http_opts)
+        )
+        hyde_prompt = (
+            "أنت عالم بالحديث النبوي الشريف وبألفاظ صحيح مسلم.\n"
+            "اكتب متن حديث نبوي افتراضي موجز (سطرين إلى ثلاثة أسطر، بدون إسناد وبدون أرقام) "
+            "يجيب عن السؤال التالي بأسلوب وألفاظ قريبة من متون صحيح مسلم.\n\n"
+            f"السؤال: {question}"
+        )
+        resp_h = active_gen.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=hyde_prompt,
+            config=types.GenerateContentConfig(
+                temperature=0,
+                thinking_config=types.ThinkingConfig(thinking_level="LOW"),
+            ),
+        )
+        raw_hyde = (resp_h.text or "").strip()
+        pseudo = strip_diacritics(raw_hyde) or strip_diacritics(question)
+        active_embed = (
+            embed_client
+            if embed_client is not None
+            else genai.Client(http_options=http_opts)
+        )
+        h_vec = self._embed_text(active_embed, pseudo, types)
+        return raw_hyde, h_vec
+
     def _blended_query_vector(self, question):
-        if question not in self.query_vec_cache or (
-            self.hyde_alpha < 1.0 and question not in self.hyde_vec_cache
-        ):
+        need_q = question not in self.query_vec_cache
+        need_hyde = self.hyde_alpha < 1.0 and question not in self.hyde_vec_cache
+
+        if need_q or need_hyde:
             from dotenv import load_dotenv
             from google import genai
             from google.genai import types
@@ -460,45 +507,33 @@ class UpgradedRetriever:
                 if self.api_timeout_ms
                 else None
             )
-            embed_client = genai.Client(http_options=http_opts)
-            if question not in self.query_vec_cache:
-                self._embed_raw_query_vector(
-                    question, http_opts=http_opts, embed_client=embed_client
-                )
-
-            if self.hyde_alpha < 1.0 and question not in self.hyde_vec_cache:
-                gen_client = genai.Client(
-                    location="global", http_options=http_opts
-                )
-                hyde_prompt = (
-                    "أنت عالم بالحديث النبوي الشريف وبألفاظ صحيح مسلم.\n"
-                    "اكتب متن حديث نبوي افتراضي موجز (سطرين إلى ثلاثة أسطر، بدون إسناد وبدون أرقام) "
-                    "يجيب عن السؤال التالي بأسلوب وألفاظ قريبة من متون صحيح مسلم.\n\n"
-                    f"السؤال: {question}"
-                )
-                resp_h = gen_client.models.generate_content(
-                    model="gemini-3.8-flash",
-                    contents=hyde_prompt,
-                    config=types.GenerateContentConfig(
-                        temperature=0,
-                        thinking_config=types.ThinkingConfig(
-                            thinking_level="LOW"
-                        ),
-                    ),
-                )
-                raw_hyde = (resp_h.text or "").strip()
+            if need_q and need_hyde:
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    q_fut = pool.submit(
+                        self._compute_raw_query_vector,
+                        question,
+                        http_opts=http_opts,
+                    )
+                    h_fut = pool.submit(
+                        self._generate_and_embed_hyde,
+                        question,
+                        http_opts=http_opts,
+                    )
+                    q_vec = q_fut.result()
+                    raw_hyde, h_vec = h_fut.result()
+                self.query_vec_cache[question] = q_vec
                 self.hyde_text_cache[question] = raw_hyde
-                pseudo = strip_diacritics(raw_hyde) or strip_diacritics(question)
-                resp_he = embed_client.models.embed_content(
-                    model="gemini-embedding-001",
-                    contents=[pseudo],
-                    config=types.EmbedContentConfig(
-                        task_type="RETRIEVAL_QUERY", output_dimensionality=3072
-                    ),
+                self.hyde_vec_cache[question] = h_vec
+            elif need_q:
+                self.query_vec_cache[question] = self._compute_raw_query_vector(
+                    question, http_opts=http_opts
                 )
-                self.hyde_vec_cache[question] = _l2_normalize_vec(
-                    resp_he.embeddings[0].values
+            else:
+                raw_hyde, h_vec = self._generate_and_embed_hyde(
+                    question, http_opts=http_opts
                 )
+                self.hyde_text_cache[question] = raw_hyde
+                self.hyde_vec_cache[question] = h_vec
 
         q_vec = self.query_vec_cache[question]
         if self.hyde_alpha >= 1.0:

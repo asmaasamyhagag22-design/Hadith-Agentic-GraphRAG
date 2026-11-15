@@ -5,8 +5,8 @@
   },
   "used": {
     "pro": 17,
-    "flash": 8,
-    "embed": 16
+    "flash": 23,
+    "embed": 46
   },
   "runs": [
     {
@@ -22,6 +22,13 @@
       "pro": 16,
       "flash": 7,
       "embed": 14
+    },
+    {
+      "timestamp": "2026-11-15T00:58:39.915947+00:00",
+      "step": "Step 4: parallel HyDE n=15 uncached retrieval latency",
+      "pro": 0,
+      "flash": 15,
+      "embed": 30
     }
   ]
 }

@@ -76,12 +76,12 @@ def _write_fixture_index(directory):
 
 
 @pytest.mark.parametrize(
-    ("stage", "embedding_calls", "hyde_calls"),
-    [("query embedding", 1, 0), ("HyDE", 1, 1), ("HyDE embedding", 2, 1)],
+    ("stage", "min_embedding_calls", "max_embedding_calls", "hyde_calls"),
+    [("query embedding", 1, 2, 1), ("HyDE", 1, 1, 1), ("HyDE embedding", 2, 2, 1)],
 )
 @pytest.mark.parametrize("failure_kind", ["timeout", "api-error"])
 def test_default_pipeline_returns_legacy_results_on_api_failure(
-    tmp_path, monkeypatch, stage, embedding_calls, hyde_calls, failure_kind
+    tmp_path, monkeypatch, stage, min_embedding_calls, max_embedding_calls, hyde_calls, failure_kind
 ):
     chunks_path, paths = _write_fixture_index(tmp_path)
     vectors_path, ids_path = paths["matn"]
@@ -140,7 +140,7 @@ def test_default_pipeline_returns_legacy_results_on_api_failure(
         assert upgraded.search(question, k=1) == expected
         assert upgraded.last_used_fallback
         assert client.models.generate_content.call_count == hyde_calls
-        assert client.models.embed_content.call_count == embedding_calls
+        assert min_embedding_calls <= client.models.embed_content.call_count <= max_embedding_calls
         assert all(call.kwargs["http_options"].timeout == 1500 for call in mock_api.call_args_list)
 
 

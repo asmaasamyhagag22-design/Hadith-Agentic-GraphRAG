@@ -2,7 +2,7 @@
 
 Branch: `demo-app` (worktree `../sanad-demo`, branched from `origin/retrieval-upgrade`)
 
-API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `17 Pro`, `8 Flash`, `16 Embed` — includes 1 Pro / 1 Flash / 2 Embed from aborted initial run_01 + 16 Pro / 7 Flash / 14 Embed across 10 recorded runs)
+API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `17 Pro`, `23 Flash`, `46 Embed` — `17 Pro / 8 Flash / 16 Embed` in Step 3 + `0 Pro / 15 Flash / 30 Embed` in Step 4; remaining: `23 Pro`, `17 Flash`)
 
 ## Step Status
 - [done] **Step 1 — Observational Trace Collector (`src/trace.py`)**:
@@ -14,7 +14,11 @@ API Budget Cap: `<= 40 Pro`, `<= 40 Flash` (spent so far: `17 Pro`, `8 Flash`, `
   - Implemented `app/replay.py` and wired explicit `MUSNAD_DEMO_REPLAY=1`, missing credentials fallback, usage-cap hook, and cloud fallback with `"Recorded run — replayed"` banner and real step durations.
   - Added `tests/test_replay.py` (4/4).
   - Verified: `check_docs` 5/5, CI subset `305 passed, 26 deselected`, full `pytest` `331 passed`.
-- [in_progress] **Step 4 — Parallel HyDE + Query Embedding Latency Improvement**
-- [pending] **Step 5 — 20-Question Live Playwright Self-Test & Findings**
+- [done] **Step 4 — Parallel HyDE + Query Embedding Latency Improvement**:
+  - Updated `src/retrieve.py` (`UpgradedRetriever._blended_query_vector`) to run HyDE generation+embedding concurrently with raw-query embedding using `ThreadPoolExecutor` and isolated `genai.Client` instances.
+  - Verified byte-identical vectors (`np.array_equal`), retrieved IDs, and `format_context` outputs + true `Barrier(2)` concurrency in `tests/test_parallel_hyde.py` (2/2).
+  - Measured live uncached latency on `n=15` golden questions (`live_latency_and_cost.records[:15]` via `src/measure_parallel_hyde.py`): median `7587.98 ms -> 6148.29 ms` (`-1439.69 ms`, `-19.0%`), p95 `9995.12 ms -> 7590.15 ms` (`-2404.97 ms`, `-24.1%`). Recorded in `EXPERIMENTS.md` (`## 35.`) and `README.md`.
+  - Verified: `check_docs` 5/5, CI subset `307 passed, 26 deselected`, full `pytest` `333 passed`.
+- [in_progress] **Step 5 — 20-Question Live Playwright Self-Test & Findings**
 - [pending] **Step 6 — Docker, AWS CDK (`infra/`), Usage Guard, Runbook & README**
 - [pending] **Final Merge (`origin/retrieval-upgrade` -> `demo-app`) & Full Verification**
