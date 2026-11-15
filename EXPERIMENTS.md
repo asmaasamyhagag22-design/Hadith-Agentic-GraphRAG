@@ -76,9 +76,11 @@ retrieval_synthetic | upgraded | Upgraded (HyDE + Gemini-001) | dataset=syntheti
 retrieval_synthetic | hybrid_rerank | Hybrid + rerank (baseline) | dataset=synthetic_eval.jsonl n=224 section=6 | hit@1=27%@224 hit@3=37%@224 hit@5=41%@224 hit@10=44%@224 MRR=0.330
 retrieval_synthetic | hybrid_rrf | Hybrid (RRF) | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=18%@224 hit@3=30%@224 hit@5=37%@224 hit@10=44%@224 MRR=0.256
 retrieval_synthetic | dense_matn | Dense only | dataset=synthetic_eval.jsonl n=224 section=5 | hit@1=14%@224 hit@3=20%@224 hit@5=26%@224 hit@10=32%@224 MRR=0.189
-answer_quality | upgraded | Upgraded (3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=96%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=3.3%@30 False_refusals=4%@27 Correct_refusals=6/9
+answer_quality | upgraded_6runs | Upgraded (6-run pooled) | dataset=golden.jsonl section=32 | Correct_citation=96%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=1.7%@30 False_refusals=4%@27 Correct_refusals=15/18
 answer_quality | hybrid_rerank | Hybrid + rerank (baseline, 3-run mean) | dataset=golden.jsonl section=29 | Correct_citation=81%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=8%@30 False_refusals=0%@22 Correct_refusals=3/3
 answer_quality | hybrid_rrf | Hybrid (RRF) | dataset=golden.jsonl section=29 | Correct_citation=63%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=23%@30 False_refusals=0%@20 Correct_refusals=3/3
+answer_quality_source | upgraded_s29 | Upgraded (§29.7 3-run source) | dataset=golden.jsonl section=29 | Correct_citation=96%@27 Invalid_citation_attempts_(raw)=0%@30 Missing_citation_attempts_(raw)=0%@30 Non-gold_citation_from_context=3.3%@30 False_refusals=4%@27 Correct_refusals=6/9
+answer_quality_pooled | upgraded_6runs_counts | Upgraded text path (6-run pooled exact denominators) | dataset=golden.jsonl section=32 | Correct_citation=96.3%@162 Invalid_citation_attempts_(raw)=0%@180 Missing_citation_attempts_(raw)=0%@180 Non-gold_citation_from_context=1.7%@180 False_refusals=3.7%@162 Correct_refusals=83.3%@18
 sanad_attachment | default_3runs | Sanad-attached answers (3 runs) | dataset=golden.jsonl section=30 | Attachment_coverage=95.9%@220 Unique_hadith_coverage=97.4%@76 Median_latency_ms=2.226 p95_latency_ms=3.444
 golden_agent | off_3runs | Baseline non-agent (3-run mean) | dataset=golden.jsonl section=32 | Correct_citation=96.3%@27 False_refusals=3.7%@27 Correct_refusals=100.0%@3 Pooled_median_ms=4906.0 Pooled_p95_ms=25074.3
 golden_agent | on_3runs | Tool-calling agent (3-run mean) | dataset=golden.jsonl section=32 | Correct_citation=100.0%@27 False_refusals=0.0%@27 Correct_refusals=55.6%@3 Pooled_median_ms=17326.3 Pooled_p95_ms=29167.4
@@ -93,12 +95,14 @@ router_eval_v2 | synthetic_eval | Deterministic router v2 bugfix (synthetic) | d
 router_eval_v2 | chain_eval_dev | Deterministic router v2 bugfix (chain dev) | dataset=chain_eval_dev.jsonl n=15 section=33 | Overall_accuracy=100.0%@15 Chain_recall=100.0%@15
 router_eval_v2 | chain_eval_test | Deterministic router v2 bugfix (chain frozen test) | dataset=chain_eval_test.jsonl n=25 section=33 | Overall_accuracy=96.0%@25 Chain_recall=96.0%@25
 router_eval_v2 | router_fresh | Deterministic router v2 bugfix (Gemma fresh chain) | dataset=router_fresh.jsonl n=30 section=33 | Overall_accuracy=56.7%@30 Chain_recall=56.7%@30
-router_fresh2 | v2 | Router v2 (regex only) | dataset=router_fresh2.jsonl n=60 section=34 | Balanced_accuracy=75.0%@60 Chain_recall=50.0%@30 Hard_negative_specificity=100.0%@30 Chain_test=96.0%@25 Synthetic_text=99.6%@224
-router_fresh2 | v3 | Router v3 (v2 fast path + logreg) | dataset=router_fresh2.jsonl n=60 section=34 | Balanced_accuracy=96.7%@60 Chain_recall=93.3%@30 Hard_negative_specificity=100.0%@30 Chain_test=100.0%@25 Synthetic_text=99.1%@224
+router_fresh2 | v2 | Router v2 (regex only) | dataset=router_fresh2.jsonl n=60 section=34 | Balanced_accuracy=75.0%@60 Chain_recall=50.0%@30 Hard_negative_specificity=100.0%@30 Golden=100.0%@33 Chain_test=96.0%@25
+router_fresh2 | v3 | Router v3 (v2 fast path + logreg) | dataset=router_fresh2.jsonl n=60 section=34 | Balanced_accuracy=96.7%@60 Chain_recall=93.3%@30 Hard_negative_specificity=100.0%@30 Golden=100.0%@33 Chain_test=100.0%@25
 router_eval_v3 | train_cv | Router v3 5-fold CV (train) | dataset=router_train.jsonl n=488 section=34 | Balanced_accuracy=99.1%@488 Chain_recall=100.0%@165 Text_specificity=98.1%@323
 router_eval_v3 | fresh_seen | Router v3 on router_fresh (seen during design) | dataset=router_fresh.jsonl n=30 section=34 | Chain_recall=96.7%@30
-router_eval_v3 | golden | Router v3 (golden) | dataset=golden.jsonl n=33 section=34 | Overall_accuracy=100.0%@33 Chain_recall=100.0%@3 Text_specificity=100.0%@30
-router_eval_v3 | pooled | Router v3 pooled across all 6 eval sets | n=387 section=34 | Overall_accuracy=98.7%@387 Balanced_accuracy=98.2%@387 Median_overhead_ms=0.0645 p95_overhead_ms=0.1243
+router_eval_v3 | golden | Router v3 (golden, out-of-sample) | dataset=golden.jsonl n=33 section=34 | Overall_accuracy=100.0%@33 Chain_recall=100.0%@3 Text_specificity=100.0%@30
+router_eval_v3 | synthetic_in_sample | Router v3 on synthetic_eval (in training data (in-sample)) | dataset=synthetic_eval.jsonl n=224 section=34 | Text_specificity=99.1%@224
+router_eval_v3 | chain_dev_in_sample | Router v3 on chain_eval_dev (in training data (in-sample)) | dataset=chain_eval_dev.jsonl n=15 section=34 | Chain_recall=100.0%@15
+router_eval_v3 | pooled | Router v3 pooled across all 6 eval sets (mixed: includes 239 in training data (in-sample) + 30 seen during design) | n=387 section=34 | Overall_accuracy=98.7%@387 Balanced_accuracy=98.2%@387 Median_overhead_ms=0.0645 p95_overhead_ms=0.1243
 ```
 
 **البصمات canonical.** بتتحسب بعد تحويل `CRLF` إلى `LF`، عشان
@@ -3564,6 +3568,12 @@ artifact was touched.
 - **تحسّن الاستشهاد النصي:** رفع الوكيل `ON` دقة الاستشهاد من `96.3%` إلى **`100.0%`** (`+1.0` سؤال في المتوسط) وأزال حالة الرفض الخاطئ المتكررة على السؤال `#4` مع `0` محاولات استشهاد غير صالحة و`0` أسماء رواة مخالفة و`0` حالات إعادة توليد، وتحقق مسار الرجوع الاحتياطي حيًّا بنجاح في حالة واحد (`1/90` عند مهلة أداة `15.0s` في التشغيلة 3 `#2`).
 - **انخفاض الرفض الصحيح (`−1.33` سؤال عن `OFF`، تجاوز حد بوابة 1 البالغ `1.0`):** في سؤال الرفض `#29` («كم عدد ركعات صلاة التراويح؟») أعاد الوكيل صياغة استعلام البحث مستندًا إلى معرفته المسبقة («قيام رمضان إحدى عشرة ركعة»)، فاسترجع أحاديث صلاة الليل وأجاب بدل الرفض في `3/3` تشغيلات؛ وفي التشغيلة 1 من `#28` («فضل سورة الكهف يوم الجمعة») أجاب جزئيًا دون صيغة الرفض الصارمة.
 - **ارتفاع الزمن الوسيط ومضاعفة نداءات النموذج (المقارنة العادلة دون كاش):** عند مقارنة وسيط الوكيل الحي `17326.3 ms` بالوسيط الحي دون كاش لمسار النص المفرد في §29 (`12,550.5 ms`, `12.55 s`) تبلغ الزيادة **`+38.1%`** (**`1.38×`**)، بينما تضاعفت نداءات `gemini-4-argon` تقريبًا (**`181`** مقابل **`98`** نداء Pro، أي `1.85×`) لتطلّب الوكيل جولتين على الأقل. أما الرقم الأدنى لوضع `OFF` على `golden` (`4906.0 ms`, `4.91 s`) فيعكس تطابق كاش التضمين وHyDE الحرفي مسبق التسجيل (`4` نداءات Flash حية فقط مقابل `57` في `ON` لأن إعادة صياغة الاستعلام في `search_hadith` كسرت تطابق الكاش)، لذا لا يُقارن رقم `4906.0 ms` المخَبّأ مباشرة بزمن الوكيل الحي دون عزل أثر الكاش.
+- **التجميع المجمّع لمسار النص الافتراضي (`6` تشغيلات = `180` طلبًا: `3` تشغيلات §29.7 + `3` تشغيلات `C5 OFF`):** قاست §29.7 (`e5_simple_default_results.json`) و`C5 OFF` (`c5_golden_results.json`) نفس إعداد مسار النص الأحادي تمامًا (`1:0:0:0` + `gemini-4-argon`، `27` قابلًا للإجابة + `3` رفض لكل تشغيل). عند تجميع التشغيلات الست:
+  - **الاستشهاد الصحيح (`Correct_citation`):** **`156/162`** = **`96.3%`** (المقرَّب **`96%`**؛ `78/81` في §29.7 + `78/81` في `C5 OFF`).
+  - **الرفض الخاطئ (`False_refusals`):** **`6/162`** = **`3.7%`** (المقرَّب **`4%`**؛ `3/81` + `3/81`).
+  - **الرفض الصحيح (`Correct_refusals`):** **`15/18`** = **`83.3%`** (`6/9` [`66.7%`] في §29.7 بسبب استشهاد حديث التراويح بحديث قيام الليل + `9/9` [`100.0%`] في `C5 OFF`).
+  - **الاستشهاد الخاطئ من داخل السياق (`Non-gold_citation_from_context`):** **`3/180`** = **`1.7%`** (`3/90` [`3.3%`] في §29.7 + `0/90` [`0.0%`] في `C5 OFF`).
+  - **محاولات الاستشهاد خارج السياق أو غياب الاستشهاد (الخام):** **`0/180`** (**`0%`**؛ `0/90` + `0/90` مع `0` حالات إعادة توليد في التشغيلات الست).
 
 ### 3) الاختبار المجمّد `chain_eval_test.jsonl` (`n = 25`، تشغيلة نهائية واحدة — `agent ON` مقابل `agent OFF`)
 
@@ -3677,24 +3687,25 @@ artifact was touched.
 
 | المجموعة | الملاحظة | `n` | `v2` الدقة الكلية / المتوازنة | `v2` استدعاء السند / نوعية النص | `v3` الدقة الكلية / المتوازنة | `v3` استدعاء السند / نوعية النص | وسيط الزمن المضاف (`v3`) |
 | --- | --- | ---: | --- | --- | --- | --- | ---: |
-| **`router_fresh2.jsonl` (العنوان الرئيسي)** | طازج غير مرئي (`30+30`) | `60` | `75.0%` (`75.00%`, `45/60`) | `50.0%` (`15/30`) / `100.0%` (`30/30`) | **`96.7%`** (`96.67%`, `58/60`) | **`93.3%`** (`28/30`) / **`100.0%`** (`30/30`) | `0.0840 ms` |
-| `golden.jsonl` | مرجعي (`3` سند + `30` نص) | `33` | `100.0%` (`33/33`) | `100.0%` (`3/3`) / `100.0%` (`30/30`) | **`100.0%`** (`33/33`) | **`100.0%`** (`3/3`) / **`100.0%`** (`30/30`) | `0.0509 ms` |
-| `synthetic_eval.jsonl` | نصوص فقط (`224`) | `224` | `99.6%` (`99.55%`, `223/224`) | `—` / `99.6%` (`223/224`) | **`99.1%`** (`99.11%`, `222/224`) | `—` / **`99.1%`** (`222/224`) | `0.0654 ms` |
-| `chain_eval_dev.jsonl` | تطويري مولّد بالقوالب | `15` | `100.0%` (`15/15`) | `100.0%` (`15/15`) / `—` | **`100.0%`** (`15/15`) | **`100.0%`** (`15/15`) / `—` | `0.0471 ms` |
-| `chain_eval_test.jsonl` | اختباري مجمّد بالقوالب | `25` | `96.0%` (`24/25`) | `96.0%` (`24/25`) / `—` | **`100.0%`** (`25/25`) | **`100.0%`** (`25/25`) / `—` | `0.0228 ms` |
+| **`router_fresh2.jsonl` (العنوان الرئيسي)** | طازج غير مرئي (`out-of-sample`, `30+30`) | `60` | `75.0%` (`75.00%`, `45/60`) | `50.0%` (`15/30`) / `100.0%` (`30/30`) | **`96.7%`** (`96.67%`, `58/60`) | **`93.3%`** (`28/30`) / **`100.0%`** (`30/30`) | `0.0840 ms` |
+| `golden.jsonl` | مرجعي خارج التدريب (`out-of-sample`: `3` سند + `30` نص) | `33` | `100.0%` (`33/33`) | `100.0%` (`3/3`) / `100.0%` (`30/30`) | **`100.0%`** (`33/33`) | **`100.0%`** (`3/3`) / **`100.0%`** (`30/30`) | `0.0509 ms` |
+| `synthetic_eval.jsonl` | نصوص فقط (`224`؛ لـ `v3`: **in training data (in-sample)**) | `224` | `99.6%` (`99.55%`, `223/224`) | `—` / `99.6%` (`223/224`) | **`99.1%`** (`99.11%`, `222/224`) *(in training data (in-sample))* | `—` / **`99.1%`** (`222/224`) | `0.0654 ms` |
+| `chain_eval_dev.jsonl` | تطويري مولّد بالقوالب (`15`؛ لـ `v3`: **in training data (in-sample)**) | `15` | `100.0%` (`15/15`) | `100.0%` (`15/15`) / `—` | **`100.0%`** (`15/15`) *(in training data (in-sample))* | **`100.0%`** (`15/15`) / `—` | `0.0471 ms` |
+| `chain_eval_test.jsonl` | اختباري مجمّد بالقوالب (`out-of-sample`) | `25` | `96.0%` (`24/25`) | `96.0%` (`24/25`) / `—` | **`100.0%`** (`25/25`) | **`100.0%`** (`25/25`) / `—` | `0.0228 ms` |
 | `router_fresh.jsonl` | **مرئية أثناء التصميم (`seen during design`)** | `30` | `56.7%` (`56.67%`, `17/30`) | `56.7%` (`17/30`) / `—` | **`96.7%`** (`96.67%`, `29/30`) | **`96.7%`** (`29/30`) / `—` | `0.0723 ms` |
-| **المجموع المجمّع (`6` مجموعات)** | الكل | **`387`** | `92.25%` (`357/387`, متوازنة `85.75%`) | `71.8%` (`74/103`) / `99.6%` (`283/284`) | **`98.7%`** (`98.71%`, `382/387`, متوازنة **`98.2%`** [`98.19%`]) | **`97.1%`** (`100/103`) / **`99.3%`** (`282/284`) | **`0.0645 ms`** (p95 `0.1243 ms`) |
+| **المجموع المجمّع (`6` مجموعات)** | **مختلط لـ `v3`: يضم `239` `in training data (in-sample)` + `30` مرئية أثناء التصميم** | **`387`** | `92.25%` (`357/387`, متوازنة `85.75%`) | `71.8%` (`74/103`) / `99.6%` (`283/284`) | **`98.7%`** (`98.71%`, `382/387`, متوازنة **`98.2%`** [`98.19%`]) | **`97.1%`** (`100/103`) / **`99.3%`** (`282/284`) | **`0.0645 ms`** (p95 `0.1243 ms`) |
 
+- **تمييز المجموعات خارج التدريب عن المجموعات داخل التدريب لـ `v3`:** كانت مجموعتا `synthetic_eval.jsonl` (`224`) و`chain_eval_dev.jsonl` (`15`) جزءًا من `router_train.jsonl` (`n=488`)، لذا فإن أرقام `v3` عليهما (`99.1%` و`100.0%`) هي **`in training data (in-sample)`** ولا تُستخدم أرقامًا رئيسية؛ بينما تبقى المجموعات خارج التدريب (`out-of-sample`) هي `router_fresh2.jsonl` (العنوان الرئيسي الوحيد: **`96.7%`** متوازنة، `93.3%` استدعاء سند، `100.0%` نوعية نص صعب) و`golden.jsonl` (`100.0%`, `33/33`) و`chain_eval_test.jsonl` (`100.0%`, `25/25`).
 - أخطاء `v3` على `router_fresh2.jsonl` (`2/60`, لم يُجرَ أي تعديل بعدها): حالتان من أسئلة `topic_who_narrated` الضمنية دون ذكر «حديث» أو «سند» (`router_fresh2_chain_28` باحتمال `0.322` و`router_fresh2_chain_29` باحتمال `0.306`)، مقابل **`0/30` إيجابيات كاذبة** على الأسئلة النصية الصعبة التي تذكر أسماء الصحابة والرواة.
-- أخطاء `v3` على `synthetic_eval.jsonl` (`2/224`, `99.1% >= 99%`): `synthetic_eval_134` (من المسار السريع `v2`) و`synthetic_eval_104` («من هو الشخص الذي أخبر اللَّيْثَ بالحديث؟»، احتمال `0.664`).
+- أخطاء `v3` على `synthetic_eval.jsonl` (`2/224`, `99.1% >= 99%`, `in training data (in-sample)`): `synthetic_eval_134` (من المسار السريع `v2`) و`synthetic_eval_104` («من هو الشخص الذي أخبر اللَّيْثَ بالحديث؟»، احتمال `0.664`).
 - الزمن الإضافي الذي يضيفه الموجّه فوق البحث القائم: **`0.0645 ms`** بالوسيط (`p95 = 0.1243 ms`)، و`0` نداءات تضمين إضافية لأن `UpgradedRetriever.query_vec_cache` يحتسب المتجه مرة واحدة فقط.
 
 ### 3) تفعيل الوضع التلقائي `DEFAULT_AGENT_MODE = "auto"` واختبار الدخان الحي (`Step 1f`)
 
 - **تعليل التدرّج الآمن المسبق التسجيل:**
   - إذا أخطأ الموجّه ووجّه سؤال سند إلى مسار النص، يظل مسار النص يسترجع حديثًا موثّقًا برقم صحيح ويُلحق به سلسلة السند المتحقَّق منها من SQLite (`attach_sanad`)، فيتدرّج الناتج إلى إجابة جزئية صالحة لا إلى اختلاق.
-  - وإذا أخطأ ووجّه سؤال نص إلى الوكيل، يجيب الوكيل إجابة صحيحة مستشهدة (`100.0%` على `golden`) بتكلفة وزمن أعلى فقط (وبما أن نوعية الأسئلة النصية على `router_fresh2` بلغت `100.0%` [`30/30`] وعلى `synthetic_eval` `99.1%` [`222/224`] تظل نسبة التحويل الخاطئ للنص نادرة جدًا).
-  - بالتركيب (`composition`): تحافظ أسئلة النص الموجهة صحيحًا على أرقام `OFF` (`96.3%` استشهاد، `100.0%` رفض، وزمن §29 الحي `12.55 s`)، وتحصل أسئلة السند الموجهة صحيحًا على أرقام `ON` المجمّدة (`100.0%` [`25/25`] إجابة، `0/25` اختلاق رواة).
+  - وإذا أخطأ ووجّه سؤال نص إلى الوكيل، يجيب الوكيل إجابة صحيحة مستشهدة (`100.0%` على `golden`) بتكلفة وزمن أعلى فقط (وبما أن نوعية الأسئلة النصية على `router_fresh2` غير المرئية بلغت `100.0%` [`30/30`]، وعلى `golden` غير المرئية `100.0%` [`30/30`]، تظل نسبة التحويل الخاطئ للنص نادرة جدًا).
+  - بالتركيب (`composition`): تحافظ أسئلة النص الموجهة صحيحًا على أرقام مسار النص المجمّعة عبر 6 تشغيلات (`156/162` = `96.3%` استشهاد، `6/162` = `3.7%` رفض خاطئ، `15/18` = `83.3%` رفض صحيح [§29.7 `6/9` + `C5 OFF` `9/9`]، وزمن §29 الحي `12.55 s`)، وتحصل أسئلة السند الموجهة صحيحًا على أرقام `ON` المجمّدة (`100.0%` [`25/25`] إجابة، `0/25` اختلاق رواة).
 - **اختبار الدخان الحي في الـ CLI (`3` نص + `3` سند، `MUSNAD_AGENT=auto` افتراضيًا، `src/smoke_auto_cli.py`):**
   - كشف الاختبار الأول علة حقيقية في `src/answer.py:format_retrieved_chunk` / `src/agent.py:_record_chunk` (`KeyError: 'rank'` عند استدعاء الوكيل `get_isnad` مباشرة دون `search_hadith`)؛ أُصلحت العلة مع اختبار وحدة في `tests/test_agent.py` وأُعيد تشغيل اختبار الدخان الحي كاملًا (`data/processed/auto_smoke_cli.txt` و`data/processed/auto_smoke_cli.json`).
   - النتائج (`6/6` إجابات سليمة في `53.14 s`، باستهلاك **`10` نداءات Pro** [الحد `<= 15`] و**`2` نداء Flash** و**`4` نداءات Embed**؛ الإجمالي التراكمي للميزانية **`449 / 500`** Pro و**`146 / 800`** Flash):
