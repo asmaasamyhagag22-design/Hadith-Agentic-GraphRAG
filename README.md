@@ -2,18 +2,23 @@
 
 Arabic question answering over Sahih Muslim that cites the exact hadith, attaches its narrator chain from a SQLite graph, and refuses when the source is silent.
 
-Grounded Arabic question answering over Sahih Muslim, combining dense semantic matn retrieval (`gemini-embedding-001` + HyDE), a hybrid Arabic intent router (`v3`), a tool-calling chain agent (`gemini-4-argon`), and a deterministic transmission-chain (sanad) graph in SQLite (`sanad_graph.sqlite`).
+The default `auto` mode combines dense matn retrieval with an Arabic intent router. Text questions use single-turn RAG. Transmission-chain questions can use a tool-calling agent and receive recorded chains from SQLite.
 
-> «مُسنَد» يوجّه أسئلة صحيح مسلم تلقائيًا (`MUSNAD_AGENT=auto`): يمرّ سؤال المتن والفقه عبر مسار الاسترجاع الأحادي السريع ويُرفق تحت كل حديث مستشهد به سنده من قاعدة البيانات، بينما يتولّى الوكيل أسئلة الرواة والأسانيد عبر أدوات البحث وفحص السند دون اختلاق أي اسم راوٍ.
+**Retrieval at a glance**
 
-[![Tests](https://github.com/asmaasamyhagag22-design/Hadith-Agentic-GraphRAG/actions/workflows/tests.yml/badge.svg)](https://github.com/asmaasamyhagag22-design/Hadith-Agentic-GraphRAG/actions/workflows/tests.yml)
+- **Development set, 224 generated known-item queries used for configuration selection.** 41% hit@1 (91/224), 73% hit@5 (163/224), 84% hit@10 (188/224).
+- **Small hand-verified benchmark, 27 answerable questions.** 85% hit@1 (23/27), 100% hit@5 and hit@10 (27/27).
+
+[Results and evaluation scope](#results) · [Hosted demo and local replay](#live-demo)
+
+[![Tests on main](https://github.com/asmaasamyhagag22-design/Hadith-Agentic-GraphRAG/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/asmaasamyhagag22-design/Hadith-Agentic-GraphRAG/actions/workflows/tests.yml)
 ![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)
 
 ---
 
 ## Live demo
 
-- **Hosted URL:** http://Musnad-Musna-Pq3Zic0CzM17-727892108.us-east-1.elb.amazonaws.com
+- [Open the hosted Musnad demo](http://Musnad-Musna-Pq3Zic0CzM17-727892108.us-east-1.elb.amazonaws.com)
 - **Run locally (live or replay):**
   ```bash
   uv run streamlit run app/streamlit_app.py            # Live mode (uses Vertex AI ADC / .env)
@@ -107,11 +112,11 @@ Under `MUSNAD_AGENT=auto` (modes: `auto` default | `on` | `off`), `src/router.py
 
 ## Results
 
-**Upgraded retrieval reached 85% hit@1, 100% hit@5, 100% hit@10 and 0.926 MRR** on the 27 hand-verified answerable questions. Pooled across all 6 baseline text runs on the default configuration with `gemini-4-argon` (`3` runs in §29.7 + `3` `OFF` runs in §32), it achieved **96.3% correct citations** (`156/162`), **0%** out-of-context citation attempts (`0/180`), **3.7%** false refusals (`6/162`), **1.7%** wrong in-context citations (`3/180`), and **83.3% correct refusals** (`15/18`: `6/9` in §29.7 and `9/9` in C5 `OFF`). On the 224-query development set, retrieval reached **41%** `hit@1`, **73%** `hit@5`, **84%** `hit@10` and **0.545** MRR.
+Pooled across six text runs on the default configuration with `gemini-4-argon` (three runs in §29.7 and three `OFF` runs in §32), the text path achieved **96.3% correct citations** (`156/162`), **0%** out-of-context citation attempts (`0/180`), **3.7%** false refusals (`6/162`), **1.7%** wrong in-context citations (`3/180`), and **83.3% correct refusals** (`15/18`). These are repeated runs of the same questions.
 
 On `n = 20` uncached queries (`k = 5`), sequential end-to-end latency was `12.55 s` median (`17.97 s` p95) — with HyDE generation (`4.00 s` median out of `7.52 s` retrieval) dominating retrieval time — at `$0.0042` mean cost per query (`$0.00053` retrieval + `$0.00368` generation at introductory rates; `$0.0079` standard). Running raw-query embedding and HyDE generation concurrently reduced uncached retrieval latency on the paired `n = 15` golden subset from `7.59 s` median (`10.00 s` p95) to `6.15 s` median (`7.59 s` p95; `-19.0%` median / `-24.1%` p95, [`EXPERIMENTS.md` §35](EXPERIMENTS.md#35-تسريع-الاسترجاع-المرقى-بتشغيل-تضمين-الاستعلام-وتوليد-hyde-بالتوازي-parallel-hyde)).
 
-`golden.jsonl` contains 33 hand-written questions, including 27 answerable questions for retrieval and 3 refusal cases for answer evaluation. The development set (`synthetic_eval.jsonl`) contains 224 generated known-item queries used to select the configuration. Full methodology and denominators are in [`EXPERIMENTS.md`](EXPERIMENTS.md).
+The development set (`synthetic_eval.jsonl`) contains 224 generated known-item queries used to select the configuration. `golden.jsonl` contains 33 hand-written questions, including 27 answerable retrieval questions and 3 refusal cases for answer evaluation. The 27 retrieval questions were also used in earlier pipeline comparisons. A larger independent retrieval evaluation remains open. [Methodology and denominators](EXPERIMENTS.md)
 
 **Retrieval, hand-verified set (n = 27)**
 
@@ -122,8 +127,6 @@ On `n = 20` uncached queries (`k = 5`), sequential end-to-end latency was `12.55
 | Hybrid (RRF) | 44% | 74% | 85% | 0.565 |
 | Dense only | 41% | 59% | 63% | 0.493 |
 | BM25 only | 33% | 63% | 67% | 0.464 |
-
-Configuration tuned on the dev set; held-out evaluation in progress.
 
 **Retrieval, development set (n = 224)**
 
@@ -153,7 +156,7 @@ Across the three §30 sanad-attachment text runs, deterministic **sanad attachme
 | Non-agent baseline (frozen test) | 0.0% | 12.0% | 0.0% | 100.0% | 11033.5 |
 | **Tool-calling agent ON (frozen test)** | **100.0%** | **100.0%** | **0.0%** | **100.0%** | **8560.4** |
 
-The 40 chain questions (`15` dev + `25` frozen test in `chain_eval_dev.jsonl` / `chain_eval_test.jsonl`) were **generated from templates with gold answers computed directly from the SQLite sanad graph** (rather than written organically by end users), covering 5 tasks (`who_narrated_companion`, `who_narrated_teacher`, `isnad_count`, `narrator_in_chain`, and `topic_who_narrated`, including unlinked/abstention items and grading-gated abstention).
+The 40 chain questions (`15` dev + `25` frozen test in `chain_eval_dev.jsonl` / `chain_eval_test.jsonl`) were **generated from templates with gold answers computed directly from the SQLite sanad graph** (rather than written organically by end users), covering 5 tasks (`who_narrated_companion`, `who_narrated_teacher`, `isnad_count`, `narrator_in_chain`, and `topic_who_narrated`, including unlinked/abstention items and grading-gated abstention). The agent answered all 25 frozen test cases correctly. Template wording and reference answers from the same graph limit what this result says about naturally phrased questions.
 
 **Intent routing, unseen phrasing and hard negatives (n = 60)**
 
